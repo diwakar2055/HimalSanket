@@ -1,0 +1,8 @@
+{
+  "name": "HimalSanket",
+  "description": "AI-Powered Multi-Hazard Risk Intelligence for a Safer Nepal.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
