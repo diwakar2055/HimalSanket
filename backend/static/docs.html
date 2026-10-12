@@ -1,0 +1,461 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HimalSanket — Multi-Hazard Risk Engine & AI Architecture Guide</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Plus Jakarta Sans', sans-serif; }
+    code, pre { font-family: 'JetBrains Mono', monospace; }
+    .gradient-hero {
+      background: linear-gradient(135deg, #0b1329 0%, #111e38 50%, #162646 100%);
+    }
+    .card-glass {
+      background: rgba(22, 35, 63, 0.75);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(42, 59, 94, 0.6);
+    }
+  </style>
+</head>
+<body class="bg-[#0a0f1d] text-slate-100 min-h-screen antialiased selection:bg-orange-500 selection:text-white">
+
+  <!-- Navbar -->
+  <nav class="sticky top-0 z-50 bg-[#0b1329]/90 backdrop-blur-md border-b border-[#1f2e4d] px-6 py-3.5 flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <div class="w-9 h-9 rounded-lg bg-gradient-to-tr from-orange-600 to-amber-500 flex items-center justify-center font-bold text-lg text-white shadow-md">
+        🏔️
+      </div>
+      <div>
+        <div class="font-bold text-lg leading-tight tracking-tight flex items-center gap-2">
+          HimalSanket <span class="text-xs px-2 py-0.5 rounded-full bg-orange-500/20 text-orange-400 border border-orange-500/30">हिमाल संकेत</span>
+        </div>
+        <div class="text-[11px] text-slate-400">AI-Powered Multi-Hazard Risk Engine for Nepal</div>
+      </div>
+    </div>
+    <div class="flex items-center gap-3 text-xs">
+      <a href="/docs" class="px-3 py-1.5 rounded-md bg-[#16233f] hover:bg-[#1f2e4d] text-slate-200 border border-[#2a3b5e] transition">Interactive Swagger API</a>
+      <a href="/health" class="px-3 py-1.5 rounded-md bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-mono">Status: Healthy 🟢</a>
+    </div>
+  </nav>
+
+  <!-- Hero Header -->
+  <header class="gradient-hero border-b border-[#1f2e4d] py-14 px-6 relative overflow-hidden">
+    <div class="max-w-5xl mx-auto relative z-10">
+      <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/25 text-blue-400 text-xs font-semibold uppercase tracking-wider mb-4">
+        Sustainability & Social Impact — Google Cloud AI Builder Cup 2026
+      </div>
+      <h1 class="text-3xl sm:text-5xl font-extrabold tracking-tight text-white mb-4 leading-tight">
+        Multi-AI Architecture & Complete Engineering Guide
+      </h1>
+      <p class="text-base sm:text-lg text-slate-300 max-w-3xl leading-relaxed">
+        A simple, transparent explanation of how <strong>Google TimesFM</strong>, <strong>Sentinel-2 Satellite Imagery</strong>, <strong>Voice AI</strong>, <strong>Physics Fusion</strong>, and <strong>Google Gemini</strong> work together to save lives in Nepal.
+      </p>
+
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-8">
+        <div class="card-glass p-3.5 rounded-xl border-l-4 border-l-blue-500">
+          <div class="text-[11px] uppercase tracking-wider text-slate-400">Rain Prediction</div>
+          <div class="text-base font-bold text-blue-400 mt-0.5">Google TimesFM</div>
+          <div class="text-[10px] text-slate-400">6h–24h Spikes Ahead</div>
+        </div>
+        <div class="card-glass p-3.5 rounded-xl border-l-4 border-l-emerald-500">
+          <div class="text-[11px] uppercase tracking-wider text-slate-400">Lake Remote Sensing</div>
+          <div class="text-base font-bold text-emerald-400 mt-0.5">Sentinel-2 / SAR</div>
+          <div class="text-[10px] text-slate-400">NDWI Lake Area Delta %</div>
+        </div>
+        <div class="card-glass p-3.5 rounded-xl border-l-4 border-l-orange-500">
+          <div class="text-[11px] uppercase tracking-wider text-slate-400">Fusion Engine</div>
+          <div class="text-base font-bold text-orange-400 mt-0.5">Physics MCDA Core</div>
+          <div class="text-[10px] text-slate-400">Deterministic Hazard Score</div>
+        </div>
+        <div class="card-glass p-3.5 rounded-xl border-l-4 border-l-amber-500">
+          <div class="text-[11px] uppercase tracking-wider text-slate-400">AI Briefing</div>
+          <div class="text-base font-bold text-amber-400 mt-0.5">Gemini 2.0 Flash</div>
+          <div class="text-[10px] text-slate-400">English, Nepali & SMS</div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="max-w-5xl mx-auto px-6 py-12 space-y-16">
+
+    <!-- Section 1: End-to-End Visual Architecture -->
+    <section class="space-y-6">
+      <div class="flex items-center gap-3">
+        <div class="w-8 h-8 rounded-lg bg-orange-500/20 text-orange-400 border border-orange-500/30 flex items-center justify-center font-bold">1</div>
+        <h2 class="text-2xl font-bold tracking-tight text-white">How All Data Flows Into the System</h2>
+      </div>
+
+      <div class="card-glass p-6 rounded-2xl space-y-6">
+        <div class="text-sm text-slate-300 leading-relaxed">
+          How do rain, satellites, and porters actually connect to the server? Here is the complete flow:
+        </div>
+
+        <!-- Architecture Flow Diagram Image -->
+        <div class="rounded-xl overflow-hidden border border-slate-700 bg-slate-900/50 p-2">
+          <img src="/static/himalsanket_team_flow.png" alt="HimalSanket End-to-End Architecture Flow" class="w-full h-auto rounded-lg shadow-lg">
+          <div class="text-center text-xs text-slate-400 mt-2 italic">Figure 1: Full System Data Flow — Ingestion to Risk Engine to Gemini and Rescue Dashboard</div>
+        </div>
+
+        <div class="grid sm:grid-cols-4 gap-3 text-xs">
+          <div class="bg-[#0f172a] p-3 rounded-lg border border-slate-800">
+            <div class="font-bold text-blue-400 mb-1">🌧️ 1. Rain Gauges</div>
+            <div class="text-slate-400">Nepal DHM stations log hourly rain; TimesFM forecasts incoming cloudbursts.</div>
+          </div>
+          <div class="bg-[#0f172a] p-3 rounded-lg border border-slate-800">
+            <div class="font-bold text-emerald-400 mb-1">🛰️ 2. Sentinel Satellites</div>
+            <div class="text-slate-400">Google Earth Engine measures lake expansion % using Infrared NDWI water detection.</div>
+          </div>
+          <div class="bg-[#0f172a] p-3 rounded-lg border border-slate-800">
+            <div class="font-bold text-purple-400 mb-1">🎙️ 3. Porter Voice Notes</div>
+            <div class="text-slate-400">Pointers & guides speak 10s voice notes; Gemini extracts hazard keywords in Nepali.</div>
+          </div>
+          <div class="bg-[#0f172a] p-3 rounded-lg border border-slate-800">
+            <div class="font-bold text-amber-400 mb-1">⚡ 4. Seismic Feed</div>
+            <div class="text-slate-400">USGS / NSC earthquakes shake loose moraine debris; feeds local Richter magnitude.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 2: What is Sentinel-2 Satellite Imagery & How Does It Work? -->
+    <section class="space-y-6">
+      <div class="flex items-center gap-3">
+        <div class="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center font-bold">2</div>
+        <h2 class="text-2xl font-bold tracking-tight text-white">How Sentinel-2 Satellite Images Turn into a Risk Number</h2>
+      </div>
+
+      <div class="card-glass p-6 rounded-2xl space-y-4">
+        <h3 class="font-bold text-base text-white">The Challenge: Glacial lakes sit at 5,000 meters altitude where rangers cannot visit daily.</h3>
+        <p class="text-sm text-slate-300 leading-relaxed">
+          The European Space Agency operates <strong>Sentinel-2 satellites</strong>. They photograph every mountain in Nepal every 5 days for free. But they don't just take normal photos — they capture <strong>Near-Infrared (NIR) light</strong>!
+        </p>
+
+        <div class="grid md:grid-cols-2 gap-4 text-xs">
+          <div class="bg-[#0b1329] p-4 rounded-xl border border-slate-800 space-y-2">
+            <div class="font-bold text-emerald-400 text-sm">💧 Why Near-Infrared Detects Water (NDWI)</div>
+            <p class="text-slate-300">
+              Water completely swallows Near-Infrared light, looking <strong>pitch black</strong>. Meanwhile, snow, ice, and mountain rocks reflect it brightly.
+            </p>
+            <div class="font-mono text-emerald-300 bg-slate-900 p-2 rounded">
+              NDWI = (Green - NIR) / (Green + NIR)
+            </div>
+            <p class="text-slate-400">
+              If a pixel has NDWI &gt; 0.30, that pixel is <strong>100% water</strong>!
+            </p>
+          </div>
+
+          <div class="bg-[#0b1329] p-4 rounded-xl border border-slate-800 space-y-2">
+            <div class="font-bold text-blue-400 text-sm">📐 From Pixels to the Risk Engine Number</div>
+            <p class="text-slate-300">
+              1. Count water pixels: <strong>12,800 pixels</strong>.<br>
+              2. Each Sentinel pixel is 10m × 10m (100m²).<br>
+              3. Lake Area = 12,800 × 100m² = <strong>1.28 km²</strong>.<br>
+              4. Compare today's 1.42 km² vs last week's 1.28 km²:
+            </p>
+            <div class="font-mono text-blue-300 bg-slate-900 p-2 rounded">
+              Growth = ((1.42 - 1.28) / 1.28) × 100% = +10.9%
+            </div>
+            <p class="text-slate-400">
+              <strong>+10.9%</strong> is passed into <code>lake_area_change</code> in our Risk Engine!
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 3: Voice Report Analysis -->
+    <section class="space-y-6">
+      <div class="flex items-center gap-3">
+        <div class="w-8 h-8 rounded-lg bg-purple-500/20 text-purple-400 border border-purple-500/30 flex items-center justify-center font-bold">3</div>
+        <h2 class="text-2xl font-bold tracking-tight text-white">How Porter Voice Recordings Are Analyzed by AI</h2>
+      </div>
+
+      <div class="card-glass p-6 rounded-2xl space-y-4">
+        <p class="text-sm text-slate-300 leading-relaxed">
+          Porters trekking in torrential monsoon rains cannot type on keyboards. They speak a 10-second voice note in Nepali. Here is how the AI converts speech into a risk signal:
+        </p>
+
+        <div class="grid sm:grid-cols-3 gap-3 text-xs">
+          <div class="bg-[#0b1329] p-3 rounded-lg border border-slate-800">
+            <div class="font-bold text-purple-400 mb-1">1. Audio Recording</div>
+            <div class="text-slate-300 italic">"खोला धमिलो भएर एकदमै तीव्र गतिमा बढ्दै छ!"</div>
+            <div class="text-slate-500 mt-1">Recorded via mobile PWA, sent to <code>POST /ai/process/voice-report</code>.</div>
+          </div>
+          <div class="bg-[#0b1329] p-3 rounded-lg border border-slate-800">
+            <div class="font-bold text-amber-400 mb-1">2. Multilingual Keyword AI</div>
+            <div class="text-slate-300">Matches hazard lexicon:</div>
+            <div class="text-slate-400 mt-1">• "पानी बढ्यो" / "खोला" ➔ <strong>WATER RISING</strong><br>• "पहिरो" / "बाटो फुट्यो" ➔ <strong>LANDSLIDE</strong></div>
+          </div>
+          <div class="bg-[#0b1329] p-3 rounded-lg border border-slate-800">
+            <div class="font-bold text-emerald-400 mb-1">3. Numerical Risk Boost</div>
+            <div class="text-slate-300">Base: 0.18 + Voice Bonus (1.15×) + Hazard Bonus (1.10×):</div>
+            <div class="font-mono text-emerald-300 mt-1">➔ +0.228 points boost to Risk Score</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 4: Maps & Downstream River Cascade -->
+    <section class="space-y-6">
+      <div class="flex items-center gap-3">
+        <div class="w-8 h-8 rounded-lg bg-blue-500/20 text-blue-400 border border-blue-500/30 flex items-center justify-center font-bold">4</div>
+        <h2 class="text-2xl font-bold tracking-tight text-white">Maps & Downstream River Networks (Which Villages Will Flood?)</h2>
+      </div>
+
+      <div class="card-glass p-6 rounded-2xl space-y-4">
+        <p class="text-sm text-slate-300 leading-relaxed">
+          <strong>Water flows downhill.</strong> When Langtang Upper Lake breaches, the flood wave doesn't stay in Langtang; it tears down the <strong>Langtang Khola</strong> into the <strong>Trishuli River</strong>. Our backend endpoint <code>GET /ai/river-network/{corridor_id}</code> returns the exact map polyline coordinates and the downstream settlement arrival times:
+        </p>
+
+        <div class="grid sm:grid-cols-4 gap-3 text-xs">
+          <div class="bg-[#0b1329] p-3 rounded-xl border border-rose-500/30">
+            <div class="text-rose-400 font-bold">Lama Hotel Gorge</div>
+            <div class="text-slate-400 mt-1">11.2 km downstream</div>
+            <div class="text-amber-300 font-bold mt-1">⏱️ Wave arrives in 18 mins</div>
+            <div class="text-slate-500 mt-1">Suspension trail bridge</div>
+          </div>
+          <div class="bg-[#0b1329] p-3 rounded-xl border border-orange-500/30">
+            <div class="text-orange-400 font-bold">Syabrubesi Confluence</div>
+            <div class="text-slate-400 mt-1">24.5 km downstream</div>
+            <div class="text-amber-300 font-bold mt-1">⏱️ Wave arrives in 38 mins</div>
+            <div class="text-slate-500 mt-1">Main highway bridge & market</div>
+          </div>
+          <div class="bg-[#0b1329] p-3 rounded-xl border border-amber-500/30">
+            <div class="text-amber-400 font-bold">Mailung Hydro Dam</div>
+            <div class="text-slate-400 mt-1">36.0 km downstream</div>
+            <div class="text-amber-300 font-bold mt-1">⏱️ Wave arrives in 55 mins</div>
+            <div class="text-slate-500 mt-1">Hydropower intake & worker camps</div>
+          </div>
+          <div class="bg-[#0b1329] p-3 rounded-xl border border-teal-500/30">
+            <div class="text-teal-400 font-bold">Betrawati Bazaar</div>
+            <div class="text-slate-400 mt-1">48.5 km downstream</div>
+            <div class="text-amber-300 font-bold mt-1">⏱️ Wave arrives in 78 mins</div>
+            <div class="text-slate-500 mt-1">Historic riverside market</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 5: Live Interactive Risk Simulator -->
+    <section class="space-y-6">
+      <div class="flex items-center gap-3">
+        <div class="w-8 h-8 rounded-lg bg-orange-500/20 text-orange-400 border border-orange-500/30 flex items-center justify-center font-bold">5</div>
+        <h2 class="text-2xl font-bold tracking-tight text-white">Interactive In-Browser Risk Calculator</h2>
+      </div>
+
+      <div class="card-glass p-6 rounded-2xl">
+        <div class="text-sm text-slate-300 mb-6">
+          Adjust the physical sliders below to see the mathematical normalization, weighted fusion, and tier transition update in real-time:
+        </div>
+
+        <div class="grid md:grid-cols-2 gap-8">
+          <!-- Controls -->
+          <div class="space-y-4">
+            <div>
+              <div class="flex justify-between text-xs font-semibold mb-1">
+                <span>🌧️ 24h Rainfall: <span id="val-rain" class="text-orange-400 font-mono">38</span> mm (Threshold: 144mm)</span>
+                <span id="pct-rain" class="text-slate-400 font-mono">0.26 norm</span>
+              </div>
+              <input id="slider-rain" type="range" min="0" max="180" value="38" class="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-orange-500">
+            </div>
+
+            <div>
+              <div class="flex justify-between text-xs font-semibold mb-1">
+                <span>🌊 Lake Area Growth: <span id="val-lake" class="text-emerald-400 font-mono">+4</span> % (Cap: 15%)</span>
+                <span id="pct-lake" class="text-slate-400 font-mono">0.27 norm</span>
+              </div>
+              <input id="slider-lake" type="range" min="0" max="25" value="4" class="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-emerald-500">
+            </div>
+
+            <div>
+              <div class="flex justify-between text-xs font-semibold mb-1">
+                <span>⚡ Seismic Tremor: <span id="val-seis" class="text-amber-400 font-mono">1.8</span> M (Scale: 4.0M)</span>
+                <span id="pct-seis" class="text-slate-400 font-mono">0.45 norm</span>
+              </div>
+              <input id="slider-seis" type="range" min="0" max="50" value="18" class="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-amber-500">
+            </div>
+
+            <div>
+              <div class="flex justify-between text-xs font-semibold mb-1">
+                <span>⛰️ Terrain Susceptibility: <span id="val-terr" class="text-rose-400 font-mono">0.71</span></span>
+                <span id="pct-terr" class="text-slate-400 font-mono">0.71 norm</span>
+              </div>
+              <input id="slider-terr" type="range" min="0" max="100" value="71" class="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-rose-500">
+            </div>
+
+            <div>
+              <div class="flex justify-between text-xs font-semibold mb-1">
+                <span>📢 Ground Reports: <span id="val-rep" class="text-purple-400 font-mono">1</span></span>
+                <span id="pct-rep" class="text-slate-400 font-mono">0.20 norm</span>
+              </div>
+              <input id="slider-rep" type="range" min="0" max="6" value="1" class="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-purple-500">
+            </div>
+
+            <div class="flex gap-2 pt-2">
+              <button id="btn-spike" class="px-4 py-2 bg-orange-600 hover:bg-orange-500 text-white rounded-lg text-xs font-bold transition shadow-md">
+                ⚡ Simulate Cloudburst Spike (Demo)
+              </button>
+              <button id="btn-reset" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs transition border border-slate-700">
+                ↺ Reset to Normal
+              </button>
+            </div>
+          </div>
+
+          <!-- Live Output Gauge -->
+          <div class="bg-[#0b1329] p-6 rounded-xl border border-slate-800 flex flex-col justify-between">
+            <div>
+              <div class="text-xs uppercase tracking-wider text-slate-400 mb-1">Live Calculated Risk</div>
+              <div class="flex items-baseline gap-3">
+                <span id="calc-score" class="text-5xl font-extrabold font-mono text-amber-400">0.34</span>
+                <span id="calc-tier-badge" class="px-3 py-1 rounded-full text-xs font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30">Moderate (मध्यम)</span>
+              </div>
+              <div class="w-full bg-slate-800 h-3 rounded-full overflow-hidden mt-4">
+                <div id="calc-bar" class="h-full bg-amber-500 transition-all duration-300" style="width: 34%;"></div>
+              </div>
+            </div>
+
+            <div class="mt-6 pt-4 border-t border-slate-800">
+              <div class="text-[11px] uppercase tracking-wider text-slate-400 mb-1">Pre-Gemini Action Recommendation</div>
+              <div id="calc-rec" class="text-xs text-slate-200 leading-relaxed font-medium">
+                Monitor conditions closely before departure. Trekking agencies should maintain regular satellite/radio check-ins; no hard restrictions yet.
+              </div>
+              <div id="calc-rec-ne" class="text-xs text-slate-400 leading-relaxed font-medium mt-1">
+                प्रस्थान अघि मौसम र बाटोको अवस्था नजिकबाट अनुगमन गर्नुहोस्। यात्रा संघसंस्थाहरू सम्पर्कमा रहनुहोस्।
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="border-t border-[#1f2e4d] py-8 text-center text-xs text-slate-500">
+    <div class="max-w-5xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div>HimalSanket — Team Amrit, Divakar, Basanta, Sudip · Google Cloud AI Builder Cup 2026</div>
+      <div class="flex items-center gap-4">
+        <a href="/docs" class="hover:text-slate-300 transition">Swagger UI</a>
+        <a href="/health" class="hover:text-slate-300 transition">Health</a>
+        <a href="/" class="hover:text-slate-300 transition">API Index</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Live Calculator Script -->
+  <script>
+    const sliderRain = document.getElementById('slider-rain');
+    const sliderLake = document.getElementById('slider-lake');
+    const sliderSeis = document.getElementById('slider-seis');
+    const sliderTerr = document.getElementById('slider-terr');
+    const sliderRep = document.getElementById('slider-rep');
+
+    const valRain = document.getElementById('val-rain');
+    const valLake = document.getElementById('val-lake');
+    const valSeis = document.getElementById('val-seis');
+    const valTerr = document.getElementById('val-terr');
+    const valRep = document.getElementById('val-rep');
+
+    const pctRain = document.getElementById('pct-rain');
+    const pctLake = document.getElementById('pct-lake');
+    const pctSeis = document.getElementById('pct-seis');
+    const pctTerr = document.getElementById('pct-terr');
+    const pctRep = document.getElementById('pct-rep');
+
+    const calcScore = document.getElementById('calc-score');
+    const calcBadge = document.getElementById('calc-tier-badge');
+    const calcBar = document.getElementById('calc-bar');
+    const calcRec = document.getElementById('calc-rec');
+    const calcRecNe = document.getElementById('calc-rec-ne');
+
+    function update() {
+      const rain = parseFloat(sliderRain.value);
+      const lake = parseFloat(sliderLake.value);
+      const seis = parseFloat(sliderSeis.value) / 10.0;
+      const terr = parseFloat(sliderTerr.value) / 100.0;
+      const rep = parseInt(sliderRep.value);
+
+      valRain.innerText = rain;
+      valLake.innerText = '+' + lake;
+      valSeis.innerText = seis.toFixed(1);
+      valTerr.innerText = terr.toFixed(2);
+      valRep.innerText = rep;
+
+      const nRain = Math.min(rain / 144.0, 1.0);
+      const nLake = Math.min(lake / 15.0, 1.0);
+      const nSeis = Math.min(seis / 4.0, 1.0);
+      const nTerr = Math.min(Math.max(terr, 0.0), 1.0);
+      const nRep = Math.min(rep * 0.20, 1.0);
+
+      pctRain.innerText = nRain.toFixed(2) + ' norm';
+      pctLake.innerText = nLake.toFixed(2) + ' norm';
+      pctSeis.innerText = nSeis.toFixed(2) + ' norm';
+      pctTerr.innerText = nTerr.toFixed(2) + ' norm';
+      pctRep.innerText = nRep.toFixed(2) + ' norm';
+
+      const score = (0.30 * nRain) + (0.25 * nLake) + (0.20 * nSeis) + (0.15 * nRep) + (0.10 * nTerr);
+      const clampedScore = Math.min(Math.max(score, 0.0), 1.0);
+
+      calcScore.innerText = clampedScore.toFixed(2);
+      calcBar.style.width = (clampedScore * 100) + '%';
+
+      if (clampedScore >= 0.70) {
+        calcBadge.innerText = 'Critical (गम्भीर)';
+        calcBadge.className = 'px-3 py-1 rounded-full text-xs font-bold bg-rose-500/20 text-rose-400 border border-rose-500/30';
+        calcScore.className = 'text-5xl font-extrabold font-mono text-rose-400';
+        calcBar.className = 'h-full bg-rose-500 transition-all duration-300';
+        calcRec.innerText = 'Recommend postponing entry and notifying registered trekking groups immediately. Evacuate active flood paths and alert APF search teams.';
+        calcRecNe.innerText = 'उक्त क्षेत्रमा तत्काल प्रवेश निषेध गर्नुहोस् र सबै ट्रेकिङ टोलीलाई जानकारी दिनुहोस्। तटीय क्षेत्र तुरुन्त खाली गर्नुहोस्।';
+      } else if (clampedScore >= 0.50) {
+        calcBadge.innerText = 'High (उच्च)';
+        calcBadge.className = 'px-3 py-1 rounded-full text-xs font-bold bg-orange-500/20 text-orange-400 border border-orange-500/30';
+        calcScore.className = 'text-5xl font-extrabold font-mono text-orange-400';
+        calcBar.className = 'h-full bg-orange-500 transition-all duration-300';
+        calcRec.innerText = 'Recommend delaying non-essential entry and briefing agencies before departure. Halt foot travel through narrow gorges.';
+        calcRecNe.innerText = 'अत्यावश्यक बाहेक यात्रा स्थगित गर्न सिफारिस गरिन्छ। जोखिमयुक्त गल्छी तथा खोला किनारबाट टाढा रहनुहोस्।';
+      } else if (clampedScore >= 0.30) {
+        calcBadge.innerText = 'Moderate (मध्यम)';
+        calcBadge.className = 'px-3 py-1 rounded-full text-xs font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30';
+        calcScore.className = 'text-5xl font-extrabold font-mono text-amber-400';
+        calcBar.className = 'h-full bg-amber-500 transition-all duration-300';
+        calcRec.innerText = 'Monitor conditions closely before departure. Trekking agencies should maintain regular satellite/radio check-ins; no hard restrictions yet.';
+        calcRecNe.innerText = 'प्रस्थान अघि मौसम र बाटोको अवस्था नजिकबाट अनुगमन गर्नुहोस्। यात्रा संघसंस्थाहरू सम्पर्कमा रहनुहोस्।';
+      } else {
+        calcBadge.innerText = 'Low (न्यून)';
+        calcBadge.className = 'px-3 py-1 rounded-full text-xs font-bold bg-teal-500/20 text-teal-400 border border-teal-500/30';
+        calcScore.className = 'text-5xl font-extrabold font-mono text-teal-400';
+        calcBar.className = 'h-full bg-teal-500 transition-all duration-300';
+        calcRec.innerText = 'Routine travel advisory in effect. Continue standard hydrological and satellite monitoring.';
+        calcRecNe.innerText = 'नियमित यात्रा सल्लाह लागू छ। सामान्य अनुगमन जारी राख्नुहोस्।';
+      }
+    }
+
+    [sliderRain, sliderLake, sliderSeis, sliderTerr, sliderRep].forEach(s => s.addEventListener('input', update));
+
+    document.getElementById('btn-spike').addEventListener('click', () => {
+      sliderRain.value = 115;
+      sliderLake.value = 11;
+      sliderSeis.value = 36;
+      sliderTerr.value = 71;
+      sliderRep.value = 3;
+      update();
+    });
+
+    document.getElementById('btn-reset').addEventListener('click', () => {
+      sliderRain.value = 38;
+      sliderLake.value = 4;
+      sliderSeis.value = 18;
+      sliderTerr.value = 71;
+      sliderRep.value = 1;
+      update();
+    });
+
+    update();
+  </script>
+</body>
+</html>
