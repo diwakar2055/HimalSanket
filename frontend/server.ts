@@ -217,7 +217,7 @@ Let me know if you would like specific details regarding trekking route safety, 
         try {
           const liveAi = new GoogleGenAI({
             apiKey: currentApiKey,
-            httpOptions: { headers: { "User-Agent": "aistudio-build" } },
+            httpOptions: { headers: { "User-Agent": "aistudio-build" }, timeout: 1800 },
           });
 
           const activeCtx = corridorContext || {
@@ -286,33 +286,50 @@ OPERATIONAL RULES FOR ANSWERING:
             parts: [{ text: message }],
           });
 
-          const CANDIDATE_MODELS = [
-            "gemini-3.5-flash-lite",
-            "gemini-flash-lite-latest",
-            "gemini-3.8-flash",
-            "gemini-flash-latest",
-          ];
+          // Fast attempt on live Gemini with an absolute 2.2-second timeout cap
+          const geminiCallPromise = (async () => {
+            const CANDIDATE_MODELS = [
+              "gemini-3.8-flash",
+              "gemini-flash-latest"
+            ];
 
-          for (const modelName of CANDIDATE_MODELS) {
-            try {
-              const response = await liveAi.models.generateContent({
-                model: modelName,
-                contents,
-                config: {
-                  systemInstruction,
-                },
-              });
+            for (const modelName of CANDIDATE_MODELS) {
+              try {
+                const response = await liveAi.models.generateContent({
+                  model: modelName,
+                  contents,
+                  config: {
+                    systemInstruction,
+                  },
+                });
 
-              if (response.text && response.text.trim().length > 0) {
-                console.log(`[Gemini API] Live response generated with model "${modelName}"`);
-                return res.json({ reply: response.text.trim(), source: "gemini-live", model: modelName });
+                if (response.text && response.text.trim().length > 0) {
+                  return { reply: response.text.trim(), model: modelName };
+                }
+              } catch (mErr: any) {
+                console.warn(`[Gemini API] Quick check: Model "${modelName}" unavailable (${mErr?.status || mErr?.message || "busy"}).`);
+                // If the upstream model is busy (503) or not found (404), do not retry or hang
+                break;
               }
-            } catch (mErr: any) {
-              console.warn(`[Gemini API] Model "${modelName}" call failed:`, mErr?.message || mErr);
             }
+            return null;
+          })();
+
+          // 2.2s strict ceiling so the user UI never hangs
+          const timeoutPromise = new Promise<{ reply: string; model: string } | null>((resolve) =>
+            setTimeout(() => {
+              console.warn("[Gemini API] Upstream latency exceeded 2200ms limit; triggering instant situational synthesizer.");
+              resolve(null);
+            }, 2200)
+          );
+
+          const liveResult = await Promise.race([geminiCallPromise, timeoutPromise]);
+          if (liveResult && liveResult.reply) {
+            console.log(`[Gemini API] Live response served (${liveResult.model})`);
+            return res.json({ reply: liveResult.reply, source: "gemini-live", model: liveResult.model });
           }
         } catch (liveErr: any) {
-          console.warn("Live Gemini API call failed, falling back to intelligent Himalayan Synthesizer:", liveErr.message || liveErr);
+          console.warn("Live Gemini API call bypassed, falling back to instant Himalayan Synthesizer:", liveErr.message || liveErr);
         }
       }
 
