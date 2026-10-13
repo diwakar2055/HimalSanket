@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" width="192" height="192">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0A1224"/>
+      <stop offset="100%" stop-color="#0369A1"/>
+    </linearGradient>
+    <linearGradient id="peak" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38BDF8"/>
+      <stop offset="100%" stop-color="#0284C7"/>
+    </linearGradient>
+    <linearGradient id="alert" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#F43F5E"/>
+      <stop offset="100%" stop-color="#E11D48"/>
+    </linearGradient>
+  </defs>
+  <!-- Background -->
+  <rect width="192" height="192" rx="40" fill="url(#bg)"/>
+  <rect width="184" height="184" x="4" y="4" rx="36" fill="none" stroke="#38BDF8" stroke-width="2" stroke-opacity="0.3"/>
+  
+  <!-- Mountain Peaks -->
+  <polygon points="96,44 146,134 46,134" fill="url(#peak)" opacity="0.95"/>
+  <polygon points="96,44 116,84 96,78 76,84" fill="#FFFFFF" opacity="0.9"/>
+  
+  <polygon points="56,80 96,144 16,144" fill="#0284C7" opacity="0.6"/>
+  <polygon points="136,80 176,144 96,144" fill="#0284C7" opacity="0.6"/>
+  
+  <!-- Radar Wave / Hazard Beacon -->
+  <circle cx="96" cy="116" r="14" fill="url(#alert)"/>
+  <circle cx="96" cy="116" r="24" fill="none" stroke="#F43F5E" stroke-width="3" stroke-dasharray="4,4"/>
+  <circle cx="96" cy="116" r="36" fill="none" stroke="#F43F5E" stroke-width="2" opacity="0.5"/>
+</svg>

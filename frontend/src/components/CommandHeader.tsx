@@ -1,21 +1,22 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Language, getTranslation } from "../data/localization";
+import { useUserRole, UserRole } from "../context/UserRoleContext";
 import {
   ShieldAlert,
   Radio,
-  Map as MapIcon,
-  BarChart3,
-  Users,
-  AlertOctagon,
   Languages,
   HelpCircle,
   Volume2,
   VolumeX,
+  Compass,
+  Download,
+  Users,
+  Shield,
+  Plane,
+  ChevronDown,
 } from "lucide-react";
 
 interface CommandHeaderProps {
-  currentTab: "risk" | "analytics" | "search" | "sos";
-  onTabChange: (tab: "risk" | "analytics" | "search" | "sos") => void;
   activeTier: "Low" | "Moderate" | "High" | "Critical";
   activeCorridor: any;
   allCorridors: any[];
@@ -23,21 +24,18 @@ interface CommandHeaderProps {
   language: Language;
   onToggleLanguage: () => void;
   onOpenGuide: () => void;
-  onTriggerQuickSOS: () => void;
   audioMuted: boolean;
   onToggleAudioMute: () => void;
 }
 
 const TIER_COLORS = {
-  Low: { bg: "bg-emerald-500/15", border: "border-emerald-500/40", text: "text-emerald-400", dot: "bg-emerald-400" },
-  Moderate: { bg: "bg-amber-500/15", border: "border-amber-500/40", text: "text-amber-400", dot: "bg-amber-400" },
-  High: { bg: "bg-orange-500/15", border: "border-orange-500/40", text: "text-orange-400", dot: "bg-orange-400" },
-  Critical: { bg: "bg-rose-500/20", border: "border-rose-500/60", text: "text-rose-400", dot: "bg-rose-500 animate-ping" },
+  Low: { border: "border-emerald-500/50", text: "text-emerald-400", dot: "bg-emerald-400" },
+  Moderate: { border: "border-amber-500/50", text: "text-amber-400", dot: "bg-amber-400" },
+  High: { border: "border-orange-500/50", text: "text-orange-400", dot: "bg-orange-400" },
+  Critical: { border: "border-rose-500/80", text: "text-rose-400", dot: "bg-rose-500 animate-ping" },
 };
 
 export function CommandHeader({
-  currentTab,
-  onTabChange,
   activeTier,
   activeCorridor,
   allCorridors,
@@ -45,209 +43,199 @@ export function CommandHeader({
   language,
   onToggleLanguage,
   onOpenGuide,
-  onTriggerQuickSOS,
   audioMuted,
   onToggleAudioMute,
 }: CommandHeaderProps) {
+  const { currentRole, setCurrentRole, userProfile } = useUserRole();
   const tierStyle = TIER_COLORS[activeTier] || TIER_COLORS.Low;
 
-  const getThreatLabel = () => {
-    switch (activeTier) {
-      case "Critical":
-        return getTranslation(language, "statusCritical");
-      case "High":
-        return getTranslation(language, "statusHigh");
-      case "Moderate":
-        return getTranslation(language, "statusModerate");
-      default:
-        return getTranslation(language, "statusNormal");
+  // PWA install prompt handler
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [isInstallable, setIsInstallable] = useState(false);
+  const [corridorDropdownOpen, setCorridorDropdownOpen] = useState(false);
+
+  useEffect(() => {
+    const handler = (e: any) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+      setIsInstallable(true);
+    };
+    window.addEventListener("beforeinstallprompt", handler);
+    return () => window.removeEventListener("beforeinstallprompt", handler);
+  }, []);
+
+  const handleInstallClick = async () => {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    if (outcome === "accepted") {
+      setIsInstallable(false);
     }
   };
 
   return (
-    <header className="w-full bg-[#0A1224] border-b border-[#1E293B] shadow-2xl sticky top-0 z-40 backdrop-blur-lg bg-opacity-95">
-      {/* Top Threat Ribbon */}
-      <div className={`px-4 py-1 border-b ${tierStyle.border} ${tierStyle.bg} flex items-center justify-between transition-colors duration-300`}>
-        <div className="flex items-center gap-2.5">
-          <span className="relative flex h-2.5 w-2.5">
-            <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${tierStyle.dot}`} />
-            <span className={`relative inline-flex rounded-full h-2.5 w-2.5 ${tierStyle.dot}`} />
-          </span>
-          <span className="text-[11px] font-bold uppercase tracking-wider text-white">
-            HIMALAYAN MULTI-HAZARD THREAT LEVEL:
-          </span>
-          <span className={`text-[11px] font-black uppercase tracking-wider ${tierStyle.text}`}>
-            {getThreatLabel()}
-          </span>
-          <span className="hidden md:inline text-[11px] text-[#64748B]">
-            &bull; {activeCorridor?.name || "Langtang Basin"} ({activeCorridor?.region || "Rasuwa District"})
-          </span>
-        </div>
-
-        <div className="flex items-center gap-3 text-[11px]">
-          <span className="hidden sm:flex items-center gap-1.5 text-emerald-400 font-mono">
-            <Radio className="w-3.5 h-3.5 animate-pulse" />
-            {getTranslation(language, "systemOnline")}
-          </span>
-          <button
-            onClick={onToggleAudioMute}
-            className="text-[#94A3B8] hover:text-white transition-colors cursor-pointer p-0.5"
-            title={audioMuted ? "Unmute audio alerts" : "Mute audio alerts"}
-          >
-            {audioMuted ? <VolumeX className="w-3.5 h-3.5" /> : <Volume2 className="w-3.5 h-3.5 text-cyan-400" />}
-          </button>
-        </div>
-      </div>
-
-      {/* Main Command Bar */}
-      <div className="px-4 lg:px-6 py-1.5 flex flex-col md:flex-row items-center justify-between gap-2.5">
-        {/* Brand Identity */}
-        <div className="flex items-center justify-between w-full md:w-auto">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-cyan-600 to-blue-500 flex items-center justify-center text-white shadow-md shadow-cyan-600/30 border border-cyan-400/30">
-              <ShieldAlert className="w-4 h-4" />
+    <header className="w-full bg-[#0A1224]/95 border-b border-[#1E293B] shadow-2xl sticky top-0 z-40 backdrop-blur-xl">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 py-2 flex items-center justify-between gap-2 sm:gap-4 flex-wrap">
+        {/* LEFT: HimalSanket Brand + Corridor Picker + Hazard Indicator */}
+        <div className="flex items-center gap-3">
+          {/* Brand Emblem */}
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-700 flex items-center justify-center shadow-lg shadow-cyan-500/20 text-white font-black text-sm border border-cyan-400/40">
+              🏔️
             </div>
             <div>
-              <div className="flex items-center gap-2">
-                <h1 className="text-base font-black tracking-tight text-white font-sans">
-                  {getTranslation(language, "brandName")}
-                </h1>
-                <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-cyan-950 text-cyan-300 border border-cyan-800">
-                  v2.5 AI
+              <div className="flex items-center gap-1.5 leading-none">
+                <span className="font-extrabold tracking-tight text-white text-sm sm:text-base">
+                  HimalSanket
+                </span>
+                <span className="text-[10px] text-cyan-400 font-semibold hidden md:inline">
+                  (हिमाल संकेत)
                 </span>
               </div>
-              <p className="text-[11px] text-[#94A3B8] hidden sm:block">
-                {getTranslation(language, "brandSubtitle")}
-              </p>
+              <div className="text-[9px] text-[#64748B] font-mono leading-none mt-0.5">
+                AI Early Warning System
+              </div>
             </div>
           </div>
 
-          {/* Mobile Right Controls */}
-          <div className="flex items-center gap-2 md:hidden">
+          {/* Corridor Dropdown Selector */}
+          <div className="relative">
             <button
-              onClick={onToggleLanguage}
-              className="px-2 py-1 rounded-lg text-xs font-bold bg-[#1E293B] text-white border border-[#334155]"
+              onClick={() => setCorridorDropdownOpen(!corridorDropdownOpen)}
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-[#16233F] hover:bg-[#1C2C4C] border border-[#2A3B5E] text-xs font-semibold text-white shadow-sm cursor-pointer transition-all"
             >
-              {getTranslation(language, "langBtn")}
+              <Compass className="w-3 h-3 text-cyan-400" />
+              <span className="truncate max-w-[110px] sm:max-w-[140px]">{activeCorridor.name}</span>
+              <ChevronDown className="w-3 h-3 text-[#64748B]" />
             </button>
-            <button
-              onClick={onTriggerQuickSOS}
-              className="px-2.5 py-1 rounded-lg text-xs font-bold bg-rose-600 text-white shadow"
-            >
-              SOS
-            </button>
+
+            {corridorDropdownOpen && (
+              <div className="absolute left-0 top-9 w-48 rounded-xl bg-[#0F1B33]/95 backdrop-blur-xl border border-[#2A3B5E] shadow-2xl py-1 text-xs text-white z-50 animate-in fade-in">
+                <div className="px-3 py-1 text-[10px] font-bold text-[#64748B] uppercase tracking-wider border-b border-[#2A3B5E]">
+                  Select River Corridor
+                </div>
+                {allCorridors.map((c) => (
+                  <button
+                    key={c.id}
+                    onClick={() => {
+                      onSelectCorridor(c.id);
+                      setCorridorDropdownOpen(false);
+                    }}
+                    className={`w-full text-left px-3 py-1.5 flex items-center justify-between hover:bg-[#1C2C4C] cursor-pointer ${
+                      activeCorridor.id === c.id ? "text-cyan-400 font-bold bg-[#16233F]" : "text-slate-200"
+                    }`}
+                  >
+                    <span>{c.name}</span>
+                    <span className="text-[10px] text-[#64748B] font-mono">{c.region}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Active Hazard Badge */}
+          <div className="hidden sm:flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-[#16233F] border border-[#2A3B5E] text-[11px]">
+            <span className={`w-2 h-2 rounded-full ${tierStyle.dot}`} />
+            <span className={`font-black uppercase tracking-wider text-[10px] ${tierStyle.text}`}>
+              {activeTier}
+            </span>
           </div>
         </div>
 
-        {/* Center: Segmented Navigation Pills */}
-        <nav className="flex items-center bg-[#0F172A] p-1 rounded-xl border border-[#1E293B] shadow-inner overflow-x-auto max-w-full">
+        {/* CENTER: Presentation Persona / User Role Switcher */}
+        <div className="flex items-center bg-[#111A2E] p-1 rounded-2xl border border-[#2A3B5E] shadow-inner text-xs order-last md:order-none w-full md:w-auto justify-center">
           <button
-            onClick={() => onTabChange("risk")}
-            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer whitespace-nowrap ${
-              currentTab === "risk"
-                ? "bg-gradient-to-r from-blue-600 to-cyan-600 text-white shadow-md shadow-blue-600/30"
-                : "text-[#94A3B8] hover:text-white hover:bg-[#1E293B]/50"
+            onClick={() => setCurrentRole("civilian")}
+            className={`flex items-center gap-1.5 px-3 py-1 rounded-xl font-bold transition-all cursor-pointer ${
+              currentRole === "civilian"
+                ? "bg-cyan-600 text-white shadow-md shadow-cyan-600/30"
+                : "text-[#94A3B8] hover:text-white"
             }`}
+            title="Civilian & Trekker Safety View"
           >
-            <MapIcon className="w-3.5 h-3.5" />
-            <span>{getTranslation(language, "tabMap")}</span>
+            <span>👤</span>
+            <span>{language === "ne" ? "नागरिक / पदयात्री" : "Civilian / Trekker"}</span>
           </button>
 
           <button
-            onClick={() => onTabChange("analytics")}
-            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer whitespace-nowrap ${
-              currentTab === "analytics"
-                ? "bg-gradient-to-r from-blue-600 to-cyan-600 text-white shadow-md shadow-blue-600/30"
-                : "text-[#94A3B8] hover:text-white hover:bg-[#1E293B]/50"
+            onClick={() => setCurrentRole("rescuer")}
+            className={`flex items-center gap-1.5 px-3 py-1 rounded-xl font-bold transition-all cursor-pointer ${
+              currentRole === "rescuer"
+                ? "bg-amber-600 text-white shadow-md shadow-amber-600/30"
+                : "text-[#94A3B8] hover:text-white"
             }`}
+            title="Search & Rescue Incident Response View"
           >
-            <BarChart3 className="w-3.5 h-3.5" />
-            <span>{getTranslation(language, "tabAnalytics")}</span>
+            <span>🚁</span>
+            <span>{language === "ne" ? "उद्धार टोली (SAR)" : "SAR Rescuer"}</span>
           </button>
 
           <button
-            onClick={() => onTabChange("search")}
-            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer whitespace-nowrap ${
-              currentTab === "search"
-                ? "bg-gradient-to-r from-blue-600 to-cyan-600 text-white shadow-md shadow-blue-600/30"
-                : "text-[#94A3B8] hover:text-white hover:bg-[#1E293B]/50"
+            onClick={() => setCurrentRole("admin")}
+            className={`flex items-center gap-1.5 px-3 py-1 rounded-xl font-bold transition-all cursor-pointer ${
+              currentRole === "admin"
+                ? "bg-blue-600 text-white shadow-md shadow-blue-600/30"
+                : "text-[#94A3B8] hover:text-white"
             }`}
+            title="National Command Center & GIS View"
           >
-            <Users className="w-3.5 h-3.5" />
-            <span>{getTranslation(language, "tabSar")}</span>
+            <span>🛡️</span>
+            <span>{language === "ne" ? "विपद् कमान्ड" : "Command Admin"}</span>
           </button>
+        </div>
 
-          <button
-            onClick={() => onTabChange("sos")}
-            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer whitespace-nowrap ${
-              currentTab === "sos"
-                ? "bg-gradient-to-r from-rose-600 to-red-600 text-white shadow-md shadow-rose-600/30"
-                : "text-rose-400 hover:text-rose-200 hover:bg-rose-950/30"
-            }`}
-          >
-            <AlertOctagon className="w-3.5 h-3.5" />
-            <span>{getTranslation(language, "tabSos")}</span>
-          </button>
-        </nav>
+        {/* RIGHT: Language, Audio, Guide, PWA Install & Profile */}
+        <div className="flex items-center gap-2">
+          {/* PWA Install Button (if available) */}
+          {isInstallable && (
+            <button
+              onClick={handleInstallClick}
+              className="flex items-center gap-1 px-2.5 py-1 rounded-xl bg-cyan-600/30 hover:bg-cyan-600/50 text-cyan-300 border border-cyan-500/50 text-xs font-semibold cursor-pointer animate-pulse"
+              title="Install HimalSanket PWA on your device"
+            >
+              <Download className="w-3 h-3" />
+              <span className="hidden sm:inline">Install App</span>
+            </button>
+          )}
 
-        {/* Right Tools: Language Toggle & Tour Guide & Quick SOS */}
-        <div className="hidden md:flex items-center gap-2.5">
-          <button
-            onClick={onOpenGuide}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-[#94A3B8] hover:text-white bg-[#1E293B]/60 hover:bg-[#1E293B] border border-[#334155]/60 transition-colors cursor-pointer"
-            title="Open system architecture walkthrough"
-          >
-            <HelpCircle className="w-3.5 h-3.5 text-cyan-400" />
-            <span>{getTranslation(language, "guideBtn")}</span>
-          </button>
-
+          {/* Language Toggle */}
           <button
             onClick={onToggleLanguage}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-white bg-[#1E293B] hover:bg-[#334155] border border-[#334155] transition-all cursor-pointer shadow-sm"
-            title="Toggle Language (English / नेपाली)"
+            className="flex items-center gap-1 px-2.5 py-1 rounded-xl bg-[#16233F] hover:bg-[#1C2C4C] border border-[#2A3B5E] text-xs font-bold text-slate-200 cursor-pointer transition-all"
+            title="Toggle Nepali / English"
           >
-            <Languages className="w-3.5 h-3.5 text-amber-400" />
-            <span>{getTranslation(language, "langBtn")}</span>
+            <Languages className="w-3.5 h-3.5 text-cyan-400" />
+            <span>{language === "en" ? "नेपाली" : "EN"}</span>
           </button>
 
+          {/* Audio Alert Toggle */}
           <button
-            onClick={onTriggerQuickSOS}
-            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold bg-rose-600 hover:bg-rose-500 text-white shadow-lg shadow-rose-600/40 transition-transform hover:scale-105 active:scale-95 cursor-pointer"
+            onClick={onToggleAudioMute}
+            className="p-1.5 rounded-xl bg-[#16233F] hover:bg-[#1C2C4C] border border-[#2A3B5E] text-slate-300 hover:text-white cursor-pointer transition-all"
+            title={audioMuted ? "Unmute audio chime" : "Mute audio alerts"}
           >
-            <span className="w-2 h-2 rounded-full bg-white animate-ping" />
-            <span>{getTranslation(language, "quickSosBtn")}</span>
+            {audioMuted ? <VolumeX className="w-3.5 h-3.5 text-[#64748B]" /> : <Volume2 className="w-3.5 h-3.5 text-cyan-400" />}
           </button>
-        </div>
-      </div>
 
-      {/* Corridor Quick-Selector Ribbon */}
-      <div className="px-4 lg:px-6 py-1.5 bg-[#080E1C] border-t border-[#1E293B]/60 flex items-center justify-between overflow-x-auto text-xs">
-        <div className="flex items-center gap-2">
-          <span className="text-[10px] font-semibold uppercase tracking-wider text-[#64748B] shrink-0">
-            {getTranslation(language, "corridorsLabel")}:
-          </span>
-          <div className="flex items-center gap-1.5 overflow-x-auto py-0.5">
-            {allCorridors.map((c) => {
-              const active = c.id === activeCorridor?.id;
-              return (
-                <button
-                  key={c.id}
-                  onClick={() => onSelectCorridor(c.id)}
-                  className={`px-2.5 py-0.5 rounded-full text-[11px] font-medium transition-all cursor-pointer whitespace-nowrap border ${
-                    active
-                      ? "bg-cyan-500/20 text-cyan-300 border-cyan-400/60 shadow-sm"
-                      : "bg-[#0F172A] text-[#94A3B8] border-[#1E293B] hover:border-slate-600 hover:text-white"
-                  }`}
-                >
-                  <span>{c.name}</span>
-                </button>
-              );
-            })}
+          {/* System Tour Modal Button */}
+          <button
+            onClick={onOpenGuide}
+            className="p-1.5 rounded-xl bg-[#16233F] hover:bg-[#1C2C4C] border border-[#2A3B5E] text-slate-300 hover:text-white cursor-pointer transition-all"
+            title="System Architecture Guide"
+          >
+            <HelpCircle className="w-3.5 h-3.5 text-cyan-400" />
+          </button>
+
+          {/* Active User Avatar & Role */}
+          <div className="hidden lg:flex items-center gap-2 pl-2 border-l border-[#2A3B5E]">
+            <div className="w-7 h-7 rounded-full bg-cyan-900 border border-cyan-400/50 flex items-center justify-center text-xs font-bold text-cyan-200">
+              {userProfile.name.charAt(0)}
+            </div>
+            <div className="text-left text-[11px] leading-tight">
+              <div className="font-bold text-white truncate max-w-[100px]">{userProfile.name}</div>
+              <div className="text-[9px] text-[#64748B] capitalize">{userProfile.role}</div>
+            </div>
           </div>
-        </div>
-
-        <div className="hidden lg:flex items-center gap-3 text-[11px] text-[#64748B] shrink-0 font-mono">
-          <span>GPS: {activeCorridor?.gps || "28.2096° N, 85.5089° E"}</span>
         </div>
       </div>
     </header>

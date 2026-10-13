@@ -1,0 +1,37 @@
+{
+  "short_name": "HimalSanket",
+  "name": "HimalSanket — Multi-Hazard Early Warning System",
+  "icons": [
+    {
+      "src": "/icons/icon-192.svg",
+      "type": "image/svg+xml",
+      "sizes": "192x192"
+    },
+    {
+      "src": "/icons/icon-512.svg",
+      "type": "image/svg+xml",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#0A1224",
+  "theme_color": "#0284C7",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "description": "AI-Powered Himalayan Multi-Hazard Early Warning, Flood Cascade, and Trekker Safety System for Nepal",
+  "categories": ["weather", "utilities", "travel", "safety"],
+  "shortcuts": [
+    {
+      "name": "Emergency SOS",
+      "short_name": "SOS",
+      "description": "Trigger 1-Click Satellite Distress Beacon",
+      "url": "/?action=sos"
+    },
+    {
+      "name": "Live Hazard Map",
+      "short_name": "Hazard Map",
+      "description": "View live river flood surge & landslide status",
+      "url": "/?action=map"
+    }
+  ]
+}

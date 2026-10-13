@@ -13,6 +13,7 @@ Architecture Workflow:
 import time
 import uuid
 import logging
+import asyncio
 from typing import Dict, Any, List, Optional
 from datetime import datetime, timezone
 from fastapi import APIRouter, Request, HTTPException, status
@@ -89,7 +90,7 @@ async def orchestrate_hazard_assessment(
             ground_reports_count=len(location_data.reports),
             key_drivers=risk_output.explanation.key_drivers
         )
-        gemini_response = generate_gemini_briefing(gemini_request)
+        gemini_response = await asyncio.to_thread(generate_gemini_briefing, gemini_request)
         gemini_ms = round((time.perf_counter() - gemini_start) * 1000, 2)
         logger.info(f"[Step 2: Gemini AI] Synthesized briefings using {gemini_response.model_used} in {gemini_ms}ms")
 
@@ -116,7 +117,7 @@ async def orchestrate_hazard_assessment(
                 "gemini_ai": gemini_ms
             }
         }
-        sync_status = firestore_service.save_session(session_id, session_record)
+        sync_status = await asyncio.to_thread(firestore_service.save_session, session_id, session_record)
         firestore_ms = round((time.perf_counter() - firestore_start) * 1000, 2)
         logger.info(f"[Step 3: Firestore] Persisted session {session_id} in {firestore_ms}ms ({sync_status.storage_backend})")
 

@@ -289,8 +289,8 @@ OPERATIONAL RULES FOR ANSWERING:
           // Fast attempt on live Gemini with an absolute 2.2-second timeout cap
           const geminiCallPromise = (async () => {
             const CANDIDATE_MODELS = [
-              "gemini-3.8-flash",
-              "gemini-flash-latest"
+              "gemini-2.0-flash",
+              "gemini-1.5-flash",
             ];
 
             for (const modelName of CANDIDATE_MODELS) {
@@ -375,10 +375,8 @@ OPERATIONAL RULES FOR ANSWERING:
           `;
 
           const CANDIDATE_MODELS = [
-            "gemini-3.5-flash-lite",
-            "gemini-flash-lite-latest",
-            "gemini-3.8-flash",
-            "gemini-flash-latest",
+            "gemini-2.0-flash",
+            "gemini-1.5-flash",
           ];
 
           for (const modelName of CANDIDATE_MODELS) {
@@ -438,14 +436,8 @@ OPERATIONAL RULES FOR ANSWERING:
     }
   });
 
-  // Dedicated API status inspector for separate API keys
+  // Dedicated API status inspector for separate API keys (hardened - boolean only)
   app.get("/api/system/api-status", (req, res) => {
-    reloadEnv();
-    const maskKey = (k?: string) => {
-      if (!k || k.length < 10) return null;
-      return `${k.substring(0, 8)}...${k.substring(k.length - 4)}`;
-    };
-
     const mapsKey = process.env.VITE_GOOGLE_MAPS_API_KEY;
     const geocodingKey = process.env.GOOGLE_GEOCODING_API_KEY || process.env.VITE_GOOGLE_GEOCODING_API_KEY || mapsKey;
     const elevationKey = process.env.GOOGLE_ELEVATION_API_KEY || process.env.VITE_GOOGLE_ELEVATION_API_KEY || mapsKey;
@@ -455,28 +447,23 @@ OPERATIONAL RULES FOR ANSWERING:
     res.json({
       gemini_ai: {
         configured: isConfiguredApiKey(geminiKey),
-        key_masked: maskKey(geminiKey),
         variable: "GEMINI_API_KEY",
       },
       maps_javascript: {
         configured: !!mapsKey && mapsKey.length > 20,
-        key_masked: maskKey(mapsKey),
         variable: "VITE_GOOGLE_MAPS_API_KEY",
       },
       geocoding: {
         configured: !!geocodingKey && geocodingKey.length > 20,
-        key_masked: maskKey(geocodingKey),
-        variable: process.env.GOOGLE_GEOCODING_API_KEY ? "GOOGLE_GEOCODING_API_KEY" : (process.env.VITE_GOOGLE_GEOCODING_API_KEY ? "VITE_GOOGLE_GEOCODING_API_KEY" : "VITE_GOOGLE_MAPS_API_KEY (fallback)"),
+        variable: "GOOGLE_GEOCODING_API_KEY",
       },
       elevation: {
         configured: !!elevationKey && elevationKey.length > 20,
-        key_masked: maskKey(elevationKey),
-        variable: process.env.GOOGLE_ELEVATION_API_KEY ? "GOOGLE_ELEVATION_API_KEY" : (process.env.VITE_GOOGLE_ELEVATION_API_KEY ? "VITE_GOOGLE_ELEVATION_API_KEY" : "VITE_GOOGLE_MAPS_API_KEY (fallback)"),
+        variable: "GOOGLE_ELEVATION_API_KEY",
       },
       places: {
         configured: !!placesKey && placesKey.length > 20,
-        key_masked: maskKey(placesKey),
-        variable: process.env.GOOGLE_PLACES_API_KEY ? "GOOGLE_PLACES_API_KEY" : (process.env.VITE_GOOGLE_PLACES_API_KEY ? "VITE_GOOGLE_PLACES_API_KEY" : "VITE_GOOGLE_MAPS_API_KEY (fallback)"),
+        variable: "GOOGLE_PLACES_API_KEY",
       },
     });
   });

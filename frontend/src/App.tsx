@@ -1,18 +1,16 @@
 import React, { useState, useMemo, useCallback, useEffect } from "react";
 import { CommandHeader } from "./components/CommandHeader";
-import { RiskDashboard } from "./components/RiskDashboard";
-import { AnalyticsDashboard } from "./components/AnalyticsDashboard";
-import { SearchPriorityPanel } from "./components/SearchPriorityPanel";
-import { SOSBeaconPanel } from "./components/SOSBeaconPanel";
-import { GeminiChatbot } from "./components/GeminiChatbot";
+import { CivilianDashboard } from "./components/civilian/CivilianDashboard";
+import { RescuerDashboard } from "./components/rescuer/RescuerDashboard";
+import { AdminCommandDashboard } from "./components/admin/AdminCommandDashboard";
 import { SystemTourModal } from "./components/SystemTourModal";
-import { SentinelLakeModal } from "./components/SentinelLakeModal";
+import { UserRoleProvider, useUserRole } from "./context/UserRoleContext";
 import { playEmergencyChime, playConfirmationBeep } from "./utils/audioAlert";
 import { Language } from "./data/localization";
 import {
   CORRIDOR_CONFIGS,
   CORRIDOR_LANDSLIDE_ZONES,
-  CORRIDOR_SENTINEL_LAKES,
+  MAP_ASSETS,
 } from "./data/hazardMapData";
 import {
   fetchLiveTelemetry,
@@ -20,7 +18,6 @@ import {
   LiveTelemetryResponse,
 } from "./services/riskEngineApi";
 
-// Haversine geodesic distance in meters
 function getDistanceMeters(lat1: number, lon1: number, lat2: number, lon2: number): number {
   const R = 6371e3;
   const phi1 = (lat1 * Math.PI) / 180;
@@ -55,36 +52,22 @@ function computeRisk(c: any) {
   return { score, tier, rainScore, seismicScore, lakeScore, reportScore };
 }
 
-export default function App() {
-  // Navigation & Localization
-  const [tab, setTab] = useState<"risk" | "analytics" | "search" | "sos">("risk");
+function MainApp() {
+  const { currentRole, broadcastSOS } = useUserRole();
+
   const [language, setLanguage] = useState<Language>("en");
   const [audioMuted, setAudioMuted] = useState(false);
   const [isTourOpen, setIsTourOpen] = useState(false);
-  const [inspectingLake, setInspectingLake] = useState<any>(null);
 
-  // Corridors & Active Telemetry
+  // Corridors & Telemetry
   const [corridors, setCorridors] = useState<any[]>(INITIAL_CORRIDORS);
   const [selectedId, setSelectedId] = useState<string>(INITIAL_CORRIDORS[0].id);
   const [liveData, setLiveData] = useState<LiveTelemetryResponse | null>(null);
   const [isSensingSyncing, setIsSensingSyncing] = useState<boolean>(false);
-  const [lastSynced, setLastSynced] = useState<Date | null>(null);
   const [activeScenario, setActiveScenario] = useState<string>("baseline");
   const [waterSurge, setWaterSurge] = useState<number>(0);
 
-  // Search & Rescue + Victim SOS
-  const [searchItems, setSearchItems] = useState<any[]>([]);
-  const [sosDistresses, setSosDistresses] = useState<Array<{
-    id: string | number;
-    name: string;
-    lat: number;
-    lng: number;
-    detail: string;
-    priority: number;
-    time?: string;
-  }>>([]);
-
-  // Live Trekker Geolocation
+  // Trekker Geolocation
   const [userPosition, setUserPosition] = useState<{
     lat: number;
     lng: number;
@@ -98,7 +81,7 @@ export default function App() {
   });
   const [isLocating, setIsLocating] = useState(false);
 
-  // Compute Multi-Hazard Risks for all corridors
+  // Compute Multi-Hazard Risks
   const risks = useMemo(() => {
     const map: Record<string, any> = {};
     corridors.forEach((c) => {
@@ -108,29 +91,41 @@ export default function App() {
   }, [corridors]);
 
   const selectedCorridor = useMemo(() => {
-    return corridors.find((c) => c.id === selectedId) || corridors[0];
+    const config = CORRIDOR_CONFIGS[selectedId] || CORRIDOR_CONFIGS.langtang;
+    const telemetry = corridors.find((c) => c.id === selectedId) || corridors[0];
+    return {
+      ...config,
+      ...telemetry,
+      center: config.center,
+      zoom: config.zoom,
+      riverPath: config.riverPath,
+      centerName: config.centerName,
+    };
   }, [corridors, selectedId]);
 
   const selectedRisk = useMemo(() => {
     return risks[selectedId] || computeRisk(selectedCorridor);
   }, [risks, selectedId, selectedCorridor]);
 
-  // Geofence proximity calculation: compute minimum distance in meters to river & landslide polygons
+  // Assets in selected corridor
+  const corridorAssets = useMemo(() => {
+    return MAP_ASSETS.filter((a) => a.corridorId === selectedId);
+  }, [selectedId]);
+
+  // Distance to hazard calculation
   const distanceToHazard = useMemo(() => {
     if (!userPosition) return null;
     const config = CORRIDOR_CONFIGS[selectedId] || CORRIDOR_CONFIGS.langtang;
     let minD = Infinity;
 
-    // Check river path
-    const river = config.riverPath || [];
-    for (const pt of river) {
+    // Check river
+    for (const pt of config.riverPath || []) {
       const d = getDistanceMeters(userPosition.lat, userPosition.lng, pt.lat, pt.lng);
       if (d < minD) minD = d;
     }
 
-    // Check landslide hazard zones
-    const landslides = CORRIDOR_LANDSLIDE_ZONES[selectedId] || [];
-    for (const lz of landslides) {
+    // Check landslide zones
+    for (const lz of CORRIDOR_LANDSLIDE_ZONES[selectedId] || []) {
       for (const pt of lz.polygon) {
         const d = getDistanceMeters(userPosition.lat, userPosition.lng, pt[0], pt[1]);
         if (d < minD) minD = d;
@@ -142,28 +137,21 @@ export default function App() {
 
   const geofenceStatus = distanceToHazard !== null && distanceToHazard < 150 ? "DANGER" : "SAFE";
 
-  // Audio alert triggered on dangerous geofence proximity or critical cascade
+  // Audio alert on danger
   useEffect(() => {
     if (!audioMuted && (geofenceStatus === "DANGER" || activeScenario === "critical_cascade")) {
       playEmergencyChime();
     }
   }, [geofenceStatus, activeScenario, audioMuted]);
 
-  // Sync real-time sensed telemetry from the backend (with offline cache resilience)
+  // Sync Telemetry
   const syncLiveTelemetry = useCallback(async (corridorId: string) => {
     setIsSensingSyncing(true);
     try {
       const data = await fetchLiveTelemetry(corridorId);
       setLiveData(data);
-      setLastSynced(new Date());
-      // Persist to localStorage for offline Himalayan field operations
-      try {
-        localStorage.setItem(`himalsanket_cache_${corridorId}`, JSON.stringify(data));
-      } catch (_) {}
+      if (data.active_scenario) setActiveScenario(data.active_scenario);
 
-      if (data.active_scenario) {
-        setActiveScenario(data.active_scenario);
-      }
       setCorridors((prev) =>
         prev.map((c) =>
           c.id === corridorId
@@ -178,21 +166,17 @@ export default function App() {
         )
       );
     } catch (err) {
-      console.warn("Live telemetry sync (offline fallback active):", err);
-      // Retrieve last known telemetry from offline localStorage cache
-      try {
-        const cached = localStorage.getItem(`himalsanket_cache_${corridorId}`);
-        if (cached) {
-          const cachedData = JSON.parse(cached);
-          setLiveData(cachedData);
-        }
-      } catch (_) {}
+      console.warn("Offline telemetry fallback active:", err);
     } finally {
       setIsSensingSyncing(false);
     }
   }, []);
 
-  // Trigger presentation disaster scenarios
+  useEffect(() => {
+    syncLiveTelemetry(selectedId);
+  }, [selectedId, syncLiveTelemetry]);
+
+  // Trigger Scenario Drills
   const handleTriggerScenario = useCallback(
     async (scenarioId: string) => {
       setActiveScenario(scenarioId);
@@ -203,27 +187,16 @@ export default function App() {
         console.warn("Trigger scenario fallback:", err);
       }
 
-      // Automatically adjust simulated water rise buffer
-      if (scenarioId === "cloudburst_spike") {
-        setWaterSurge(2.5);
-      } else if (scenarioId === "glof_lake_expansion") {
-        setWaterSurge(1.5);
-      } else if (scenarioId === "critical_cascade") {
-        setWaterSurge(3.5);
-      } else if (scenarioId === "seismic_tremor") {
-        setWaterSurge(1.0);
-      } else {
-        setWaterSurge(0);
-      }
+      if (scenarioId === "cloudburst_spike") setWaterSurge(2.5);
+      else if (scenarioId === "glof_lake_expansion") setWaterSurge(1.5);
+      else if (scenarioId === "critical_cascade") setWaterSurge(3.5);
+      else if (scenarioId === "seismic_tremor") setWaterSurge(1.0);
+      else setWaterSurge(0);
     },
     [selectedId, syncLiveTelemetry]
   );
 
-  useEffect(() => {
-    syncLiveTelemetry(selectedId);
-  }, [selectedId, syncLiveTelemetry]);
-
-  // GPS Locate Device
+  // GPS Device Locator
   const handleLocateMe = useCallback(() => {
     if (!navigator.geolocation) {
       alert("Geolocation is not supported by your browser");
@@ -240,8 +213,8 @@ export default function App() {
         });
         setIsLocating(false);
       },
-      (err) => {
-        console.warn("GPS lookup failed, using simulated corridor location:", err);
+      () => {
+        // Fallback default
         setUserPosition({
           lat: 28.2140,
           lng: 85.4950,
@@ -254,82 +227,28 @@ export default function App() {
     );
   }, []);
 
-  // Quick 1-Click SOS Broadcast
-  const handleTriggerSOS = useCallback((customNote?: string) => {
-    if (!audioMuted) {
-      playEmergencyChime();
-    }
-    const lat = userPosition?.lat || 28.2140;
-    const lng = userPosition?.lng || 85.4950;
-    const time = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-    const newDistress = {
-      id: Date.now(),
-      name: `SOS — Trekker at ${lat.toFixed(4)}°N, ${lng.toFixed(4)}°E`,
-      lat,
-      lng,
-      detail: customNote || "Direct Emergency SOS Distress transmitted by trekker on trail.",
-      priority: 95,
-      time,
-    };
-    setSosDistresses((prev) => [newDistress, ...prev]);
-    setSearchItems((prev) => [
-      {
-        id: newDistress.id,
-        source: "sos",
-        name: newDistress.name,
-        detail: `GPS: ${lat.toFixed(4)}° N, ${lng.toFixed(4)}° E · ${newDistress.detail}`,
+  const handleTriggerSOS = useCallback(
+    (customNote?: string) => {
+      if (!audioMuted) playEmergencyChime();
+      const lat = userPosition?.lat || 28.2140;
+      const lng = userPosition?.lng || 85.4950;
+      broadcastSOS({
+        name: `Trekker SOS (${lat.toFixed(4)}°N, ${lng.toFixed(4)}°E)`,
+        lat,
+        lng,
+        altitude: userPosition?.altitude || 2780,
+        detail: customNote || "Direct Emergency SOS Distress transmitted by trekker on trail.",
         priority: 95,
-      },
-      ...prev,
-    ]);
-  }, [audioMuted, userPosition]);
-
-  // SAR Family Report
-  const addFamilyReport = useCallback((r: any) => {
-    const dayScore = Math.min(r.daysSinceContact * 3, 24);
-    const priority = Math.min(40 + dayScore, 100);
-    setSearchItems((prev) => [
-      {
-        id: Date.now(),
-        source: "family",
-        name: r.name,
-        detail: `${r.location} · ${r.daysSinceContact}d since contact`,
-        priority,
-      },
-      ...prev,
-    ]);
-  }, []);
-
-  // Victim SOS Report
-  const addSOSReport = useCallback((r: any) => {
-    const lat = r.lat || userPosition?.lat || 28.2140;
-    const lng = r.lng || userPosition?.lng || 85.4950;
-    const time = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-    const distress = {
-      id: Date.now(),
-      name: r.name,
-      lat,
-      lng,
-      detail: r.detail,
-      priority: r.priority,
-      time,
-    };
-    setSosDistresses((prev) => [distress, ...prev]);
-    setSearchItems((prev) => [
-      { id: distress.id, source: "sos", name: r.name, detail: r.detail, priority: r.priority },
-      ...prev,
-    ]);
-  }, [userPosition]);
+        corridorId: selectedId,
+      });
+    },
+    [audioMuted, userPosition, broadcastSOS, selectedId]
+  );
 
   return (
-    <div className="w-full min-h-screen flex flex-col bg-[#0A1224] text-[#F8FAFC] antialiased selection:bg-cyan-500 selection:text-black">
-      {/* 1. Executive Command Center Top Header */}
+    <div className="w-full h-screen flex flex-col bg-[#0A1224] text-[#F8FAFC] antialiased overflow-hidden selection:bg-cyan-500 selection:text-black">
+      {/* 1. Streamlined Command Header with 1-Click Persona Switcher */}
       <CommandHeader
-        currentTab={tab}
-        onTabChange={(newTab) => {
-          playConfirmationBeep();
-          setTab(newTab);
-        }}
         activeTier={selectedRisk.tier}
         activeCorridor={selectedCorridor}
         allCorridors={corridors}
@@ -347,7 +266,6 @@ export default function App() {
           playConfirmationBeep();
           setIsTourOpen(true);
         }}
-        onTriggerQuickSOS={() => handleTriggerSOS()}
         audioMuted={audioMuted}
         onToggleAudioMute={() => {
           playConfirmationBeep();
@@ -355,12 +273,39 @@ export default function App() {
         }}
       />
 
-      {/* 2. Primary Tab Views */}
-      <main className="flex-1 flex flex-col min-h-0">
-        {tab === "risk" && (
-          <RiskDashboard
+      {/* 2. Persona-Tailored Clean Experience */}
+      <main className="flex-1 flex flex-col min-h-0 relative overflow-hidden">
+        {currentRole === "civilian" && (
+          <CivilianDashboard
+            corridor={selectedCorridor}
+            userPosition={userPosition}
+            onLocateMe={handleLocateMe}
+            isLocating={isLocating}
+            distanceToHazard={distanceToHazard}
+            geofenceStatus={geofenceStatus}
+            onTriggerSOS={handleTriggerSOS}
+            language={language}
+            assets={corridorAssets}
+            activeScenario={activeScenario}
+            waterSurge={waterSurge}
+          />
+        )}
+
+        {currentRole === "rescuer" && (
+          <RescuerDashboard
+            corridor={selectedCorridor}
+            userPosition={userPosition}
+            onLocateMe={handleLocateMe}
+            language={language}
+            assets={corridorAssets}
+            activeScenario={activeScenario}
+            waterSurge={waterSurge}
+          />
+        )}
+
+        {currentRole === "admin" && (
+          <AdminCommandDashboard
             corridors={corridors}
-            setCorridors={setCorridors}
             selectedId={selectedId}
             setSelectedId={setSelectedId}
             selectedRisk={selectedRisk}
@@ -372,87 +317,26 @@ export default function App() {
             waterSurge={waterSurge}
             setWaterSurge={setWaterSurge}
             userPosition={userPosition}
-            setUserPosition={setUserPosition}
-            sosDistresses={sosDistresses}
-            onTriggerSOS={handleTriggerSOS}
-            onLocateMe={handleLocateMe}
-            isLocating={isLocating}
-            distanceToHazard={distanceToHazard}
-            geofenceStatus={geofenceStatus}
-            onInspectLake={() => {
-              const lake =
-                liveData?.sentinel_satellite_lake ||
-                (CORRIDOR_SENTINEL_LAKES as any)[selectedId] ||
-                (CORRIDOR_SENTINEL_LAKES as any).langtang;
-              setInspectingLake(lake);
-            }}
             language={language}
-          />
-        )}
-
-        {tab === "analytics" && (
-          <AnalyticsDashboard
-            corridor={selectedCorridor}
-            risk={selectedRisk}
-            liveData={liveData}
-            activeScenario={activeScenario}
-            waterSurge={waterSurge}
-            onInspectLake={() => {
-              const lake =
-                liveData?.sentinel_satellite_lake ||
-                (CORRIDOR_SENTINEL_LAKES as any)[selectedId] ||
-                (CORRIDOR_SENTINEL_LAKES as any).langtang;
-              setInspectingLake(lake);
-            }}
-            language={language}
-          />
-        )}
-
-        {tab === "search" && (
-          <SearchPriorityPanel
-            searchItems={searchItems}
-            addFamilyReport={addFamilyReport}
-            language={language}
-          />
-        )}
-
-        {tab === "sos" && (
-          <SOSBeaconPanel
-            addSOSReport={addSOSReport}
-            userPosition={userPosition}
-            onLocateMe={handleLocateMe}
-            audioMuted={audioMuted}
-            language={language}
+            assets={corridorAssets}
           />
         )}
       </main>
 
-      {/* 3. System Architecture Walkthrough Tour Modal */}
+      {/* 3. System Architecture Tour Modal (For AI Summit Evaluators) */}
       <SystemTourModal
         isOpen={isTourOpen}
         onClose={() => setIsTourOpen(false)}
         language={language}
       />
-
-      {/* 4. ESA Sentinel-2 Glacial Lake Inspector Modal */}
-      {inspectingLake && (
-        <SentinelLakeModal
-          lake={inspectingLake}
-          onClose={() => setInspectingLake(null)}
-          language={language}
-        />
-      )}
-
-      {/* 5. Floating Gemini 2.0 Flash AI Copilot */}
-      <GeminiChatbot
-        activeCorridor={selectedCorridor}
-        allCorridors={corridors}
-        userPosition={userPosition}
-        geofenceStatus={geofenceStatus}
-        distanceToHazard={distanceToHazard}
-        activeScenario={activeScenario}
-        waterSurge={waterSurge}
-      />
     </div>
+  );
+}
+
+export default function App() {
+  return (
+    <UserRoleProvider>
+      <MainApp />
+    </UserRoleProvider>
   );
 }
