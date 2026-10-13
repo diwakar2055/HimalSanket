@@ -1,4 +1,4 @@
-﻿"""
+"""
 Google Gemini AI Reasoning Layer (Gemini 2.0 Flash).
 
 Transforms raw multi-hazard telemetry and fused risk scores into
@@ -70,17 +70,26 @@ Requirements:
         try:
             from google import genai
             client = genai.Client(api_key=api_key)
-            response = client.models.generate_content(
-                model="gemini-2.0-flash",
-                contents=prompt
-            )
+            response = None
+            for candidate in ["gemini-3.5-flash-lite", "gemini-flash-lite-latest", "gemini-3.8-flash"]:
+                try:
+                    response = client.models.generate_content(
+                        model=candidate,
+                        contents=prompt
+                    )
+                    if response and response.text:
+                        break
+                except Exception as m_err:
+                    logger.debug(f"Model {candidate} failed: {m_err}")
+            if not response or not response.text:
+                raise RuntimeError("All candidate models failed")
             raw_text = response.text or ""
             logger.info(f"Successfully generated Gemini briefing for {data.corridor_name}")
 
             return GeminiBriefingResponse(
                 corridor_name=data.corridor_name,
                 risk_level=data.risk_level,
-                model_used="Google Gemini 2.0 Flash (Live API)",
+                model_used="Google Gemini (Live API)",
                 briefing_en=raw_text.strip(),
                 briefing_ne="Gemini live response generated above.",
                 sms_alert_romanized=f"HimalSanket ALERT: {data.corridor_name} {data.risk_level.upper()} hazard. Pahiro/GLOF jokhim. Surakshit sthan ma basnu.",

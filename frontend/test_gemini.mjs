@@ -22,9 +22,8 @@ console.log("📡 Querying Google Gemini API...\n");
 const ai = new GoogleGenAI({ apiKey: key });
 
 const CANDIDATE_MODELS = [
-  "gemini-2.5-flash-lite",
-  "gemini-flash-lite-latest",
   "gemini-3.5-flash-lite",
+  "gemini-flash-lite-latest",
   "gemini-3.8-flash",
   "gemini-flash-latest",
 ];

@@ -102,6 +102,25 @@ SENTINEL_GLACIAL_LAKES: Dict[str, Dict[str, Any]] = {
         "water_mask_status": "STABLE",
         "satellite_tile_preview": "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/13/3438/6025",
         "description": "Freshwater lake in Samagaun village below Manaslu peak, monitored for ice avalanches."
+    },
+    "rolwaling": {
+        "lake_id": "tsho_rolpa",
+        "lake_name": "Tsho Rolpa Glacial Lake",
+        "corridor_id": "rolwaling",
+        "region": "Dolakha",
+        "elevation_m": 4580,
+        "gps": "27.8540° N, 86.4780° E",
+        "center": {"lat": 27.8540, "lng": 86.4780},
+        "sensor": "Sentinel-2 MSI (Level-2A)",
+        "band_combination": "B03 (Green) / B08 (Near-Infrared NDWI)",
+        "baseline_date": "2026-08-08",
+        "current_date": "2026-08-27",
+        "baseline_area_km2": 1.54,
+        "current_area_km2": 1.68,
+        "area_change_pct": 9.09,
+        "water_mask_status": "ELEVATED_WATCH",
+        "satellite_tile_preview": "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/13/3485/6060",
+        "description": "One of Nepal's largest moraine-dammed glacial lakes (~85M m³), monitored continuously for siphon integrity."
     }
 }
 
@@ -181,6 +200,22 @@ class LiveTelemetryState:
                 "active_drivers": ["stable geomorphic parameters"],
                 "last_sentinel_pass": "4 days ago (Sentinel-2B)",
                 "live_gauge_station": "DHM Stn 0902 (Philim)",
+            },
+            "rolwaling": {
+                "corridor_id": "rolwaling",
+                "name": "Rolwaling Valley",
+                "region": "Dolakha",
+                "gps": "27.8540° N, 86.4780° E",
+                "rainfall": 28.0,
+                "rain_threshold": 144.0,
+                "seismic_activity": 0.8,
+                "seismic_epicenter": {"lat": 27.8300, "lng": 86.4200, "depth_km": 14, "label": "Beding Shear Zone"},
+                "lake_area_change": 1.5,
+                "terrain_susceptibility": 0.68,
+                "reports": [],
+                "active_drivers": ["Tsho Rolpa water level stable, siphon operational"],
+                "last_sentinel_pass": "2 days ago (Sentinel-2B)",
+                "live_gauge_station": "DHM Stn 1019 (Beding)",
             }
         }
 
@@ -340,14 +375,49 @@ class LiveTelemetryState:
         gemini_output = generate_gemini_briefing(gemini_req)
 
         # Downstream river cascade arrival times
-        flood_travel_timeline = [
-            {"station": "Glacial Lake Moraine (4,950m)", "arrival_min": 0, "status": "Breach Origin"},
-            {"station": "Kyanjin Gompa (3,860m)", "arrival_min": 8, "status": "Immediate alert"},
-            {"station": "Lama Hotel Gorge (2,470m)", "arrival_min": 18, "status": "Evacuate canyon"},
-            {"station": "Syabrubesi Bazaar (1,460m)", "arrival_min": 38, "status": "Sound siren & close bridge"},
-            {"station": "Mailung Hydropower Dam (1,120m)", "arrival_min": 55, "status": "Open floodgates"},
-            {"station": "Betrawati Highway (620m)", "arrival_min": 78, "status": "Stop Nuwakot traffic"}
-        ]
+        CASCADE_TIMELINES = {
+            "langtang": [
+                {"station": "Glacial Lake Moraine (4,950m)", "arrival_min": 0, "status": "Breach Origin"},
+                {"station": "Kyanjin Gompa (3,860m)", "arrival_min": 8, "status": "Immediate alert"},
+                {"station": "Lama Hotel Gorge (2,470m)", "arrival_min": 18, "status": "Evacuate canyon"},
+                {"station": "Syabrubesi Bazaar (1,460m)", "arrival_min": 38, "status": "Sound siren & close bridge"},
+                {"station": "Mailung Hydropower Dam (1,120m)", "arrival_min": 55, "status": "Open floodgates"},
+                {"station": "Betrawati Highway (620m)", "arrival_min": 78, "status": "Stop Nuwakot traffic"}
+            ],
+            "khumbu": [
+                {"station": "Imja Tsho Moraine (5,010m)", "arrival_min": 0, "status": "Breach Origin"},
+                {"station": "Dingboche Terrace (4,410m)", "arrival_min": 7, "status": "Evacuate river lodges"},
+                {"station": "Pangboche Lower Trail (3,930m)", "arrival_min": 16, "status": "Move to higher ridge"},
+                {"station": "Phunki Thenga Bridge (3,250m)", "arrival_min": 29, "status": "Bridge submerged"},
+                {"station": "Phakding Riverside (2,610m)", "arrival_min": 44, "status": "Sound siren & close bridge"},
+                {"station": "Lukla Surke Valley (2,290m)", "arrival_min": 62, "status": "Evacuate lower basin"}
+            ],
+            "annapurna": [
+                {"station": "Gangapurna Lake Moraine (3,540m)", "arrival_min": 0, "status": "Breach Origin"},
+                {"station": "Manang Chhyon Terrace (3,519m)", "arrival_min": 5, "status": "Immediate alert"},
+                {"station": "Pisang Confluence (3,200m)", "arrival_min": 18, "status": "Move cattle & hikers"},
+                {"station": "Chame District Checkpost (2,670m)", "arrival_min": 35, "status": "Sound siren & close road"},
+                {"station": "Dharapani Suspension Bridge (1,860m)", "arrival_min": 58, "status": "Bridge submerged"},
+                {"station": "Chamje Highway Gorge (1,430m)", "arrival_min": 80, "status": "Stop Besisahar traffic"}
+            ],
+            "manaslu": [
+                {"station": "Birendra Tal Flood Throat (3,691m)", "arrival_min": 0, "status": "Breach Origin"},
+                {"station": "Samagaun Village Lodges (3,530m)", "arrival_min": 6, "status": "Evacuate to monastery ridge"},
+                {"station": "Shyala Riverside (3,500m)", "arrival_min": 14, "status": "Clear riverbed"},
+                {"station": "Lho Canyon Gorge (3,180m)", "arrival_min": 27, "status": "Evacuate lower trails"},
+                {"station": "Namrung Gate Bridge (2,660m)", "arrival_min": 46, "status": "Bridge submerged"},
+                {"station": "Jagat Checkpost (1,340m)", "arrival_min": 74, "status": "Sound downstream siren"}
+            ],
+            "rolwaling": [
+                {"station": "Tsho Rolpa Siphon Spillway (4,580m)", "arrival_min": 0, "status": "Breach Origin"},
+                {"station": "Na Village Flood Fan (4,180m)", "arrival_min": 8, "status": "Immediate alert & sirens"},
+                {"station": "Beding Valley Settlement (3,690m)", "arrival_min": 19, "status": "Evacuate to monastery hill"},
+                {"station": "Simigaun Cliff Trail (2,020m)", "arrival_min": 42, "status": "Bridge submerged"},
+                {"station": "Chetchet Suspension Bridge (1,377m)", "arrival_min": 65, "status": "Close vehicular bridge"},
+                {"station": "Gongar Khola Hydropower Intake (1,150m)", "arrival_min": 85, "status": "Open floodgates"}
+            ]
+        }
+        flood_travel_timeline = CASCADE_TIMELINES.get(corridor_id, CASCADE_TIMELINES["langtang"])
 
         return {
             "sensed_at": datetime.now(timezone.utc).isoformat(),

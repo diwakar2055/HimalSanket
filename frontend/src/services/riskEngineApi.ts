@@ -273,10 +273,29 @@ export async function triggerPresentationScenario(
 /**
  * Fetches monitored Sentinel-2 glacial lake catalog.
  */
-export async function fetchSentinelLakes(): Promise<Record<string, SentinelSatelliteLake>> {
-  const response = await fetch(`${RISK_ENGINE_API_BASE}/telemetry/satellite-lakes`);
+/**
+ * Executes TimesFM time-series predictive rainfall forecasting via backend foundation model.
+ */
+export async function fetchTimesfmForecast(
+  corridorId: string = "langtang",
+  corridorName: string = "Langtang Valley",
+  historicalRain: number[] = [3.2, 4.1, 5.0, 6.8, 8.4, 14.2, 19.5, 16.0, 11.2, 7.8, 5.1, 4.0],
+  threshold: number = 144.0,
+  horizon: number = 24
+): Promise<any> {
+  const response = await fetch(`${RISK_ENGINE_API_BASE}/ai/predict/rainfall`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      corridor_id: corridorId,
+      corridor_name: corridorName,
+      rain_threshold_24h: threshold,
+      historical_hourly_rain: historicalRain,
+      forecast_horizon_hours: horizon,
+    }),
+  });
   if (!response.ok) {
-    throw new Error(`Failed to fetch satellite lakes: ${response.statusText}`);
+    throw new Error(`TimesFM forecast failed (${response.status}): ${response.statusText}`);
   }
   return response.json();
 }

@@ -1,4 +1,4 @@
-﻿"""
+"""
 Downstream River Network & Hydrological Cascade Routing Module.
 
 Maps each high-altitude corridor to its downstream river drainage network,
@@ -186,6 +186,55 @@ RIVER_NETWORKS_DATABASE: Dict[str, DownstreamRiverNetwork] = {
                 est_flood_arrival_minutes=85,
                 infrastructure_at_risk=["Densely populated riverside market", "Major vehicle bridge"],
                 evacuation_safe_zone="Move east/west away from river banks to higher town terraces"
+            ),
+        ]
+    ),
+    "rolwaling": DownstreamRiverNetwork(
+        corridor_id="rolwaling",
+        corridor_name="Rolwaling Valley",
+        primary_river="Rolwaling Khola ➔ Tama Koshi River",
+        drainage_basin="Tama Koshi Basin (Koshi System)",
+        total_channel_monitored_km=52.0,
+        map_polyline_coordinates=[
+            [27.8540, 86.4780],  # Tsho Rolpa Glacial Lake
+            [27.8460, 86.4350],  # Na Village
+            [27.8380, 86.3720],  # Beding Village
+            [27.8250, 86.2950],  # Simigaun
+            [27.8180, 86.2550],  # Chetchet Bridge
+            [27.8050, 86.2250],  # Gongar Khola / Upper Tama Koshi Intake
+        ],
+        vulnerable_downstream_settlements=[
+            RiverSettlementAlert(
+                name="Na Village Flood Fan",
+                elevation_m=4180.0,
+                distance_km_downstream=5.2,
+                est_flood_arrival_minutes=8,
+                infrastructure_at_risk=["High-altitude seasonal yak stone shelters", "Wooden trail bridge"],
+                evacuation_safe_zone="Scramble 50m up northern moraine slope"
+            ),
+            RiverSettlementAlert(
+                name="Beding Settlement",
+                elevation_m=3690.0,
+                distance_km_downstream=14.0,
+                est_flood_arrival_minutes=19,
+                infrastructure_at_risk=["Primary Sherpa village", "Ancient Buddhist monastery terrace", "Riverside lodges"],
+                evacuation_safe_zone="Climb to Sangag Gompa hill (above 3,750m)"
+            ),
+            RiverSettlementAlert(
+                name="Chetchet Suspension Bridge",
+                elevation_m=1377.0,
+                distance_km_downstream=38.0,
+                est_flood_arrival_minutes=65,
+                infrastructure_at_risk=["Key arterial steel suspension bridge", "Trailhead shops"],
+                evacuation_safe_zone="Ascend road cut to Simigaun staircase entrance"
+            ),
+            RiverSettlementAlert(
+                name="Gongar Khola Intake (Upper Tama Koshi)",
+                elevation_m=1150.0,
+                distance_km_downstream=52.0,
+                est_flood_arrival_minutes=85,
+                infrastructure_at_risk=["456MW Upper Tamakoshi Hydropower headworks", "Settling basins", "Workers camp"],
+                evacuation_safe_zone="Immediate sluice opening and evacuation to control building on hill"
             ),
         ]
     )

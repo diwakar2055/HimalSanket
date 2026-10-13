@@ -1,4 +1,4 @@
-﻿from typing import List, Dict
+from typing import List, Dict
 from fastapi import APIRouter, HTTPException, status
 
 from models import (
@@ -85,6 +85,25 @@ SAMPLE_REGIONS: Dict[str, Dict] = {
             seismic_activity=0.4,
             lake_area_change=0.0,
             terrain_susceptibility=0.44,
+            reports=[]
+        )
+    },
+    "rolwaling": {
+        "id": "rolwaling",
+        "name": "Rolwaling Valley",
+        "region": "Dolakha",
+        "gps": "27.8540° N, 86.4780° E",
+        "description": "High-risk glacial trough containing Tsho Rolpa (~85M m³ moraine-dammed lake) draining into the steep Tama Koshi canyon.",
+        "baseline_data": LocationRiskInput(
+            location_id="rolwaling",
+            location_name="Rolwaling Valley",
+            region="Dolakha",
+            gps="27.8540° N, 86.4780° E",
+            rainfall=28.0,
+            rain_threshold=144.0,
+            seismic_activity=0.8,
+            lake_area_change=1.5,
+            terrain_susceptibility=0.68,
             reports=[]
         )
     }

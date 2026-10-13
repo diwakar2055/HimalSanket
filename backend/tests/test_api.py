@@ -94,12 +94,13 @@ def test_get_all_regions():
     response = client.get("/regions")
     assert response.status_code == 200
     data = response.json()
-    assert len(data) >= 4
+    assert len(data) >= 5
     region_ids = [r["id"] for r in data]
     assert "langtang" in region_ids
     assert "khumbu" in region_ids
     assert "annapurna" in region_ids
     assert "manaslu" in region_ids
+    assert "rolwaling" in region_ids
 
 
 def test_get_region_by_id():
@@ -109,6 +110,12 @@ def test_get_region_by_id():
     assert data["id"] == "langtang"
     assert data["region"] == "Rasuwa"
     assert "baseline_risk" in data
+
+    resp_rol = client.get("/regions/rolwaling")
+    assert resp_rol.status_code == 200
+    data_rol = resp_rol.json()
+    assert data_rol["id"] == "rolwaling"
+    assert data_rol["region"] == "Dolakha"
 
 
 def test_get_nonexistent_region():
