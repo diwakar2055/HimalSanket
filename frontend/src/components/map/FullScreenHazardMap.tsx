@@ -45,6 +45,9 @@ export interface FullScreenHazardMapProps {
   mode?: "civilian" | "rescuer" | "admin";
   selectedAsset?: MapAsset | null;
   onSelectAsset?: (asset: MapAsset | null) => void;
+  selectedBeacon?: DistressBeacon | null;
+  onDispatchBeacon?: (beacon: DistressBeacon) => void;
+  onResolveBeacon?: (beacon: DistressBeacon) => void;
   simulatedWaterRise?: number;
   userPosition?: { lat: number; lng: number; accuracy?: number; altitude?: number } | null;
   distressBeacons?: DistressBeacon[];
@@ -129,7 +132,7 @@ function MapCameraController({
     if (!map) return;
     if (selectedBeacon) {
       map.panTo({ lat: selectedBeacon.lat, lng: selectedBeacon.lng });
-      map.setZoom(Math.max(map.getZoom() || 12, 14));
+      map.setZoom(15);
     } else if (selectedAsset) {
       map.panTo({ lat: selectedAsset.lat, lng: selectedAsset.lng });
       map.setZoom(Math.max(map.getZoom() || 12, 14));
@@ -172,6 +175,9 @@ export function FullScreenHazardMap({
   mode = "admin",
   selectedAsset,
   onSelectAsset,
+  selectedBeacon,
+  onDispatchBeacon,
+  onResolveBeacon,
   simulatedWaterRise = 0,
   userPosition,
   distressBeacons = [],
@@ -235,13 +241,24 @@ export function FullScreenHazardMap({
   const [locateTrigger, setLocateTrigger] = useState(0);
 
   // Active item for InfoWindow
-  const [activeBeacon, setActiveBeacon] = useState<DistressBeacon | null>(null);
+  const [activeBeacon, setActiveBeacon] = useState<DistressBeacon | null>(selectedBeacon || null);
   const [activeAsset, setActiveAsset] = useState<MapAsset | null>(selectedAsset || null);
   const [activeBase, setActiveBase] = useState<any | null>(null);
 
   useEffect(() => {
     if (selectedAsset) setActiveAsset(selectedAsset);
   }, [selectedAsset]);
+
+  // Sync activeBeacon with external selectedBeacon prop (e.g. from Rescuer victim card click)
+  useEffect(() => {
+    if (selectedBeacon !== undefined) {
+      setActiveBeacon(selectedBeacon);
+      if (selectedBeacon) {
+        setActiveAsset(null);
+        setActiveBase(null);
+      }
+    }
+  }, [selectedBeacon]);
 
   // 3. Layer Toggles
   const [layers, setLayers] = useState({
@@ -502,27 +519,41 @@ export function FullScreenHazardMap({
                     position={{ lat: beacon.lat, lng: beacon.lng }}
                     onClick={() => handleBeaconClick(beacon)}
                     title={beacon.name}
+                    zIndex={isSelected ? 999 : 50}
                   >
                     <div
-                      className={`relative flex items-center justify-center cursor-pointer transition-transform duration-200 ${
-                        isSelected ? "scale-125 z-40" : "hover:scale-110 z-20"
+                      className={`relative flex items-center justify-center cursor-pointer transition-all duration-300 ${
+                        isSelected ? "scale-125 z-50" : "hover:scale-110 z-20"
                       }`}
                     >
                       {!isRescued && (
-                        <div
-                          className={`absolute -inset-2.5 rounded-full opacity-60 animate-ping ${
-                            isCritical ? "bg-rose-500" : "bg-amber-500"
-                          }`}
-                        />
+                        <>
+                          <div
+                            className={`absolute -inset-3 rounded-full opacity-70 animate-ping ${
+                              isCritical ? "bg-rose-500" : "bg-amber-500"
+                            }`}
+                          />
+                          {isSelected && (
+                            <div className="absolute -inset-5 rounded-full border-2 border-rose-400 opacity-80 animate-pulse" />
+                          )}
+                        </>
                       )}
                       <div
-                        className={`w-8 h-8 rounded-full ${color} border-2 border-white shadow-2xl flex items-center justify-center text-white font-black text-xs ${
-                          isSelected ? "ring-4 ring-cyan-400" : ""
+                        className={`w-9 h-9 rounded-full ${color} border-2 border-white flex items-center justify-center text-white font-black text-xs transition-all ${
+                          isSelected
+                            ? "ring-4 ring-rose-400 ring-offset-2 ring-offset-black shadow-[0_0_25px_rgba(244,63,94,0.9)] animate-bounce"
+                            : "shadow-2xl"
                         }`}
                       >
                         <Radio className="w-4 h-4 animate-pulse" />
                       </div>
-                      <div className="absolute top-9 left-1/2 -translate-x-1/2 bg-black/90 text-[10px] font-black text-white px-2 py-0.5 rounded border border-white/20 whitespace-nowrap shadow-xl">
+                      <div
+                        className={`absolute top-10 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded border whitespace-nowrap shadow-xl text-[10px] font-black transition-all ${
+                          isSelected
+                            ? "bg-rose-950 text-rose-200 border-rose-400 scale-105"
+                            : "bg-black/90 text-white border-white/20"
+                        }`}
+                      >
                         {beacon.priority}% SOS
                       </div>
                     </div>
@@ -587,12 +618,15 @@ export function FullScreenHazardMap({
             {activeBeacon && (
               <InfoWindow
                 position={{ lat: activeBeacon.lat, lng: activeBeacon.lng }}
-                onCloseClick={() => setActiveBeacon(null)}
+                onCloseClick={() => {
+                  setActiveBeacon(null);
+                  if (onSelectBeacon) onSelectBeacon(null as any);
+                }}
               >
-                <div className="p-1 max-w-[280px] font-sans text-slate-900">
+                <div className="p-1.5 max-w-[280px] font-sans text-slate-900">
                   <div className="flex items-center justify-between border-b pb-1 mb-1.5">
                     <span className="text-[10px] font-black uppercase text-rose-600 flex items-center gap-1">
-                      <Radio className="w-3 h-3 text-rose-600 animate-pulse" />
+                      <Radio className="w-3.5 h-3.5 text-rose-600 animate-pulse" />
                       <span>{activeBeacon.priority}% Triage Distress</span>
                     </span>
                     <span
@@ -605,16 +639,42 @@ export function FullScreenHazardMap({
                       {activeBeacon.status}
                     </span>
                   </div>
-                  <div className="font-bold text-xs text-slate-900 leading-tight">
+                  <div className="font-bold text-sm text-slate-900 leading-tight">
                     {activeBeacon.name}
                   </div>
                   <p className="text-[11px] text-slate-600 mt-1 leading-snug">
                     {activeBeacon.detail}
                   </p>
-                  <div className="mt-2 pt-1 border-t text-[10px] text-slate-500 flex justify-between items-center">
+                  <div className="mt-2 pt-1.5 border-t text-[10px] text-slate-500 flex justify-between items-center font-mono">
+                    <span>GPS: {activeBeacon.lat.toFixed(4)}°, {activeBeacon.lng.toFixed(4)}°</span>
                     <span>Elev: ~{Math.round(activeBeacon.altitude || 2780)}m</span>
-                    <span className="font-mono">{activeBeacon.time}</span>
                   </div>
+                  {mode !== "civilian" && activeBeacon.status !== "rescued" && (
+                    <div className="mt-2 pt-1.5 border-t flex gap-1.5">
+                      {onDispatchBeacon && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onDispatchBeacon(activeBeacon);
+                          }}
+                          className="flex-1 py-1 px-2 rounded-lg bg-sky-600 hover:bg-sky-500 text-white font-bold text-[10px] cursor-pointer shadow transition-all active:scale-95"
+                        >
+                          Dispatch Team
+                        </button>
+                      )}
+                      {onResolveBeacon && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onResolveBeacon(activeBeacon);
+                          }}
+                          className="flex-1 py-1 px-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-[10px] cursor-pointer shadow transition-all active:scale-95"
+                        >
+                          Mark Rescued
+                        </button>
+                      )}
+                    </div>
+                  )}
                 </div>
               </InfoWindow>
             )}

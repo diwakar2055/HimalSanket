@@ -60,6 +60,15 @@ export function RescuerDashboard({
     return CORRIDOR_RESCUE_BASES[corridor.id] || CORRIDOR_RESCUE_BASES.langtang || [];
   }, [corridor.id]);
 
+  // Focus victim location on map with slight zoom and collapse sheet to peek on mobile
+  const handleSelectVictim = useCallback((beacon: DistressBeacon) => {
+    playConfirmationBeep();
+    setSelectedBeacon({ ...beacon });
+    if (typeof window !== "undefined" && window.innerWidth < 1024) {
+      setSheetPosition("peek");
+    }
+  }, []);
+
   // Quick Dispatch Handler
   const handleDispatch = useCallback(
     (beaconId: string | number, unitName: string) => {
@@ -99,10 +108,29 @@ export function RescuerDashboard({
           </span>
         }
         peekContent={
-          <div className="flex items-center justify-between text-xs text-slate-300 pt-1">
-            <span className="font-mono text-cyan-300">{corridor.name}</span>
-            <span className="text-amber-400 font-bold">{distressBeacons.length} Active Incidents</span>
-          </div>
+          selectedBeacon ? (
+            <div className="flex items-center justify-between text-xs pt-1">
+              <div className="flex items-center gap-1.5 text-rose-300 font-bold truncate">
+                <span className="w-2 h-2 rounded-full bg-rose-500 animate-ping inline-block shrink-0" />
+                <span className="truncate">Focused: {selectedBeacon.name}</span>
+                <span className="text-[10px] text-amber-300 font-mono">({selectedBeacon.priority}% SOS)</span>
+              </div>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSheetPosition("half");
+                }}
+                className="text-[11px] text-cyan-400 underline font-semibold shrink-0 cursor-pointer pl-2"
+              >
+                Expand Sheet
+              </button>
+            </div>
+          ) : (
+            <div className="flex items-center justify-between text-xs text-slate-300 pt-1">
+              <span className="font-mono text-cyan-300">{corridor.name}</span>
+              <span className="text-amber-400 font-bold">{distressBeacons.length} Active Incidents</span>
+            </div>
+          )
         }
       >
         <div className="flex-1 flex flex-col min-h-0 bg-[#111A2E]">
@@ -185,17 +213,17 @@ export function RescuerDashboard({
                 return (
                   <div
                     key={b.id}
-                    onClick={() => setSelectedBeacon(b)}
+                    onClick={() => handleSelectVictim(b)}
                     className={`p-3.5 rounded-2xl border transition-all cursor-pointer space-y-2 ${
                       isSelected
-                        ? "bg-[#16233F] border-amber-500 shadow-xl"
-                        : "bg-[#0F1B33]/80 border-white/10 hover:border-white/25"
+                        ? "bg-[#16233F] border-amber-400 ring-2 ring-amber-400/60 shadow-2xl"
+                        : "bg-[#0F1B33]/80 border-white/10 hover:border-white/25 hover:bg-[#121F3A]"
                     }`}
                   >
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex items-center gap-2">
                         <span
-                          className={`w-2 h-2 rounded-full ${
+                          className={`w-2.5 h-2.5 rounded-full ${
                             b.status === "rescued"
                               ? "bg-emerald-400"
                               : isCritical
@@ -226,6 +254,20 @@ export function RescuerDashboard({
                       </span>
                       <span>Elev: ~{b.altitude || 2780}m</span>
                       <span>{b.time}</span>
+                    </div>
+
+                    {/* Visual Focus Cue */}
+                    <div className="flex items-center justify-between text-[10px] pt-0.5">
+                      <span className="text-cyan-400 flex items-center gap-1 font-semibold hover:underline">
+                        <MapPin className="w-3 h-3 text-cyan-400" />
+                        Focus on Google Map
+                      </span>
+                      {isSelected && (
+                        <span className="text-amber-300 font-bold tracking-wide uppercase flex items-center gap-1 bg-amber-400/10 px-2 py-0.5 rounded-full border border-amber-400/30">
+                          <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping" />
+                          Focused on Map
+                        </span>
+                      )}
                     </div>
 
                     {/* Action Buttons: 44px touch targets */}
@@ -339,12 +381,17 @@ export function RescuerDashboard({
           corridor={corridor}
           assets={assets}
           mode="rescuer"
+          selectedBeacon={selectedBeacon}
           userPosition={userPosition}
           distressBeacons={distressBeacons}
           onSelectBeacon={(beacon) => {
             setSelectedBeacon(beacon);
-            setSheetPosition("half");
+            if (typeof window !== "undefined" && window.innerWidth < 1024) {
+              setSheetPosition("half");
+            }
           }}
+          onDispatchBeacon={(beacon) => handleDispatch(beacon.id, "APF Mountain Rescue Squad 1")}
+          onResolveBeacon={(beacon) => handleMarkRescued(beacon.id)}
           simulatedWaterRise={waterSurge}
           className="w-full h-full"
         />
