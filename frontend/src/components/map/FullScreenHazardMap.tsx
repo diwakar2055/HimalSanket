@@ -38,6 +38,8 @@ import {
   Volume2,
 } from "lucide-react";
 import { ErrorBoundary } from "../ErrorBoundary";
+import { TacticalCompass } from "./TacticalCompass";
+import { playConfirmationBeep } from "../../utils/audioAlert";
 
 export interface FullScreenHazardMapProps {
   corridor: CorridorConfig;
@@ -109,7 +111,7 @@ const DARK_MAP_STYLES: google.maps.MapTypeStyle[] = [
   },
 ];
 
-// Inner controller that handles camera panning and bounds fitting
+// Inner controller that handles camera panning, bounds fitting, heading and tilt
 function MapCameraController({
   corridor,
   selectedAsset,
@@ -117,6 +119,10 @@ function MapCameraController({
   recenterTrigger,
   locateTrigger,
   userPosition,
+  heading,
+  tilt,
+  onHeadingChange,
+  onTiltChange,
 }: {
   corridor: CorridorConfig;
   selectedAsset?: MapAsset | null;
@@ -124,6 +130,10 @@ function MapCameraController({
   recenterTrigger: number;
   locateTrigger: number;
   userPosition?: { lat: number; lng: number } | null;
+  heading: number;
+  tilt: number;
+  onHeadingChange: (heading: number) => void;
+  onTiltChange: (tilt: number) => void;
 }) {
   const map = useMap();
 
@@ -165,6 +175,51 @@ function MapCameraController({
     map.panTo({ lat: userPosition.lat, lng: userPosition.lng });
     map.setZoom(15);
   }, [map, locateTrigger, userPosition]);
+
+  // Listen to Google Maps internal heading and tilt changes (e.g. user gestures)
+  useEffect(() => {
+    if (!map) return;
+    const hListener = map.addListener("heading_changed", () => {
+      if (typeof map.getHeading === "function") {
+        const curH = map.getHeading();
+        if (typeof curH === "number" && !isNaN(curH)) {
+          onHeadingChange(curH);
+        }
+      }
+    });
+
+    const tListener = map.addListener("tilt_changed", () => {
+      if (typeof map.getTilt === "function") {
+        const curT = map.getTilt();
+        if (typeof curT === "number" && !isNaN(curT)) {
+          onTiltChange(curT);
+        }
+      }
+    });
+
+    return () => {
+      google.maps.event.removeListener(hListener);
+      google.maps.event.removeListener(tListener);
+    };
+  }, [map, onHeadingChange, onTiltChange]);
+
+  // Apply heading updates from UI controls to Google Maps camera
+  useEffect(() => {
+    if (!map || typeof map.setHeading !== "function") return;
+    const curH = typeof map.getHeading === "function" ? map.getHeading() : undefined;
+    if (curH !== heading) {
+      map.setHeading(heading);
+    }
+  }, [map, heading]);
+
+  // Apply tilt updates from UI controls to Google Maps camera
+  useEffect(() => {
+    if (!map || typeof map.setTilt !== "function") return;
+    const curT = typeof map.getTilt === "function" ? map.getTilt() : undefined;
+    if (curT !== tilt) {
+      map.setTilt(tilt);
+    }
+  }, [map, tilt]);
 
   return null;
 }
@@ -239,6 +294,15 @@ export function FullScreenHazardMap({
   const [showLayerMenu, setShowLayerMenu] = useState(false);
   const [recenterTrigger, setRecenterTrigger] = useState(0);
   const [locateTrigger, setLocateTrigger] = useState(0);
+
+  // Camera heading and 3D perspective tilt
+  const [heading, setHeading] = useState<number>(0);
+  const [tilt, setTilt] = useState<number>(0);
+
+  const handleResetNorth = useCallback(() => {
+    playConfirmationBeep();
+    setHeading(0);
+  }, []);
 
   // Active item for InfoWindow
   const [activeBeacon, setActiveBeacon] = useState<DistressBeacon | null>(selectedBeacon || null);
@@ -379,6 +443,8 @@ export function FullScreenHazardMap({
           <Map
             defaultCenter={safeCorridor.center}
             defaultZoom={safeCorridor.zoom}
+            headingInteractionEnabled={true}
+            tiltInteractionEnabled={true}
             mapTypeId={mapType}
             mapId="HIMALSANKET_MAP_ID"
             style={{ width: "100%", height: "100%", position: "absolute" }}
@@ -397,6 +463,10 @@ export function FullScreenHazardMap({
               recenterTrigger={recenterTrigger}
               locateTrigger={locateTrigger}
               userPosition={userPosition}
+              heading={heading}
+              tilt={tilt}
+              onHeadingChange={setHeading}
+              onTiltChange={setTilt}
             />
 
             {/* 1. RIVER FLOW POLYLINE (ELECTRIC CYAN) */}
@@ -941,6 +1011,17 @@ export function FullScreenHazardMap({
           <Key className="w-3.5 h-3.5" />
           <span className="hidden xl:inline">{apiKey ? "Google Maps Connected" : "Set Google Maps Key"}</span>
         </button>
+      </div>
+
+      {/* TACTICAL NORTH COMPASS & CAMERA ANGLE HUD */}
+      <div className="absolute top-16 sm:top-14 right-3 z-20">
+        <TacticalCompass
+          heading={heading}
+          tilt={tilt}
+          onHeadingChange={setHeading}
+          onTiltChange={setTilt}
+          onResetNorth={handleResetNorth}
+        />
       </div>
 
       {/* FLOATING BOTTOM CENTER: WATER SURGE SLIDER (ADMIN MODE ONLY) */}
