@@ -14,6 +14,7 @@ import {
   Shield,
   Plane,
   ChevronDown,
+  Activity,
 } from "lucide-react";
 
 interface CommandHeaderProps {
@@ -30,10 +31,10 @@ interface CommandHeaderProps {
 }
 
 const TIER_COLORS = {
-  Low: { border: "border-emerald-500/50", text: "text-emerald-400", dot: "bg-emerald-400" },
-  Moderate: { border: "border-amber-500/50", text: "text-amber-400", dot: "bg-amber-400" },
-  High: { border: "border-orange-500/50", text: "text-orange-400", dot: "bg-orange-400" },
-  Critical: { border: "border-rose-500/80", text: "text-rose-400", dot: "bg-rose-500 animate-ping" },
+  Low: { border: "border-emerald-500/50", text: "text-emerald-400", dot: "bg-emerald-400", glow: "glow-emerald" },
+  Moderate: { border: "border-amber-500/50", text: "text-amber-400", dot: "bg-amber-400", glow: "glow-amber" },
+  High: { border: "border-orange-500/50", text: "text-orange-400", dot: "bg-orange-400", glow: "" },
+  Critical: { border: "border-rose-500/80", text: "text-rose-400", dot: "bg-rose-500 animate-ping", glow: "glow-rose" },
 };
 
 export function CommandHeader({
@@ -76,13 +77,13 @@ export function CommandHeader({
   };
 
   return (
-    <header className="w-full bg-[#0A1224]/95 border-b border-[#1E293B] shadow-2xl sticky top-0 z-40 backdrop-blur-xl">
+    <header className="w-full bg-[#070D18]/90 border-b border-white/10 shadow-2xl sticky top-0 z-40 backdrop-blur-2xl select-none">
       <div className="w-full px-3 sm:px-5 py-2 flex items-center justify-between gap-2 sm:gap-4 flex-wrap">
-        {/* LEFT: HimalSanket Brand + Corridor Picker + Hazard Indicator */}
+        {/* LEFT: Brand + Real-Time Telemetry Pulse + Corridor Picker */}
         <div className="flex items-center gap-3">
           {/* Brand Emblem */}
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-700 flex items-center justify-center shadow-lg shadow-cyan-500/20 text-white font-black text-sm border border-cyan-400/40">
+            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-cyan-500 via-blue-600 to-indigo-700 flex items-center justify-center shadow-lg shadow-cyan-500/20 text-white font-black text-sm border border-cyan-400/40 glow-cyan">
               🏔️
             </div>
             <div>
@@ -100,21 +101,28 @@ export function CommandHeader({
             </div>
           </div>
 
+          {/* Realtime Live Telemetry Heartbeat Pill */}
+          <div className="hidden lg:flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#0F1B33]/90 border border-emerald-500/30 text-[10px] font-mono text-emerald-300 shadow-sm glow-emerald">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping inline-block" />
+            <span className="font-bold">Live Telemetry</span>
+            <span className="text-[#64748B]">• 200 OK</span>
+          </div>
+
           {/* Corridor Dropdown Selector */}
           <div className="relative">
             <button
               onClick={() => setCorridorDropdownOpen(!corridorDropdownOpen)}
-              className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-[#16233F] hover:bg-[#1C2C4C] border border-[#2A3B5E] text-xs font-semibold text-white shadow-sm cursor-pointer transition-all"
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-[#131F37] hover:bg-[#1C2C4C] border border-[#2A3B5E] text-xs font-semibold text-white shadow-sm cursor-pointer transition-all"
             >
-              <Compass className="w-3 h-3 text-cyan-400" />
-              <span className="truncate max-w-[110px] sm:max-w-[140px]">{activeCorridor.name}</span>
+              <Compass className="w-3.5 h-3.5 text-cyan-400" />
+              <span className="truncate max-w-[110px] sm:max-w-[140px] font-mono">{activeCorridor.name}</span>
               <ChevronDown className="w-3 h-3 text-[#64748B]" />
             </button>
 
             {corridorDropdownOpen && (
-              <div className="absolute left-0 top-9 w-48 rounded-xl bg-[#0F1B33]/95 backdrop-blur-xl border border-[#2A3B5E] shadow-2xl py-1 text-xs text-white z-50 animate-in fade-in">
-                <div className="px-3 py-1 text-[10px] font-bold text-[#64748B] uppercase tracking-wider border-b border-[#2A3B5E]">
-                  Select River Corridor
+              <div className="absolute left-0 top-9 w-52 rounded-2xl bg-[#0A1224]/95 backdrop-blur-2xl border border-[#2A3B5E] shadow-2xl py-1 text-xs text-white z-50 animate-in fade-in">
+                <div className="px-3 py-1.5 text-[9px] font-mono font-bold text-[#64748B] uppercase tracking-wider border-b border-white/5">
+                  Select Himalayan Corridor
                 </div>
                 {allCorridors.map((c) => (
                   <button
@@ -123,8 +131,8 @@ export function CommandHeader({
                       onSelectCorridor(c.id);
                       setCorridorDropdownOpen(false);
                     }}
-                    className={`w-full text-left px-3 py-1.5 flex items-center justify-between hover:bg-[#1C2C4C] cursor-pointer ${
-                      activeCorridor.id === c.id ? "text-cyan-400 font-bold bg-[#16233F]" : "text-slate-200"
+                    className={`w-full text-left px-3 py-2 flex items-center justify-between hover:bg-[#16233F] cursor-pointer transition-colors ${
+                      activeCorridor.id === c.id ? "text-cyan-400 font-bold bg-[#131F37]" : "text-slate-200"
                     }`}
                   >
                     <span>{c.name}</span>
@@ -136,7 +144,7 @@ export function CommandHeader({
           </div>
 
           {/* Active Hazard Badge */}
-          <div className="hidden sm:flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-[#16233F] border border-[#2A3B5E] text-[11px]">
+          <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#131F37] border border-[#2A3B5E] text-[11px] shadow-sm">
             <span className={`w-2 h-2 rounded-full ${tierStyle.dot}`} />
             <span className={`font-black uppercase tracking-wider text-[10px] ${tierStyle.text}`}>
               {activeTier}
@@ -145,12 +153,12 @@ export function CommandHeader({
         </div>
 
         {/* CENTER: Presentation Persona / User Role Switcher (Desktop) */}
-        <div className="hidden md:flex items-center bg-[#111A2E] p-1 rounded-2xl border border-[#2A3B5E] shadow-inner text-xs">
+        <div className="hidden md:flex items-center bg-[#090F1D] p-1 rounded-2xl border border-white/10 shadow-inner text-xs">
           <button
             onClick={() => setCurrentRole("civilian")}
             className={`flex items-center gap-1.5 px-3 py-1 rounded-xl font-bold transition-all cursor-pointer ${
               currentRole === "civilian"
-                ? "bg-cyan-600 text-white shadow-md shadow-cyan-600/30"
+                ? "bg-cyan-600 text-white shadow-md shadow-cyan-600/30 glow-cyan"
                 : "text-[#94A3B8] hover:text-white"
             }`}
             title="Civilian & Trekker Safety View"
@@ -163,7 +171,7 @@ export function CommandHeader({
             onClick={() => setCurrentRole("rescuer")}
             className={`flex items-center gap-1.5 px-3 py-1 rounded-xl font-bold transition-all cursor-pointer ${
               currentRole === "rescuer"
-                ? "bg-amber-600 text-white shadow-md shadow-amber-600/30"
+                ? "bg-amber-600 text-white shadow-md shadow-amber-600/30 glow-amber"
                 : "text-[#94A3B8] hover:text-white"
             }`}
             title="Search & Rescue Incident Response View"
@@ -192,7 +200,7 @@ export function CommandHeader({
           {isInstallable && (
             <button
               onClick={handleInstallClick}
-              className="flex items-center gap-1 px-2.5 py-1 rounded-xl bg-cyan-600/30 hover:bg-cyan-600/50 text-cyan-300 border border-cyan-500/50 text-xs font-semibold cursor-pointer animate-pulse"
+              className="flex items-center gap-1 px-2.5 py-1 rounded-xl bg-cyan-600/30 hover:bg-cyan-600/50 text-cyan-300 border border-cyan-500/50 text-xs font-semibold cursor-pointer animate-pulse glow-cyan"
               title="Install HimalSanket PWA on your device"
             >
               <Download className="w-3 h-3" />
@@ -203,7 +211,7 @@ export function CommandHeader({
           {/* Language Toggle */}
           <button
             onClick={onToggleLanguage}
-            className="flex items-center gap-1 px-2.5 py-1 rounded-xl bg-[#16233F] hover:bg-[#1C2C4C] border border-[#2A3B5E] text-xs font-bold text-slate-200 cursor-pointer transition-all"
+            className="flex items-center gap-1 px-2.5 py-1 rounded-xl bg-[#131F37] hover:bg-[#1C2C4C] border border-[#2A3B5E] text-xs font-bold text-slate-200 cursor-pointer transition-all shadow-sm"
             title="Toggle Nepali / English"
           >
             <Languages className="w-3.5 h-3.5 text-cyan-400" />
@@ -213,7 +221,7 @@ export function CommandHeader({
           {/* Audio Alert Toggle */}
           <button
             onClick={onToggleAudioMute}
-            className="p-1.5 rounded-xl bg-[#16233F] hover:bg-[#1C2C4C] border border-[#2A3B5E] text-slate-300 hover:text-white cursor-pointer transition-all"
+            className="p-1.5 rounded-xl bg-[#131F37] hover:bg-[#1C2C4C] border border-[#2A3B5E] text-slate-300 hover:text-white cursor-pointer transition-all shadow-sm"
             title={audioMuted ? "Unmute audio chime" : "Mute audio alerts"}
           >
             {audioMuted ? <VolumeX className="w-3.5 h-3.5 text-[#64748B]" /> : <Volume2 className="w-3.5 h-3.5 text-cyan-400" />}
@@ -222,7 +230,7 @@ export function CommandHeader({
           {/* System Tour Modal Button */}
           <button
             onClick={onOpenGuide}
-            className="p-1.5 rounded-xl bg-[#16233F] hover:bg-[#1C2C4C] border border-[#2A3B5E] text-slate-300 hover:text-white cursor-pointer transition-all"
+            className="p-1.5 rounded-xl bg-[#131F37] hover:bg-[#1C2C4C] border border-[#2A3B5E] text-slate-300 hover:text-white cursor-pointer transition-all shadow-sm"
             title="System Architecture Guide"
           >
             <HelpCircle className="w-3.5 h-3.5 text-cyan-400" />
@@ -235,14 +243,14 @@ export function CommandHeader({
             title="Switch presentation profile"
           >
             <div className="relative">
-              <div className="w-7 h-7 rounded-full bg-gradient-to-br from-cyan-600 to-blue-800 border border-cyan-400/60 flex items-center justify-center text-xs font-black text-white shadow-md">
+              <div className="w-7 h-7 rounded-full bg-gradient-to-br from-cyan-600 to-blue-800 border border-cyan-400/60 flex items-center justify-center text-xs font-black text-white shadow-md glow-cyan">
                 {userProfile.name.charAt(0)}
               </div>
-              <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-500 border border-[#0A1224]" />
+              <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-500 border border-[#070D18]" />
             </div>
             <div className="hidden lg:block text-left text-[11px] leading-tight">
               <div className="font-bold text-white truncate max-w-[90px]">{userProfile.name}</div>
-              <div className="text-[9px] text-[#64748B] capitalize">{userProfile.role}</div>
+              <div className="text-[9px] text-[#64748B] capitalize font-mono">{userProfile.role}</div>
             </div>
           </button>
         </div>

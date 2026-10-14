@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import {
   ShieldAlert,
   Activity,
@@ -45,26 +45,34 @@ interface TelemetryMetricsSidebarProps {
 
 const TIER_STYLES = {
   Low: {
-    badge: "bg-emerald-500/20 text-emerald-400 border-emerald-500/40",
+    badge: "bg-emerald-500/15 text-emerald-300 border-emerald-500/40 glow-emerald",
     gauge: "#10B981",
+    gradientFrom: "#10B981",
+    gradientTo: "#34D399",
     label: "LOW RISK",
     subtext: "Hydrological & Seismic telemetry within nominal safety envelopes.",
   },
   Moderate: {
-    badge: "bg-amber-500/20 text-amber-400 border-amber-500/40",
+    badge: "bg-amber-500/15 text-amber-300 border-amber-500/40 glow-amber",
     gauge: "#F59E0B",
+    gradientFrom: "#F59E0B",
+    gradientTo: "#FBBF24",
     label: "MODERATE",
     subtext: "Elevated monsoon runoff detected. Helipads on standby.",
   },
   High: {
-    badge: "bg-orange-500/20 text-orange-400 border-orange-500/40",
+    badge: "bg-orange-500/15 text-orange-300 border-orange-500/40",
     gauge: "#F97316",
+    gradientFrom: "#EA580C",
+    gradientTo: "#FB923C",
     label: "HIGH RISK",
     subtext: "Heavy precipitation & moraine dam destabilization warning.",
   },
   Critical: {
-    badge: "bg-rose-500/20 text-rose-400 border-rose-500/40 animate-pulse",
+    badge: "bg-rose-500/20 text-rose-300 border-rose-500/50 glow-rose animate-pulse",
     gauge: "#F43F5E",
+    gradientFrom: "#E11D48",
+    gradientTo: "#FDA4AF",
     label: "CRITICAL THREAT",
     subtext: "GLOF Outburst / debris torrent surge imminent. Immediate evacuation active.",
   },
@@ -92,10 +100,24 @@ export function TelemetryMetricsSidebar({
   const tierConfig = TIER_STYLES[risk.tier] || TIER_STYLES.Low;
   const scorePercent = Math.min(100, Math.round(risk.score * 100));
 
-  // Circular gauge calculations (circumference = 2 * PI * r)
-  const radius = 42;
+  // Circular instrument gauge geometry
+  const radius = 40;
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference - (scorePercent / 100) * circumference;
+
+  // Generate 36 calibration tick marks around 360 degrees
+  const tickMarks = useMemo(() => {
+    return Array.from({ length: 36 }).map((_, i) => {
+      const angle = (i * 10 * Math.PI) / 180;
+      const x1 = 50 + 46 * Math.cos(angle);
+      const y1 = 50 + 46 * Math.sin(angle);
+      const isMajor = i % 9 === 0;
+      const tickLength = isMajor ? 5 : 3;
+      const x2 = 50 + (46 - tickLength) * Math.cos(angle);
+      const y2 = 50 + (46 - tickLength) * Math.sin(angle);
+      return { x1, y1, x2, y2, isMajor, i };
+    });
+  }, []);
 
   // Rainfall progress
   const rainThreshold = corridor.rainThreshold || 144;
@@ -111,21 +133,24 @@ export function TelemetryMetricsSidebar({
 
   return (
     <aside
-      className={`flex flex-col bg-[#0A1224] border-r border-[#1E293B] overflow-y-auto min-h-0 select-none custom-scrollbar ${className}`}
+      className={`flex flex-col bg-[#070D18] border-r border-[#1E293B] overflow-y-auto min-h-0 select-none custom-scrollbar ${className}`}
     >
-      {/* 1. Header Bar with Realtime Status */}
-      <div className="p-4 border-b border-[#1E293B] flex items-center justify-between gap-2 shrink-0 bg-[#070D18]/70 backdrop-blur-sm sticky top-0 z-10">
+      {/* 1. Header Bar with Realtime Heartbeat */}
+      <div className="p-3.5 border-b border-[#1E293B] flex items-center justify-between gap-2 shrink-0 bg-[#0A1224]/80 backdrop-blur-xl sticky top-0 z-10">
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400 font-bold">
-            <Activity className="w-4 h-4 text-cyan-400" />
+          <div className="relative">
+            <div className="w-8 h-8 rounded-xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400 font-bold shadow-inner">
+              <Activity className="w-4 h-4 text-cyan-400" />
+            </div>
+            <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-400 border-2 border-[#0A1224] animate-ping" />
+            <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-400 border-2 border-[#0A1224]" />
           </div>
           <div>
-            <div className="text-xs font-black text-white tracking-wide uppercase flex items-center gap-1.5">
+            <div className="text-xs font-black text-white tracking-wider uppercase flex items-center gap-1.5">
               <span>Risk Intelligence</span>
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping inline-block" />
             </div>
             <div className="text-[10px] text-[#64748B] font-mono truncate max-w-[150px]">
-              {corridor.name}
+              {corridor.name} • Live Feeds
             </div>
           </div>
         </div>
@@ -134,8 +159,8 @@ export function TelemetryMetricsSidebar({
           <button
             onClick={onSyncTelemetry}
             disabled={isSensingSyncing}
-            className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-[#131F37] hover:bg-[#1C2C4C] text-cyan-300 border border-[#2A3B5E] text-[11px] font-semibold cursor-pointer transition-all disabled:opacity-50"
-            title="Poll DHM & USGS Feeds"
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-[#131F37] hover:bg-[#1C2C4C] text-cyan-300 border border-[#2A3B5E] text-[11px] font-semibold cursor-pointer transition-all disabled:opacity-50 shadow-sm"
+            title="Poll DHM, USGS & Sentinel Feeds"
           >
             <RefreshCw className={`w-3 h-3 ${isSensingSyncing ? "animate-spin text-cyan-400" : ""}`} />
             <span className="hidden sm:inline">Sync</span>
@@ -144,23 +169,50 @@ export function TelemetryMetricsSidebar({
       </div>
 
       <div className="p-3.5 space-y-3.5 flex-1 min-h-0">
-        {/* 2. CARD: Multi-Hazard Threat Index Gauge (Transcope Primary KPI) */}
-        <div className="p-4 rounded-2xl bg-[#0F1B33]/90 border border-[#1E293B] shadow-lg relative overflow-hidden">
+        {/* 2. CARD: Precision Instrument Threat Gauge (Awwwards Grade) */}
+        <div className="p-4 rounded-2xl glass-panel relative overflow-hidden group">
+          {/* Subtle Ambient Background Gradient Glow */}
+          <div
+            className="absolute -top-12 -right-12 w-32 h-32 rounded-full opacity-20 blur-3xl transition-all duration-700 pointer-events-none"
+            style={{ backgroundColor: tierConfig.gauge }}
+          />
+
           <div className="flex items-center justify-between mb-3">
-            <span className="text-[11px] font-bold text-[#94A3B8] uppercase tracking-wider">
-              Multi-Hazard Threat Index
+            <span className="text-[10px] font-mono uppercase tracking-wider text-[#94A3B8] font-bold flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
+              <span>Multi-Hazard Severity</span>
             </span>
             <span
-              className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase border tracking-wider ${tierConfig.badge}`}
+              className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase border tracking-wider transition-all duration-300 ${tierConfig.badge}`}
             >
               {tierConfig.label}
             </span>
           </div>
 
-          <div className="flex items-center gap-4">
-            {/* Radial SVG Gauge */}
-            <div className="relative w-24 h-24 shrink-0 flex items-center justify-center">
+          <div className="flex items-center gap-3.5">
+            {/* Calibrated Radial Instrument Dial */}
+            <div className="relative w-28 h-28 shrink-0 flex items-center justify-center">
               <svg className="w-full h-full -rotate-90 transform" viewBox="0 0 100 100">
+                <defs>
+                  <linearGradient id="gaugeGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stopColor={tierConfig.gradientFrom} />
+                    <stop offset="100%" stopColor={tierConfig.gradientTo} />
+                  </linearGradient>
+                </defs>
+
+                {/* Calibration Tick Marks */}
+                {tickMarks.map((t) => (
+                  <line
+                    key={t.i}
+                    x1={t.x1}
+                    y1={t.y1}
+                    x2={t.x2}
+                    y2={t.y2}
+                    stroke={t.isMajor ? "rgba(255,255,255,0.25)" : "rgba(255,255,255,0.08)"}
+                    strokeWidth={t.isMajor ? "1.5" : "1"}
+                  />
+                ))}
+
                 {/* Background Track */}
                 <circle
                   cx="50"
@@ -168,96 +220,109 @@ export function TelemetryMetricsSidebar({
                   r={radius}
                   fill="transparent"
                   stroke="#16233F"
-                  strokeWidth="8"
+                  strokeWidth="7"
                 />
-                {/* Active Colored Arc */}
+
+                {/* Active Colored Arc with Gradient */}
                 <circle
                   cx="50"
                   cy="50"
                   r={radius}
                   fill="transparent"
-                  stroke={tierConfig.gauge}
-                  strokeWidth="8"
+                  stroke="url(#gaugeGradient)"
+                  strokeWidth="7"
                   strokeDasharray={circumference}
                   strokeDashoffset={strokeDashoffset}
                   strokeLinecap="round"
                   className="transition-all duration-700 ease-out"
                 />
               </svg>
+
+              {/* Center Digital Readout */}
               <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-                <span className="text-xl font-black text-white tracking-tight leading-none">
+                <span className="text-2xl font-black text-white tracking-tight tabular-nums leading-none">
                   {scorePercent}%
                 </span>
-                <span className="text-[9px] font-mono text-[#64748B] mt-0.5">SEVERITY</span>
+                <span className="text-[8px] font-mono text-[#64748B] mt-1 uppercase tracking-widest">
+                  Fused Score
+                </span>
               </div>
             </div>
 
             {/* Risk Narrative & Breakdown summary */}
             <div className="flex-1 space-y-2 min-w-0">
-              <p className="text-[11px] text-[#94A3B8] leading-tight line-clamp-2">
+              <p className="text-[11px] text-[#94A3B8] leading-snug line-clamp-2">
                 {tierConfig.subtext}
               </p>
 
               <div className="grid grid-cols-2 gap-1.5 text-[10px] font-mono">
-                <div className="p-1.5 rounded-lg bg-[#070D18]/80 border border-[#16233F]">
-                  <span className="text-[#64748B] block text-[9px]">RAIN RUNOFF</span>
-                  <span className="font-bold text-cyan-300">{corridor.rainfall || 0} mm</span>
+                <div className="p-1.5 rounded-xl bg-[#090F1D]/80 border border-white/5">
+                  <span className="text-[#64748B] block text-[8px] uppercase tracking-wider">
+                    Rainfall
+                  </span>
+                  <span className="font-bold text-cyan-300 tabular-nums">
+                    {corridor.rainfall || 0} mm
+                  </span>
                 </div>
-                <div className="p-1.5 rounded-lg bg-[#070D18]/80 border border-[#16233F]">
-                  <span className="text-[#64748B] block text-[9px]">SEISMIC</span>
-                  <span className="font-bold text-amber-300">{seismicMag} M_L</span>
+                <div className="p-1.5 rounded-xl bg-[#090F1D]/80 border border-white/5">
+                  <span className="text-[#64748B] block text-[8px] uppercase tracking-wider">
+                    Seismic
+                  </span>
+                  <span className="font-bold text-amber-300 tabular-nums">
+                    {seismicMag} M_L
+                  </span>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Breakdown Progress Bars */}
-          <div className="mt-3.5 space-y-2 pt-3 border-t border-[#1E293B]/70">
-            {/* Precipitation */}
+          {/* Breakdown Sub-Progress Bars with Neon Indicators */}
+          <div className="mt-3.5 space-y-2 pt-3 border-t border-white/10">
+            {/* Precipitation Gauge */}
             <div>
-              <div className="flex justify-between text-[10px] text-[#94A3B8] mb-1">
-                <span className="flex items-center gap-1">
-                  <span>🌧️</span> <span>Cumulative Rainfall</span>
+              <div className="flex justify-between text-[10px] text-[#94A3B8] mb-1 font-mono">
+                <span className="flex items-center gap-1.5 text-slate-300">
+                  <span>🌧️</span> <span>Rainfall Runoff</span>
                 </span>
-                <span className="font-mono text-cyan-300">
+                <span className="text-cyan-300 font-bold tabular-nums">
                   {corridor.rainfall || 0} / {rainThreshold} mm
                 </span>
               </div>
-              <div className="w-full h-1.5 rounded-full bg-[#16233F] overflow-hidden">
+              <div className="w-full h-1.5 rounded-full bg-[#111A2E] overflow-hidden">
                 <div
-                  className="h-full rounded-full bg-cyan-400 transition-all duration-500"
+                  className="h-full rounded-full bg-gradient-to-r from-cyan-500 to-blue-500 transition-all duration-500 shadow-sm"
                   style={{ width: `${rainPercent}%` }}
                 />
               </div>
             </div>
 
-            {/* Seismic Activity */}
+            {/* Seismic Activity Gauge */}
             <div>
-              <div className="flex justify-between text-[10px] text-[#94A3B8] mb-1">
-                <span className="flex items-center gap-1">
-                  <span>⚡</span> <span>Seismic Intensity</span>
+              <div className="flex justify-between text-[10px] text-[#94A3B8] mb-1 font-mono">
+                <span className="flex items-center gap-1.5 text-slate-300">
+                  <span>⚡</span> <span>Seismic Tremor</span>
                 </span>
-                <span className="font-mono text-amber-300">{seismicMag} M_L</span>
+                <span className="text-amber-300 font-bold tabular-nums">{seismicMag} M_L</span>
               </div>
-              <div className="w-full h-1.5 rounded-full bg-[#16233F] overflow-hidden">
+              <div className="w-full h-1.5 rounded-full bg-[#111A2E] overflow-hidden">
                 <div
-                  className="h-full rounded-full bg-amber-400 transition-all duration-500"
+                  className="h-full rounded-full bg-gradient-to-r from-amber-500 to-orange-500 transition-all duration-500 shadow-sm"
                   style={{ width: `${seismicPercent}%` }}
                 />
               </div>
             </div>
 
-            {/* Sentinel Lake Expansion */}
+            {/* Sentinel Lake Expansion Gauge */}
             <div>
-              <div className="flex justify-between text-[10px] text-[#94A3B8] mb-1">
-                <span className="flex items-center gap-1">
-                  <span>🛰️</span> <span>Glacial Lake Moraine Swell</span>
+              <div className="flex justify-between text-[10px] text-[#94A3B8] mb-1 font-mono">
+                <span className="flex items-center gap-1.5 text-slate-300">
+                  <span>🛰️</span> <span>Glacial Lake Swell</span>
                 </span>
-                <span className="font-mono text-indigo-300">+{lakeChange}%</span>
+                <span className="text-indigo-300 font-bold tabular-nums">+{lakeChange}%</span>
               </div>
-              <div className="w-full h-1.5 rounded-full bg-[#16233F] overflow-hidden">
+              <div className="w-full h-1.5 rounded-full bg-[#111A2E] overflow-hidden">
                 <div
-                  className="h-full rounded-full bg-indigo-400 transition-all duration-500"
+                  className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 transition-all duration-500 shadow-sm"
                   style={{ width: `${lakePercent}%` }}
                 />
               </div>
@@ -265,38 +330,82 @@ export function TelemetryMetricsSidebar({
           </div>
         </div>
 
-        {/* 3. CARD: River Surge & Inundation Vector */}
-        <div className="p-3.5 rounded-2xl bg-[#0F1B33]/90 border border-[#1E293B] shadow-md space-y-2.5">
+        {/* 3. CARD: River Surge Telemetry with Animated Wave Sparkline */}
+        <div className="p-3.5 rounded-2xl glass-panel space-y-2.5">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold text-[#94A3B8] uppercase tracking-wider flex items-center gap-1.5">
+            <span className="text-[10px] font-mono font-bold text-[#94A3B8] uppercase tracking-wider flex items-center gap-1.5">
               <Waves className="w-3.5 h-3.5 text-cyan-400" />
-              <span>River Surge Telemetry</span>
+              <span>Hydrological Wave Surge</span>
             </span>
-            <span className="text-xs font-mono font-bold text-cyan-300">
+            <span
+              className={`text-xs font-mono font-bold px-2 py-0.5 rounded-full border ${
+                waterSurge > 0
+                  ? "bg-cyan-500/15 text-cyan-300 border-cyan-500/40 glow-cyan animate-pulse"
+                  : "bg-[#111A2E] text-slate-400 border-white/5"
+              }`}
+            >
               +{waterSurge.toFixed(1)}m Crest
             </span>
           </div>
 
+          {/* Dynamic SVG Wave Sparkline Visualizer */}
+          <div className="h-10 w-full rounded-xl bg-[#090F1D] border border-white/5 p-1 relative overflow-hidden flex items-end">
+            <svg className="w-full h-full" viewBox="0 0 200 40" preserveAspectRatio="none">
+              <defs>
+                <linearGradient id="waveGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" stopColor="#06B6D4" stopOpacity="0.4" />
+                  <stop offset="100%" stopColor="#06B6D4" stopOpacity="0.0" />
+                </linearGradient>
+              </defs>
+              <path
+                d={
+                  waterSurge > 0
+                    ? `M 0 35 Q 30 ${30 - waterSurge * 4}, 60 ${20 - waterSurge * 3} T 120 ${
+                        10 - waterSurge * 2
+                      } T 170 ${15 - waterSurge * 3} T 200 35 L 200 40 L 0 40 Z`
+                    : "M 0 32 Q 50 30, 100 32 T 200 32 L 200 40 L 0 40 Z"
+                }
+                fill="url(#waveGradient)"
+              />
+              <path
+                d={
+                  waterSurge > 0
+                    ? `M 0 35 Q 30 ${30 - waterSurge * 4}, 60 ${20 - waterSurge * 3} T 120 ${
+                        10 - waterSurge * 2
+                      } T 170 ${15 - waterSurge * 3} T 200 35`
+                    : "M 0 32 Q 50 30, 100 32 T 200 32"
+                }
+                fill="transparent"
+                stroke="#06B6D4"
+                strokeWidth="2"
+                strokeLinecap="round"
+              />
+            </svg>
+            <div className="absolute right-2 top-1.5 text-[9px] font-mono text-cyan-300/80">
+              {waterSurge > 0 ? "Wave velocity: 34.2 km/h" : "Nominal velocity: 12 km/h"}
+            </div>
+          </div>
+
           <div className="grid grid-cols-2 gap-2 text-[11px]">
-            <div className="p-2 rounded-xl bg-[#070D18]/80 border border-[#16233F]">
-              <span className="text-[9px] text-[#64748B] uppercase block">Wave Speed</span>
+            <div className="p-2 rounded-xl bg-[#090F1D]/80 border border-white/5">
+              <span className="text-[9px] text-[#64748B] uppercase block font-mono">Runoff Impact</span>
               <span className="font-bold text-white font-mono">
-                {waterSurge > 0 ? "34.2 km/h" : "12.0 km/h"}
+                {waterSurge > 1 ? "Debris Torrent" : "Monsoon Runoff"}
               </span>
             </div>
-            <div className="p-2 rounded-xl bg-[#070D18]/80 border border-[#16233F]">
-              <span className="text-[9px] text-[#64748B] uppercase block">Inundation Buffer</span>
+            <div className="p-2 rounded-xl bg-[#090F1D]/80 border border-white/5">
+              <span className="text-[9px] text-[#64748B] uppercase block font-mono">Inundation Buffer</span>
               <span className="font-bold text-cyan-400 font-mono">
-                &plusmn;{Math.round(waterSurge * 22)}m width
+                &plusmn;{Math.round(waterSurge * 22)}m spread
               </span>
             </div>
           </div>
 
           {onSurgeChange && (
             <div className="pt-1.5 space-y-1">
-              <div className="flex justify-between text-[10px] text-[#64748B]">
-                <span>Interactive Surge Adjuster:</span>
-                <span className="font-mono text-cyan-300">{waterSurge.toFixed(1)}m</span>
+              <div className="flex justify-between text-[10px] text-[#64748B] font-mono">
+                <span>Interactive Water Rise:</span>
+                <span className="text-cyan-300 font-bold">+{waterSurge.toFixed(1)}m</span>
               </div>
               <input
                 type="range"
@@ -312,41 +421,41 @@ export function TelemetryMetricsSidebar({
         </div>
 
         {/* 4. CARD: SAR Air Fleet & Evac Base Readiness */}
-        <div className="p-3.5 rounded-2xl bg-[#0F1B33]/90 border border-[#1E293B] shadow-md space-y-2.5">
+        <div className="p-3.5 rounded-2xl glass-panel space-y-2.5">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold text-[#94A3B8] uppercase tracking-wider flex items-center gap-1.5">
+            <span className="text-[10px] font-mono font-bold text-[#94A3B8] uppercase tracking-wider flex items-center gap-1.5">
               <Plane className="w-3.5 h-3.5 text-amber-400" />
               <span>SAR Air Fleet Readiness</span>
             </span>
-            <span className="px-1.5 py-0.5 rounded text-[9px] font-black uppercase bg-emerald-500/20 text-emerald-400 border border-emerald-500/40">
+            <span className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase bg-emerald-500/15 text-emerald-400 border border-emerald-500/40 glow-emerald">
               VFR Open
             </span>
           </div>
 
           <div className="space-y-1.5 text-[11px]">
-            <div className="flex items-center justify-between p-2 rounded-xl bg-[#070D18]/80 border border-[#16233F]">
+            <div className="flex items-center justify-between p-2 rounded-xl bg-[#090F1D]/80 border border-white/5">
               <div className="flex items-center gap-2">
                 <span className="text-base">🚁</span>
                 <div>
                   <div className="font-bold text-white text-xs">AS350 B3e Ecureuil</div>
-                  <div className="text-[9px] text-[#64748B]">High-Altitude SAR Squadron</div>
+                  <div className="text-[9px] text-[#64748B]">Simrik Air Rescue Squadron</div>
                 </div>
               </div>
               <div className="text-right font-mono">
-                <span className="text-emerald-400 font-bold block text-xs">Ready</span>
+                <span className="text-emerald-400 font-bold block text-xs">Standby</span>
                 <span className="text-[9px] text-[#64748B]">Ceiling: 7,000m</span>
               </div>
             </div>
 
             {forwardBases.length > 0 && (
-              <div className="p-2 rounded-xl bg-[#070D18]/80 border border-[#16233F] text-[10px] space-y-1">
-                <div className="text-[#64748B] font-bold uppercase tracking-wider text-[9px]">
-                  Forward Staging Helipads:
+              <div className="p-2 rounded-xl bg-[#090F1D]/80 border border-white/5 text-[10px] space-y-1">
+                <div className="text-[#64748B] font-bold uppercase tracking-wider text-[8px] font-mono">
+                  Designated Mountain Helipads:
                 </div>
                 {forwardBases.slice(0, 2).map((b, idx) => (
                   <div key={idx} className="flex justify-between items-center text-slate-300">
                     <span className="truncate">{b.name}</span>
-                    <span className="font-mono text-cyan-300">{b.elevation}m</span>
+                    <span className="font-mono text-cyan-300">{b.elevation}m ASL</span>
                   </div>
                 ))}
               </div>
@@ -356,22 +465,24 @@ export function TelemetryMetricsSidebar({
 
         {/* 5. CARD: Live Presentation Scenario Drills */}
         {onTriggerScenario && (
-          <div className="p-3.5 rounded-2xl bg-[#0F1B33]/90 border border-[#1E293B] shadow-md space-y-2">
+          <div className="p-3.5 rounded-2xl glass-panel space-y-2">
             <div className="flex items-center justify-between">
-              <span className="text-[11px] font-bold text-[#94A3B8] uppercase tracking-wider flex items-center gap-1.5">
+              <span className="text-[10px] font-mono font-bold text-[#94A3B8] uppercase tracking-wider flex items-center gap-1.5">
                 <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
-                <span>AI Scenario Simulation</span>
+                <span>AI Summit Scenario Injection</span>
               </span>
-              <span className="text-[9px] text-[#64748B] font-mono">AI Summit 2026</span>
+              <span className="text-[8px] text-cyan-400 font-mono bg-cyan-950/60 px-1.5 py-0.5 rounded border border-cyan-800">
+                1-CLICK DRILL
+              </span>
             </div>
 
             <div className="grid grid-cols-2 gap-1.5">
               <button
                 onClick={() => onTriggerScenario("baseline")}
-                className={`px-2 py-1.5 rounded-xl text-left text-xs font-semibold transition-all cursor-pointer border ${
+                className={`p-2 rounded-xl text-left text-xs font-semibold transition-all cursor-pointer border ${
                   activeScenario === "baseline"
-                    ? "bg-cyan-600/30 text-cyan-300 border-cyan-500/60 shadow-sm"
-                    : "bg-[#070D18]/80 text-[#94A3B8] border-[#16233F] hover:text-white hover:border-[#2A3B5E]"
+                    ? "bg-cyan-600/30 text-cyan-300 border-cyan-500/60 shadow-sm glow-cyan"
+                    : "bg-[#090F1D]/80 text-[#94A3B8] border-white/5 hover:text-white hover:border-[#2A3B5E]"
                 }`}
               >
                 <div className="text-[10px] font-bold">Baseline</div>
@@ -380,10 +491,10 @@ export function TelemetryMetricsSidebar({
 
               <button
                 onClick={() => onTriggerScenario("cloudburst_spike")}
-                className={`px-2 py-1.5 rounded-xl text-left text-xs font-semibold transition-all cursor-pointer border ${
+                className={`p-2 rounded-xl text-left text-xs font-semibold transition-all cursor-pointer border ${
                   activeScenario === "cloudburst_spike"
                     ? "bg-orange-600/30 text-orange-300 border-orange-500/60 shadow-sm"
-                    : "bg-[#070D18]/80 text-[#94A3B8] border-[#16233F] hover:text-white hover:border-[#2A3B5E]"
+                    : "bg-[#090F1D]/80 text-[#94A3B8] border-white/5 hover:text-white hover:border-[#2A3B5E]"
                 }`}
               >
                 <div className="text-[10px] font-bold">🌧️ Cloudburst</div>
@@ -392,10 +503,10 @@ export function TelemetryMetricsSidebar({
 
               <button
                 onClick={() => onTriggerScenario("glof_lake_expansion")}
-                className={`px-2 py-1.5 rounded-xl text-left text-xs font-semibold transition-all cursor-pointer border ${
+                className={`p-2 rounded-xl text-left text-xs font-semibold transition-all cursor-pointer border ${
                   activeScenario === "glof_lake_expansion"
                     ? "bg-indigo-600/30 text-indigo-300 border-indigo-500/60 shadow-sm"
-                    : "bg-[#070D18]/80 text-[#94A3B8] border-[#16233F] hover:text-white hover:border-[#2A3B5E]"
+                    : "bg-[#090F1D]/80 text-[#94A3B8] border-white/5 hover:text-white hover:border-[#2A3B5E]"
                 }`}
               >
                 <div className="text-[10px] font-bold">🛰️ GLOF Swell</div>
@@ -404,10 +515,10 @@ export function TelemetryMetricsSidebar({
 
               <button
                 onClick={() => onTriggerScenario("critical_cascade")}
-                className={`px-2 py-1.5 rounded-xl text-left text-xs font-semibold transition-all cursor-pointer border ${
+                className={`p-2 rounded-xl text-left text-xs font-semibold transition-all cursor-pointer border ${
                   activeScenario === "critical_cascade"
-                    ? "bg-rose-600/40 text-rose-300 border-rose-500/70 shadow-sm animate-pulse"
-                    : "bg-[#070D18]/80 text-[#94A3B8] border-[#16233F] hover:text-white hover:border-[#2A3B5E]"
+                    ? "bg-rose-600/40 text-rose-300 border-rose-500/70 shadow-sm glow-rose animate-pulse"
+                    : "bg-[#090F1D]/80 text-[#94A3B8] border-white/5 hover:text-white hover:border-[#2A3B5E]"
                 }`}
               >
                 <div className="text-[10px] font-bold">🚨 Cascade</div>
@@ -418,11 +529,11 @@ export function TelemetryMetricsSidebar({
         )}
 
         {/* 6. Quick Strategic Modals Launchbar */}
-        <div className="p-2.5 rounded-2xl bg-[#0F1B33]/60 border border-[#1E293B] flex items-center justify-between gap-1 flex-wrap">
+        <div className="p-2 rounded-2xl glass-panel flex items-center justify-between gap-1 flex-wrap">
           {onInspectLake && (
             <button
               onClick={onInspectLake}
-              className="p-2 rounded-xl bg-[#131F37] hover:bg-[#1C2C4C] text-sky-300 border border-[#2A3B5E] text-xs font-semibold transition-all cursor-pointer"
+              className="p-2 rounded-xl bg-[#131F37] hover:bg-[#1C2C4C] text-sky-300 border border-[#2A3B5E] text-xs font-semibold transition-all cursor-pointer shadow-sm hover:scale-105"
               title="Sentinel-2 Lake NDWI Inspector"
             >
               <Satellite className="w-3.5 h-3.5" />
@@ -432,7 +543,7 @@ export function TelemetryMetricsSidebar({
           {onInspectTimesfm && (
             <button
               onClick={onInspectTimesfm}
-              className="p-2 rounded-xl bg-[#131F37] hover:bg-[#1C2C4C] text-cyan-300 border border-[#2A3B5E] text-xs font-semibold transition-all cursor-pointer"
+              className="p-2 rounded-xl bg-[#131F37] hover:bg-[#1C2C4C] text-cyan-300 border border-[#2A3B5E] text-xs font-semibold transition-all cursor-pointer shadow-sm hover:scale-105"
               title="Google TimesFM 24h Rainfall Forecast"
             >
               <BarChart3 className="w-3.5 h-3.5" />
@@ -442,7 +553,7 @@ export function TelemetryMetricsSidebar({
           {onInspectProfile && (
             <button
               onClick={onInspectProfile}
-              className="p-2 rounded-xl bg-[#131F37] hover:bg-[#1C2C4C] text-amber-300 border border-[#2A3B5E] text-xs font-semibold transition-all cursor-pointer"
+              className="p-2 rounded-xl bg-[#131F37] hover:bg-[#1C2C4C] text-amber-300 border border-[#2A3B5E] text-xs font-semibold transition-all cursor-pointer shadow-sm hover:scale-105"
               title="Longitudinal Elevation Profile"
             >
               <TrendingDown className="w-3.5 h-3.5" />
@@ -452,7 +563,7 @@ export function TelemetryMetricsSidebar({
           {onOpenSitrep && (
             <button
               onClick={onOpenSitrep}
-              className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-teal-600/30 hover:bg-teal-600/50 text-teal-300 border border-teal-500/40 text-xs font-bold transition-all cursor-pointer"
+              className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-teal-600/30 hover:bg-teal-600/50 text-teal-300 border border-teal-500/40 text-xs font-bold transition-all cursor-pointer shadow-sm"
               title="Export SITREP & 2G SMS Advisory"
             >
               <FileText className="w-3.5 h-3.5" />
@@ -463,7 +574,7 @@ export function TelemetryMetricsSidebar({
           {onBroadcastAdvisory && (
             <button
               onClick={onBroadcastAdvisory}
-              className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-extrabold transition-all cursor-pointer shadow-md"
+              className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-extrabold transition-all cursor-pointer shadow-md glow-rose"
               title="Broadcast National Emergency SMS"
             >
               <Radio className="w-3.5 h-3.5 animate-pulse" />

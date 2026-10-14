@@ -1,5 +1,16 @@
 import React, { useState } from "react";
-import { X, TrendingDown, Waves, ShieldCheck, Mountain, AlertCircle } from "lucide-react";
+import {
+  X,
+  TrendingDown,
+  Waves,
+  ShieldCheck,
+  Mountain,
+  AlertCircle,
+  Sliders,
+  Clock,
+  MapPin,
+  CheckCircle2,
+} from "lucide-react";
 
 interface ProfileStation {
   name: string;
@@ -10,7 +21,10 @@ interface ProfileStation {
   riskNote: string;
 }
 
-const CORRIDOR_PROFILES: Record<string, { corridorName: string; riverName: string; stations: ProfileStation[] }> = {
+const CORRIDOR_PROFILES: Record<
+  string,
+  { corridorName: string; riverName: string; stations: ProfileStation[] }
+> = {
   langtang: {
     corridorName: "Langtang Valley",
     riverName: "Langtang Khola ➔ Trishuli River",
@@ -19,7 +33,7 @@ const CORRIDOR_PROFILES: Record<string, { corridorName: string; riverName: strin
       { name: "Kyanjin Gompa", distanceKm: 7.5, elevationM: 3870, type: "settlement", safeClearanceM: 45, riskNote: "Lodges & cheese factory" },
       { name: "Langtang Village", distanceKm: 13.0, elevationM: 3430, type: "settlement", safeClearanceM: 60, riskNote: "Debris avalanche runout" },
       { name: "Ghora Tabela", distanceKm: 18.5, elevationM: 2970, type: "settlement", safeClearanceM: 35, riskNote: "Army post & checkpoint" },
-      { name: "Lama Hotel Gorge", distanceKm: 24.0, elevationM: 2470, type: "bridge", safeClearanceM: 25, riskNote: "Narrow canyon choke" },
+      { name: "Lama Hotel Gorge", distanceKm: 24.0, elevationM: 2470, type: "bridge", safeClearanceM: 25, riskNote: "Narrow canyon choke point" },
       { name: "Bamboo Trailhead", distanceKm: 29.5, elevationM: 1970, type: "settlement", safeClearanceM: 20, riskNote: "River terrace teahouses" },
       { name: "Syabrubesi Bazaar", distanceKm: 36.0, elevationM: 1460, type: "bridge", safeClearanceM: 15, riskNote: "Bhote Koshi confluence" },
       { name: "Mailung Hydro Dam", distanceKm: 42.0, elevationM: 1120, type: "dam", safeClearanceM: 12, riskNote: "Intake radial gates" },
@@ -88,11 +102,12 @@ interface ValleyElevationProfileModalProps {
 
 export function ValleyElevationProfileModal({
   corridorId,
-  waterSurge = 0,
+  waterSurge: initialSurge = 0,
   onClose,
 }: ValleyElevationProfileModalProps) {
   const profile = CORRIDOR_PROFILES[corridorId] || CORRIDOR_PROFILES.langtang;
   const [selectedStation, setSelectedStation] = useState<ProfileStation | null>(null);
+  const [surge, setSurge] = useState<number>(initialSurge);
 
   const maxElev = profile.stations[0].elevationM;
   const minElev = profile.stations[profile.stations.length - 1].elevationM;
@@ -100,18 +115,19 @@ export function ValleyElevationProfileModal({
   const totalDistance = profile.stations[profile.stations.length - 1].distanceKm;
   const averageGradientPct = ((totalDrop / (totalDistance * 1000)) * 100).toFixed(1);
 
-  // Approximate flood wave kinematic celerity based on slope
-  // v = sqrt(g * (h0 + surge)) * S0^(1/6)
-  const estFloodWaveKmh = (
-    Math.sqrt(9.81 * (2.5 + waterSurge)) *
-    Math.pow(parseFloat(averageGradientPct) / 100, 0.16) *
-    3.6
-  ).toFixed(1);
+  // Approximate flood wave kinematic celerity based on slope: v = sqrt(g * (h0 + surge)) * S0^(1/6)
+  const estFloodWaveSpeedKmh = parseFloat(
+    (
+      Math.sqrt(9.81 * (2.5 + surge)) *
+      Math.pow(parseFloat(averageGradientPct) / 100, 0.16) *
+      3.6
+    ).toFixed(1)
+  );
 
   // SVG Chart Dimensions
-  const svgWidth = 840;
-  const svgHeight = 280;
-  const paddingX = 60;
+  const svgWidth = 860;
+  const svgHeight = 300;
+  const paddingX = 65;
   const paddingY = 40;
   const plotWidth = svgWidth - paddingX * 2;
   const plotHeight = svgHeight - paddingY * 2;
@@ -119,106 +135,165 @@ export function ValleyElevationProfileModal({
   const points = profile.stations.map((s) => {
     const x = paddingX + (s.distanceKm / totalDistance) * plotWidth;
     const y = paddingY + ((maxElev - s.elevationM) / totalDrop) * plotHeight;
-    return { ...s, x, y };
+    // Calculate travel time from breach source in minutes
+    const travelTimeMinutes =
+      s.distanceKm > 0 ? Math.round((s.distanceKm / estFloodWaveSpeedKmh) * 60) : 0;
+    // Station is at risk if water surge exceeds threshold relative to clearance
+    const isInDanger = surge > 0 && surge * 8 > s.safeClearanceM;
+
+    return { ...s, x, y, travelTimeMinutes, isInDanger };
   });
 
+  // Terrain Path
   const pathD = points.reduce((acc, p, idx) => {
     return idx === 0 ? `M ${p.x} ${p.y}` : `${acc} L ${p.x} ${p.y}`;
   }, "");
 
-  const areaD = `${pathD} L ${points[points.length - 1].x} ${svgHeight - paddingY} L ${points[0].x} ${svgHeight - paddingY} Z`;
+  // Base Mountain Terrain Fill
+  const areaD = `${pathD} L ${points[points.length - 1].x} ${
+    svgHeight - paddingY
+  } L ${points[0].x} ${svgHeight - paddingY} Z`;
+
+  // Dynamic Flood Water Surge Path (Rises with surge level)
+  const waterOffset = surge * 7;
+  const waterPathD = points.reduce((acc, p, idx) => {
+    const wy = p.y - waterOffset;
+    return idx === 0 ? `M ${p.x} ${wy}` : `${acc} L ${p.x} ${wy}`;
+  }, "");
+  const waterAreaD = `${waterPathD} L ${points[points.length - 1].x} ${
+    svgHeight - paddingY
+  } L ${points[0].x} ${svgHeight - paddingY} Z`;
+
+  // Inundated stations count
+  const endangeredStations = points.filter((p) => p.isInDanger);
 
   return (
-    <div className="fixed inset-0 z-[100000] flex items-center justify-center p-3 sm:p-5 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
-      <div className="relative w-full max-w-4xl rounded-2xl bg-[#0B132B] border border-[#2A3B5E] shadow-[0_25px_70px_rgba(0,0,0,0.85)] overflow-hidden flex flex-col max-h-[92vh]">
+    <div className="fixed inset-0 z-[100000] flex items-center justify-center p-3 sm:p-5 bg-black/85 backdrop-blur-xl animate-in fade-in duration-200">
+      <div className="relative w-full max-w-5xl rounded-3xl bg-[#070D18] border border-[#2A3B5E] shadow-[0_25px_80px_rgba(0,0,0,0.9)] overflow-hidden flex flex-col max-h-[94vh] text-slate-100">
         {/* Header */}
-        <div className="p-4 bg-[#0F1B33] border-b border-[#2A3B5E] flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-cyan-950 border border-cyan-700/80 flex items-center justify-center text-cyan-400">
-              <TrendingDown className="w-4 h-4" />
+        <div className="p-4 bg-[#0A1224] border-b border-[#1E293B] flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-2xl bg-cyan-500/20 border border-cyan-500/40 flex items-center justify-center text-cyan-400 glow-cyan">
+              <TrendingDown className="w-5 h-5" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h3 className="text-sm font-bold text-white tracking-wide">
-                  Longitudinal Valley Elevation & Flood Velocity Profile
+                <h3 className="text-sm font-black text-white tracking-wide">
+                  Himalayan Valley Profile & Dynamic Flood Inundator
                 </h3>
-                <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-cyan-950 text-cyan-300 border border-cyan-800">
+                <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded-full bg-cyan-950 text-cyan-300 border border-cyan-800 font-bold">
                   {profile.corridorName}
                 </span>
               </div>
-              <p className="text-xs text-[#94A3B8] font-mono mt-0.5">
-                {profile.riverName} &bull; Hydrological Hydraulic Gradient Analysis
+              <p className="text-xs text-[#8CA0BE] font-mono mt-0.5">
+                {profile.riverName} • 3D Hydraulic Gradient & Inundation Physics
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-xl bg-[#16233F] hover:bg-[#203358] border border-[#2A3B5E] flex items-center justify-center text-[#94A3B8] hover:text-white transition-colors cursor-pointer"
+            className="w-8 h-8 rounded-xl bg-[#16233F] hover:bg-[#203358] border border-[#2A3B5E] flex items-center justify-center text-[#8CA0BE] hover:text-white transition-colors cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
 
         {/* Tactical Key Metrics Ribbon */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 p-3 bg-[#070D1B] border-b border-[#1E293B] text-xs">
-          <div className="p-2.5 rounded-xl bg-[#0F1B33] border border-[#2A3B5E]/60">
-            <div className="text-[10px] uppercase font-bold text-[#64748B] flex items-center gap-1">
-              <Mountain className="w-3 h-3 text-cyan-400" /> Total Altitude Drop
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 p-3.5 bg-[#050B14] border-b border-[#1E293B] text-xs">
+          <div className="p-2.5 rounded-2xl bg-[#0A1224] border border-white/5">
+            <div className="text-[10px] uppercase font-bold text-[#64748B] flex items-center gap-1 font-mono">
+              <Mountain className="w-3.5 h-3.5 text-cyan-400" /> Total Vertical Drop
             </div>
-            <div className="text-sm font-bold text-cyan-300 font-mono mt-0.5">
+            <div className="text-base font-black text-cyan-300 font-mono mt-0.5 tabular-nums">
               -{totalDrop.toLocaleString()} m
             </div>
-            <div className="text-[10px] text-[#94A3B8]">
+            <div className="text-[10px] text-[#8CA0BE] font-mono">
               {maxElev}m ➔ {minElev}m ASL
             </div>
           </div>
 
-          <div className="p-2.5 rounded-xl bg-[#0F1B33] border border-[#2A3B5E]/60">
-            <div className="text-[10px] uppercase font-bold text-[#64748B] flex items-center gap-1">
-              <TrendingDown className="w-3 h-3 text-amber-400" /> Average Channel Slope
+          <div className="p-2.5 rounded-2xl bg-[#0A1224] border border-white/5">
+            <div className="text-[10px] uppercase font-bold text-[#64748B] flex items-center gap-1 font-mono">
+              <TrendingDown className="w-3.5 h-3.5 text-amber-400" /> Channel Gradient
             </div>
-            <div className="text-sm font-bold text-amber-300 font-mono mt-0.5">
+            <div className="text-base font-black text-amber-300 font-mono mt-0.5 tabular-nums">
               {averageGradientPct}% Grade
             </div>
-            <div className="text-[10px] text-[#94A3B8]">
+            <div className="text-[10px] text-[#8CA0BE] font-mono">
               {(totalDrop / totalDistance).toFixed(0)}m vertical drop / km
             </div>
           </div>
 
-          <div className="p-2.5 rounded-xl bg-[#0F1B33] border border-[#2A3B5E]/60">
-            <div className="text-[10px] uppercase font-bold text-[#64748B] flex items-center gap-1">
-              <Waves className="w-3 h-3 text-rose-400" /> Wave Kinematic Speed
+          <div className="p-2.5 rounded-2xl bg-[#0A1224] border border-white/5">
+            <div className="text-[10px] uppercase font-bold text-[#64748B] flex items-center gap-1 font-mono">
+              <Waves className="w-3.5 h-3.5 text-rose-400" /> Wave Velocity
             </div>
-            <div className="text-sm font-bold text-rose-300 font-mono mt-0.5">
-              ~{estFloodWaveKmh} km/h
+            <div className="text-base font-black text-rose-300 font-mono mt-0.5 tabular-nums">
+              ~{estFloodWaveSpeedKmh} km/h
             </div>
-            <div className="text-[10px] text-[#94A3B8]">
-              {waterSurge > 0 ? `Simulated +${waterSurge.toFixed(1)}m surge` : "Baseline discharge"}
+            <div className="text-[10px] text-[#8CA0BE] font-mono">
+              {surge > 0 ? `Simulated +${surge.toFixed(1)}m flood crest` : "Nominal winter baseflow"}
             </div>
           </div>
 
-          <div className="p-2.5 rounded-xl bg-[#0F1B33] border border-[#2A3B5E]/60">
-            <div className="text-[10px] uppercase font-bold text-[#64748B] flex items-center gap-1">
-              <ShieldCheck className="w-3 h-3 text-emerald-400" /> Minimum Safe Clearance
+          <div className="p-2.5 rounded-2xl bg-[#0A1224] border border-white/5">
+            <div className="text-[10px] uppercase font-bold text-[#64748B] flex items-center gap-1 font-mono">
+              <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" /> Evacuation Ridge
             </div>
-            <div className="text-sm font-bold text-emerald-300 font-mono mt-0.5">
-              &ge; 35m Uphill Ridge
+            <div className="text-base font-black text-emerald-300 font-mono mt-0.5 tabular-nums">
+              &ge; 35m Elevation
             </div>
-            <div className="text-[10px] text-[#94A3B8]">Above active gorge bed</div>
+            <div className="text-[10px] text-[#8CA0BE] font-mono">Above active canyon bed</div>
           </div>
         </div>
 
-        {/* SVG Longitudinal Profile */}
-        <div className="p-4 overflow-x-auto bg-[#0A1224] flex-1">
-          <div className="min-w-[760px]">
-            <svg
-              viewBox={`0 0 ${svgWidth} ${svgHeight}`}
-              className="w-full h-auto select-none"
-            >
+        {/* DYNAMIC FLOOD SURGE CONTROLLER BAR */}
+        <div className="p-3 bg-[#0A1224] border-b border-[#1E293B] flex flex-wrap items-center justify-between gap-3 text-xs">
+          <div className="flex items-center gap-3">
+            <span className="font-bold text-white flex items-center gap-1.5 font-mono text-[11px]">
+              <Sliders className="w-3.5 h-3.5 text-cyan-400" />
+              <span>Simulate Dynamic Flood Crest:</span>
+            </span>
+            <input
+              type="range"
+              min="0"
+              max="5"
+              step="0.5"
+              value={surge}
+              onChange={(e) => setSurge(parseFloat(e.target.value))}
+              className="w-40 sm:w-56 accent-cyan-400 cursor-pointer h-2 bg-[#16233F] rounded-lg"
+            />
+            <span className="font-mono font-bold text-cyan-300 px-2 py-0.5 rounded-md bg-[#16233F] border border-[#2A3B5E] tabular-nums">
+              +{surge.toFixed(1)} m
+            </span>
+          </div>
+
+          {endangeredStations.length > 0 && (
+            <div className="flex items-center gap-2 px-3 py-1 rounded-xl bg-rose-500/20 text-rose-300 border border-rose-500/40 text-[11px] font-bold font-mono animate-pulse glow-rose">
+              <AlertCircle className="w-4 h-4 shrink-0 text-rose-400" />
+              <span>
+                CRITICAL INUNDATION: {endangeredStations.length} Landmark(s) Submerged!
+              </span>
+            </div>
+          )}
+        </div>
+
+        {/* SVG Longitudinal Profile with Dynamic Water Rise */}
+        <div className="p-4 overflow-x-auto bg-[#070D18] flex-1 custom-scrollbar">
+          <div className="min-w-[800px]">
+            <svg viewBox={`0 0 ${svgWidth} ${svgHeight}`} className="w-full h-auto select-none">
               <defs>
-                <linearGradient id="profileGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#06B6D4" stopOpacity="0.45" />
-                  <stop offset="100%" stopColor="#06B6D4" stopOpacity="0.02" />
+                {/* Mountain Canyon Gradient */}
+                <linearGradient id="mountainGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#1E293B" stopOpacity="0.8" />
+                  <stop offset="100%" stopColor="#0B132B" stopOpacity="0.95" />
+                </linearGradient>
+
+                {/* Flood Water Wave Gradient */}
+                <linearGradient id="waterSurgeGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#06B6D4" stopOpacity="0.65" />
+                  <stop offset="50%" stopColor="#0284C7" stopOpacity="0.45" />
+                  <stop offset="100%" stopColor="#0369A1" stopOpacity="0.1" />
                 </linearGradient>
               </defs>
 
@@ -233,11 +308,11 @@ export function ValleyElevationProfileModal({
                       y1={yPos}
                       x2={svgWidth - paddingX}
                       y2={yPos}
-                      stroke="#1E293B"
+                      stroke="#16233F"
                       strokeDasharray="4 4"
                     />
                     <text
-                      x={paddingX - 8}
+                      x={paddingX - 10}
                       y={yPos + 4}
                       fill="#64748B"
                       fontSize="9"
@@ -250,11 +325,31 @@ export function ValleyElevationProfileModal({
                 );
               })}
 
-              {/* Area Under Curve */}
-              <path d={areaD} fill="url(#profileGradient)" />
+              {/* Base Mountain Terrain */}
+              <path d={areaD} fill="url(#mountainGradient)" />
+
+              {/* Dynamic Flood Water Wave Layer (Only visible when surge > 0) */}
+              {surge > 0 && (
+                <path
+                  d={waterAreaD}
+                  fill="url(#waterSurgeGradient)"
+                  className="transition-all duration-300"
+                />
+              )}
 
               {/* River Bed Profile Path */}
-              <path d={pathD} fill="none" stroke="#06B6D4" strokeWidth="3" />
+              <path d={pathD} fill="none" stroke="#334155" strokeWidth="2" strokeDasharray="3 3" />
+
+              {/* Active Water Surface Line */}
+              {surge > 0 && (
+                <path
+                  d={waterPathD}
+                  fill="none"
+                  stroke="#06B6D4"
+                  strokeWidth="3"
+                  className="transition-all duration-300 shadow-[0_0_15px_rgba(6,182,212,0.8)]"
+                />
+              )}
 
               {/* Station Markers */}
               {points.map((p, idx) => {
@@ -263,12 +358,14 @@ export function ValleyElevationProfileModal({
                 const isDam = p.type === "dam";
                 const isBridge = p.type === "bridge";
 
-                const dotColor = isLake
+                const dotColor = p.isInDanger
+                  ? "#F43F5E"
+                  : isLake
                   ? "#38BDF8"
                   : isDam
                   ? "#F59E0B"
                   : isBridge
-                  ? "#F43F5E"
+                  ? "#FB923C"
                   : "#10B981";
 
                 return (
@@ -283,7 +380,7 @@ export function ValleyElevationProfileModal({
                       y1={p.y}
                       x2={p.x}
                       y2={svgHeight - paddingY}
-                      stroke="#2A3B5E"
+                      stroke="#1E293B"
                       strokeWidth="1"
                       strokeDasharray="2 2"
                       className="opacity-40 group-hover:opacity-100 transition-opacity"
@@ -293,36 +390,46 @@ export function ValleyElevationProfileModal({
                     <circle
                       cx={p.x}
                       cy={p.y}
+                      r={isSelected ? 7 : p.isInDanger ? 6 : 4.5}
+                      fill={dotColor}
+                      stroke="#070D18"
+                      strokeWidth="2"
+                      className={`transition-all ${p.isInDanger ? "animate-ping opacity-75" : ""}`}
+                    />
+                    <circle
+                      cx={p.x}
+                      cy={p.y}
                       r={isSelected ? 6 : 4.5}
                       fill={dotColor}
-                      stroke="#0B132B"
+                      stroke="#070D18"
                       strokeWidth="2"
                       className="transition-all"
                     />
 
-                    {/* Distance label on X Axis */}
+                    {/* Station Name Label */}
+                    <text
+                      x={p.x}
+                      y={p.y - 12}
+                      fill={p.isInDanger ? "#FDA4AF" : isSelected ? "#38BDF8" : "#94A3B8"}
+                      fontSize={isSelected ? "11" : "9"}
+                      fontWeight={p.isInDanger || isSelected ? "bold" : "normal"}
+                      fontFamily="monospace"
+                      textAnchor="middle"
+                      className="group-hover:fill-white transition-colors"
+                    >
+                      {p.name}
+                    </text>
+
+                    {/* Distance / ETA Badge */}
                     <text
                       x={p.x}
                       y={svgHeight - paddingY + 16}
                       fill="#64748B"
-                      fontSize="8.5"
+                      fontSize="8"
                       fontFamily="monospace"
                       textAnchor="middle"
                     >
-                      {p.distanceKm}km
-                    </text>
-
-                    {/* Landmark Name Label */}
-                    <text
-                      x={p.x}
-                      y={p.y - 10}
-                      fill={isSelected ? "#38BDF8" : "#E2E8F0"}
-                      fontSize="9"
-                      fontWeight={isSelected ? "bold" : "normal"}
-                      textAnchor="middle"
-                      className="group-hover:fill-cyan-300 transition-colors"
-                    >
-                      {p.name}
+                      {p.distanceKm}km ({p.travelTimeMinutes}m)
                     </text>
                   </g>
                 );
@@ -332,38 +439,43 @@ export function ValleyElevationProfileModal({
         </div>
 
         {/* Selected Station Inspector Drawer */}
-        <div className="p-3.5 bg-[#0F1B33] border-t border-[#2A3B5E] text-xs">
-          {selectedStation ? (
-            <div className="flex items-center justify-between flex-wrap gap-2 animate-in fade-in duration-150">
-              <div className="space-y-0.5">
-                <div className="flex items-center gap-2">
-                  <span className="font-bold text-white text-sm">
-                    {selectedStation.name}
-                  </span>
-                  <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-cyan-950 text-cyan-300 border border-cyan-800">
-                    {selectedStation.elevationM}m ASL &bull; {selectedStation.distanceKm} km downstream
+        {selectedStation && (
+          <div className="p-3.5 bg-[#0A1224] border-t border-[#1E293B] flex flex-wrap items-center justify-between gap-3 text-xs">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-xl bg-cyan-950 border border-cyan-800 flex items-center justify-center text-cyan-300 font-bold">
+                <MapPin className="w-4 h-4" />
+              </div>
+              <div>
+                <div className="font-bold text-white flex items-center gap-2">
+                  <span>{selectedStation.name}</span>
+                  <span className="text-[10px] font-mono text-cyan-300">
+                    {selectedStation.elevationM}m ASL
                   </span>
                 </div>
-                <p className="text-xs text-[#94A3B8]">
-                  {selectedStation.riskNote} &bull; Evacuation clearance: &ge;{selectedStation.safeClearanceM}m vertical rise
-                </p>
+                <div className="text-[11px] text-[#8CA0BE]">{selectedStation.riskNote}</div>
               </div>
-              <button
-                onClick={() => setSelectedStation(null)}
-                className="text-[11px] text-[#64748B] hover:text-white underline cursor-pointer"
-              >
-                Clear Selection
-              </button>
             </div>
-          ) : (
-            <div className="flex items-center gap-2 text-xs text-[#64748B]">
-              <AlertCircle className="w-3.5 h-3.5 text-cyan-400" />
-              <span>
-                Click on any station node along the cross-section above to inspect its local hydraulic clearance and hazard vulnerability.
-              </span>
+
+            <div className="flex items-center gap-4 font-mono text-[11px]">
+              <div>
+                <span className="text-[#64748B] block text-[9px]">DIST FROM LAKE</span>
+                <span className="text-white font-bold">{selectedStation.distanceKm} km</span>
+              </div>
+              <div>
+                <span className="text-[#64748B] block text-[9px]">WAVE ARRIVAL ETA</span>
+                <span className="text-amber-400 font-bold">
+                  ~{Math.round((selectedStation.distanceKm / estFloodWaveSpeedKmh) * 60)} mins
+                </span>
+              </div>
+              <div>
+                <span className="text-[#64748B] block text-[9px]">SAFE CLEARANCE</span>
+                <span className="text-emerald-400 font-bold">
+                  {selectedStation.safeClearanceM}m Ridge
+                </span>
+              </div>
             </div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
     </div>
   );
