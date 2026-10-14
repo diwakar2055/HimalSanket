@@ -738,10 +738,10 @@ export function FullScreenHazardMap({
 
       {/* FLOATING HUD CONTROLS (TOP LEFT: CORRIDOR & GEOFENCE STATUS) */}
       <div className="absolute top-3 left-3 z-10 flex flex-col gap-1.5 pointer-events-auto">
-        <div className="flex items-center gap-2 px-3 py-1.5 rounded-2xl bg-[#0F1B33]/90 backdrop-blur-md border border-[#2A3B5E] shadow-2xl text-xs text-white">
+        <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#101A2A]/90 backdrop-blur-md border border-[#27364B] shadow-xl text-xs text-[#F8FAFC]">
           <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
           <span className="font-extrabold tracking-wide">{safeCorridor.name}</span>
-          <span className="text-[#94A3B8] text-[11px]">({safeCorridor.region})</span>
+          <span className="text-[#A7B4C8] text-[11px]">({safeCorridor.region})</span>
           {geofenceStatus && (
             <span
               className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase ${
@@ -750,31 +750,31 @@ export function FullScreenHazardMap({
                   : "bg-emerald-500/20 text-emerald-300 border border-emerald-500/50"
               }`}
             >
-              {geofenceStatus === "DANGER" ? "⚠️ Danger Zone" : "🟢 Safe Refuge"}
+              {geofenceStatus === "DANGER" ? "⚠️ Danger Zone" : "🟢 Safe Haven"}
             </span>
           )}
         </div>
 
         {/* Hazard Distance Readout */}
         {distanceToHazard !== null && distanceToHazard !== undefined && (
-          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-[#0F1B33]/85 backdrop-blur-md border border-[#2A3B5E] text-[11px] text-[#94A3B8] shadow-lg">
+          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#101A2A]/85 backdrop-blur-md border border-[#27364B] text-[11px] text-[#A7B4C8] shadow-md">
             <Compass className="w-3.5 h-3.5 text-cyan-400" />
             <span>Hazard Distance:</span>
-            <strong className="text-white font-mono">{distanceToHazard}m</strong>
+            <strong className="text-[#F8FAFC] font-mono">{distanceToHazard}m</strong>
           </div>
         )}
       </div>
 
-      {/* FLOATING HUD CONTROLS (TOP RIGHT: MAP STYLES, LAYERS, GPS & KEY) */}
-      <div className="absolute top-3 right-3 z-10 flex items-center gap-2 pointer-events-auto flex-wrap justify-end">
+      {/* FLOATING HUD CONTROLS (TOP RIGHT DOCK: BASEMAP SWITCHER & GIS LAYERS & RECENTER) */}
+      <div className="absolute top-3 right-3 z-10 flex items-center gap-2 pointer-events-auto">
         {/* Google Maps MapType Switcher */}
-        <div className="flex items-center bg-[#0F1B33]/90 backdrop-blur-md border border-[#2A3B5E] rounded-2xl p-1 shadow-2xl text-xs">
+        <div className="flex items-center bg-[#101A2A]/90 backdrop-blur-md border border-[#27364B] rounded-xl p-0.5 shadow-xl text-xs">
           <button
             onClick={() => setMapType("terrain")}
-            className={`flex items-center gap-1 px-2.5 py-1 rounded-xl font-bold transition-all cursor-pointer ${
+            className={`flex items-center gap-1 px-2.5 py-1 rounded-lg font-bold transition-colors cursor-pointer ${
               mapType === "terrain"
-                ? "bg-cyan-600 text-white shadow-md shadow-cyan-600/30"
-                : "text-[#94A3B8] hover:text-white"
+                ? "bg-[#152238] text-cyan-400 border border-cyan-500/40 shadow-sm"
+                : "text-[#A7B4C8] hover:text-[#F8FAFC]"
             }`}
             title="Google 3D Elevation & Mountain Terrain"
           >
@@ -783,10 +783,10 @@ export function FullScreenHazardMap({
           </button>
           <button
             onClick={() => setMapType("hybrid")}
-            className={`flex items-center gap-1 px-2.5 py-1 rounded-xl font-bold transition-all cursor-pointer ${
+            className={`flex items-center gap-1 px-2.5 py-1 rounded-lg font-bold transition-colors cursor-pointer ${
               mapType === "hybrid"
-                ? "bg-cyan-600 text-white shadow-md shadow-cyan-600/30"
-                : "text-[#94A3B8] hover:text-white"
+                ? "bg-[#152238] text-cyan-400 border border-cyan-500/40 shadow-sm"
+                : "text-[#A7B4C8] hover:text-[#F8FAFC]"
             }`}
             title="Satellite Imagery with Trails & Labels"
           >
@@ -795,10 +795,10 @@ export function FullScreenHazardMap({
           </button>
           <button
             onClick={() => setMapType("satellite")}
-            className={`flex items-center gap-1 px-2.5 py-1 rounded-xl font-bold transition-all cursor-pointer ${
+            className={`flex items-center gap-1 px-2.5 py-1 rounded-lg font-bold transition-colors cursor-pointer ${
               mapType === "satellite"
-                ? "bg-cyan-600 text-white shadow-md shadow-cyan-600/30"
-                : "text-[#94A3B8] hover:text-white"
+                ? "bg-[#152238] text-cyan-400 border border-cyan-500/40 shadow-sm"
+                : "text-[#A7B4C8] hover:text-[#F8FAFC]"
             }`}
             title="Pure Photorealistic Satellite Imagery"
           >
@@ -807,10 +807,10 @@ export function FullScreenHazardMap({
           </button>
           <button
             onClick={() => setMapType("roadmap")}
-            className={`flex items-center gap-1 px-2.5 py-1 rounded-xl font-bold transition-all cursor-pointer ${
+            className={`flex items-center gap-1 px-2.5 py-1 rounded-lg font-bold transition-colors cursor-pointer ${
               mapType === "roadmap"
-                ? "bg-cyan-600 text-white shadow-md shadow-cyan-600/30"
-                : "text-[#94A3B8] hover:text-white"
+                ? "bg-[#152238] text-cyan-400 border border-cyan-500/40 shadow-sm"
+                : "text-[#A7B4C8] hover:text-[#F8FAFC]"
             }`}
             title="Dark Tactical Vector Map"
           >
@@ -824,15 +824,15 @@ export function FullScreenHazardMap({
           <div className="relative">
             <button
               onClick={() => setShowLayerMenu(!showLayerMenu)}
-              className="p-2 rounded-2xl bg-[#0F1B33]/90 backdrop-blur-md border border-[#2A3B5E] text-white hover:bg-[#1C2C4C] shadow-2xl transition-all cursor-pointer"
+              className="p-2 rounded-xl bg-[#101A2A]/90 backdrop-blur-md border border-[#27364B] text-[#F8FAFC] hover:bg-[#152238] shadow-xl transition-colors cursor-pointer"
               title="Toggle GIS Overlays"
             >
               <Layers className="w-4 h-4 text-cyan-400" />
             </button>
 
             {showLayerMenu && (
-              <div className="absolute right-0 top-11 w-52 rounded-2xl bg-[#0F1B33]/95 backdrop-blur-2xl border border-[#2A3B5E] shadow-2xl p-3 text-xs text-white space-y-2 z-30">
-                <div className="text-[10px] font-bold uppercase tracking-wider text-[#94A3B8] pb-1 border-b border-[#2A3B5E]">
+              <div className="absolute right-0 top-11 w-52 rounded-xl bg-[#101A2A] border border-[#27364B] shadow-2xl p-3 text-xs text-[#F8FAFC] space-y-2 z-30">
+                <div className="text-[10px] font-bold uppercase tracking-wider text-[#A7B4C8] pb-1 border-b border-[#27364B]">
                   Google Maps Layers
                 </div>
                 <label className="flex items-center gap-2 cursor-pointer hover:text-cyan-300">
@@ -906,12 +906,15 @@ export function FullScreenHazardMap({
         {/* Re-center Button */}
         <button
           onClick={() => setRecenterTrigger((p) => p + 1)}
-          className="p-2 rounded-2xl bg-[#0F1B33]/90 backdrop-blur-md border border-[#2A3B5E] text-white hover:bg-[#1C2C4C] shadow-2xl transition-all cursor-pointer"
+          className="p-2 rounded-xl bg-[#101A2A]/90 backdrop-blur-md border border-[#27364B] text-[#F8FAFC] hover:bg-[#152238] shadow-xl transition-colors cursor-pointer"
           title="Fit Corridor Bounds"
         >
           <Compass className="w-4 h-4 text-cyan-400" />
         </button>
+      </div>
 
+      {/* FLOATING BOTTOM RIGHT TACTICAL DOCK: GPS LOCATE & GOOGLE MAPS CONNECTION */}
+      <div className="absolute bottom-3 right-3 z-10 flex items-center gap-2 pointer-events-auto">
         {/* GPS Locate Me Button */}
         {onLocateMe && (
           <button
@@ -919,35 +922,41 @@ export function FullScreenHazardMap({
               onLocateMe();
               setLocateTrigger((p) => p + 1);
             }}
-            className={`p-2 rounded-2xl bg-[#0F1B33]/90 backdrop-blur-md border border-[#2A3B5E] text-white hover:bg-[#1C2C4C] shadow-2xl transition-all cursor-pointer ${
-              isLocating ? "animate-spin text-cyan-400" : ""
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#101A2A]/90 backdrop-blur-md border border-[#27364B] text-xs font-semibold text-[#F8FAFC] hover:bg-[#152238] shadow-xl transition-colors cursor-pointer ${
+              isLocating ? "animate-pulse text-cyan-400" : ""
             }`}
-            title="Locate My GPS Device"
+            title="Locate GPS position"
           >
-            <MapPin className="w-4 h-4 text-emerald-400" />
+            <MapPin className="w-3.5 h-3.5 text-emerald-400" />
+            <span className="hidden sm:inline">GPS</span>
+            {userPosition?.altitude && (
+              <span className="text-[10px] font-mono text-cyan-300 hidden md:inline">
+                {Math.round(userPosition.altitude)}m
+              </span>
+            )}
           </button>
         )}
 
         {/* Google Maps API Key Config Pill */}
         <button
           onClick={() => setShowKeyModal(true)}
-          className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-2xl text-xs font-bold backdrop-blur-md border transition-all cursor-pointer shadow-2xl ${
+          className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-bold backdrop-blur-md border transition-colors cursor-pointer shadow-xl ${
             apiKey && apiKey.length > 20
-              ? "bg-emerald-600/30 border-emerald-500/50 text-emerald-300 hover:bg-emerald-600/40"
-              : "bg-amber-600/20 border-amber-500/40 text-amber-300 hover:bg-amber-600/30"
+              ? "bg-emerald-950/60 border-emerald-500/50 text-emerald-300 hover:bg-emerald-900/60"
+              : "bg-amber-950/60 border-amber-500/40 text-amber-300 hover:bg-amber-900/60"
           }`}
           title="Configure Google Maps API Key"
         >
           <Key className="w-3.5 h-3.5" />
-          <span className="hidden xl:inline">{apiKey ? "Google Maps Connected" : "Set Google Maps Key"}</span>
+          <span className="hidden xl:inline">{apiKey ? "Google Maps Connected" : "Set Maps Key"}</span>
         </button>
       </div>
 
       {/* FLOATING BOTTOM CENTER: WATER SURGE SLIDER (ADMIN MODE ONLY) */}
       {showSurgeControls && onSurgeChange && (
-        <div className="absolute bottom-16 sm:bottom-4 left-1/2 -translate-x-1/2 z-10 flex items-center gap-3 px-4 py-2 rounded-2xl bg-[#0F1B33]/95 backdrop-blur-xl border border-[#2A3B5E] shadow-2xl text-xs text-white pointer-events-auto">
+        <div className="absolute bottom-16 sm:bottom-4 left-1/2 -translate-x-1/2 z-10 flex items-center gap-3 px-4 py-2 rounded-xl bg-[#101A2A]/95 backdrop-blur-xl border border-[#27364B] shadow-2xl text-xs text-[#F8FAFC] pointer-events-auto">
           <SlidersHorizontal className="w-4 h-4 text-cyan-400" />
-          <span className="font-semibold text-[#94A3B8]">Water Surge:</span>
+          <span className="font-semibold text-[#A7B4C8]">Water Surge:</span>
           <input
             type="range"
             min="0"
@@ -958,7 +967,7 @@ export function FullScreenHazardMap({
             className="w-28 sm:w-44 accent-cyan-400 cursor-pointer"
           />
           <span className="font-mono font-bold text-cyan-300">+{simulatedWaterRise.toFixed(1)}m</span>
-          <span className="text-[10px] text-[#94A3B8] font-mono">(&plusmn;{lateralSurgeMeters}m spread)</span>
+          <span className="text-[10px] text-[#A7B4C8] font-mono">(&plusmn;{lateralSurgeMeters}m spread)</span>
         </div>
       )}
 

@@ -82,10 +82,10 @@ export function PersonaSwitcherModal({ isOpen, onClose }: PersonaSwitcherModalPr
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: "100%", opacity: 0 }}
           transition={{ type: "spring", damping: 26, stiffness: 320 }}
-          className="w-full sm:max-w-lg bg-[#0F172A] border-t sm:border border-white/15 rounded-t-3xl sm:rounded-3xl p-6 shadow-2xl text-white relative overflow-hidden"
+          className="w-full sm:max-w-lg bg-[#101A2A] border-t sm:border border-[#27364B] rounded-t-3xl sm:rounded-2xl p-6 shadow-2xl text-[#F8FAFC] relative overflow-hidden"
         >
           {/* Header */}
-          <div className="flex items-center justify-between pb-3 border-b border-white/10">
+          <div className="flex items-center justify-between pb-3 border-b border-[#27364B]">
             <div>
               <h2 className="text-lg font-black text-white flex items-center gap-2">
                 <span>Switch Presentation Persona</span>
@@ -93,19 +93,19 @@ export function PersonaSwitcherModal({ isOpen, onClose }: PersonaSwitcherModalPr
                   AI Summit
                 </span>
               </h2>
-              <p className="text-xs text-slate-400 mt-0.5">
+              <p className="text-xs text-[#A7B4C8] mt-0.5">
                 Experience tailored workflows designed specifically for each role
               </p>
             </div>
             <button
               onClick={onClose}
-              className="p-1.5 rounded-full bg-white/10 hover:bg-white/20 text-slate-300 transition-colors cursor-pointer"
+              className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-[#A7B4C8] hover:text-white transition-colors cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
           </div>
 
-          {/* Profile Cards (Instagram / Meta Style) */}
+          {/* Profile Cards */}
           <div className="space-y-3 mt-4">
             {(["civilian", "rescuer", "admin"] as UserRole[]).map((role) => {
               const meta = ROLES_METADATA[role];
@@ -117,21 +117,20 @@ export function PersonaSwitcherModal({ isOpen, onClose }: PersonaSwitcherModalPr
                   whileHover={{ scale: 1.01 }}
                   whileTap={{ scale: 0.98 }}
                   onClick={() => handleSelectRole(role)}
-                  className={`p-4 rounded-2xl border transition-all cursor-pointer flex items-start justify-between gap-3 ${
+                  className={`p-4 rounded-xl border transition-all cursor-pointer flex items-start justify-between gap-3 ${
                     isSelected
-                      ? "bg-[#16233F] border-cyan-500/70 shadow-xl shadow-cyan-500/10 ring-2 " +
-                        meta.ringColor
-                      : "bg-[#090F1D]/80 border-white/10 hover:border-white/25 hover:bg-[#111A2E]"
+                      ? "bg-[#152238] border-cyan-400 shadow-md ring-2 " + meta.ringColor
+                      : "bg-[#152238]/50 border-[#27364B] hover:border-[#3D506E] hover:bg-[#152238]"
                   }`}
                 >
                   <div className="flex items-start gap-3.5">
-                    {/* Big Avatar */}
+                    {/* Avatar */}
                     <div className="relative">
-                      <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-slate-700 to-slate-900 border border-white/20 flex items-center justify-center text-xl shadow-md">
+                      <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-slate-700 to-slate-900 border border-[#27364B] flex items-center justify-center text-xl shadow-md">
                         {meta.avatarEmoji}
                       </div>
                       {isSelected && (
-                        <span className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-cyan-500 text-black flex items-center justify-center text-[10px] font-black border-2 border-[#0F172A]">
+                        <span className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-cyan-500 text-black flex items-center justify-center text-[10px] font-black border-2 border-[#101A2A]">
                           ✓
                         </span>
                       )}

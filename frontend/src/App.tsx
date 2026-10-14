@@ -273,7 +273,7 @@ function MainApp() {
   const pendingSosCount = distressBeacons.filter((b) => b.status === "pending").length;
 
   return (
-    <div className="w-full h-screen flex flex-col bg-[#070D18] text-[#F8FAFC] antialiased overflow-hidden selection:bg-cyan-500 selection:text-black">
+    <div className="w-full h-screen flex flex-col bg-[#080E19] text-[#F8FAFC] antialiased overflow-hidden selection:bg-cyan-500 selection:text-black">
       {/* 1. Big Tech Streamlined Command Header with 1-Click Persona Switcher */}
       <CommandHeader
         activeTier={selectedRisk.tier}
@@ -302,6 +302,7 @@ function MainApp() {
           playConfirmationBeep();
           setIsPersonaModalOpen(true);
         }}
+        isSyncing={isSensingSyncing}
       />
 
       {/* 2. Instagram Stories Style Corridor Status Carousel */}

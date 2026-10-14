@@ -92,9 +92,9 @@ export function SystemTourModal({ isOpen, onClose, language }: SystemTourModalPr
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
-      <div className="w-full max-w-2xl bg-[#0F172A] border border-[#2A3B5E] rounded-3xl shadow-2xl overflow-hidden flex flex-col">
+      <div className="w-full max-w-2xl bg-[#101A2A] border border-[#27364B] rounded-2xl shadow-2xl overflow-hidden flex flex-col">
         {/* Modal Header */}
-        <div className="px-6 py-4 bg-[#0A1224] border-b border-[#1E293B] flex items-center justify-between">
+        <div className="px-6 py-4 bg-[#080E19] border-b border-[#27364B] flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <div className="p-2 rounded-xl bg-cyan-500/20 text-cyan-400 border border-cyan-500/30">
               <Shield className="w-5 h-5" />
@@ -103,14 +103,14 @@ export function SystemTourModal({ isOpen, onClose, language }: SystemTourModalPr
               <h3 className="text-base font-bold text-white">
                 {language === "ne" ? "हिमालसंकेत: ५-तहिय एआई विपद् पूर्वसूचना प्रणाली" : "HimalSanket 5-Layer AI Architecture Tour"}
               </h3>
-              <p className="text-xs text-[#94A3B8]">
+              <p className="text-xs text-[#A7B4C8]">
                 {language === "ne" ? "नेपालका हिमाली पदमार्गहरूका लागि स्वायत्त विपद् अनुगमन" : "Autonomous Disaster Intelligence for the Nepal Himalayas"}
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg text-[#94A3B8] hover:text-white hover:bg-[#1E293B] transition-colors cursor-pointer"
+            className="p-1.5 rounded-lg text-[#A7B4C8] hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -129,14 +129,14 @@ export function SystemTourModal({ isOpen, onClose, language }: SystemTourModalPr
                     ? "bg-gradient-to-r from-cyan-400 to-blue-500 shadow-md shadow-cyan-500/50"
                     : idx < currentStep
                     ? "bg-cyan-700/60"
-                    : "bg-[#1E293B]"
+                    : "bg-[#27364B]"
                 }`}
               />
             ))}
           </div>
 
           {/* Active Step Card */}
-          <div className="p-6 rounded-2xl bg-[#16233F] border border-[#2A3B5E] space-y-4">
+          <div className="p-6 rounded-xl bg-[#152238] border border-[#27364B] space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className={`p-3 rounded-2xl bg-gradient-to-tr ${step.color} text-white shadow-lg`}>
@@ -163,11 +163,11 @@ export function SystemTourModal({ isOpen, onClose, language }: SystemTourModalPr
         </div>
 
         {/* Modal Footer */}
-        <div className="px-6 py-4 bg-[#0A1224] border-t border-[#1E293B] flex items-center justify-between">
+        <div className="px-6 py-4 bg-[#080E19] border-t border-[#27364B] flex items-center justify-between">
           <button
             onClick={() => setCurrentStep((prev) => Math.max(0, prev - 1))}
             disabled={currentStep === 0}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold text-[#94A3B8] hover:text-white bg-[#1E293B] border border-[#334155] disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer transition-colors"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-[#A7B4C8] hover:text-white bg-[#152238] border border-[#27364B] disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer transition-colors"
           >
             <ChevronLeft className="w-4 h-4" />
             <span>Previous</span>

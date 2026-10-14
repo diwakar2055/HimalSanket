@@ -15,7 +15,7 @@ import {
 import { Language } from "../../data/localization";
 import { useUserRole, DistressBeacon } from "../../context/UserRoleContext";
 import { playConfirmationBeep, playEmergencyChime } from "../../utils/audioAlert";
-import { CheckCircle2, BarChart3, Activity, Map as MapIcon } from "lucide-react";
+import { CheckCircle2, BarChart3, Activity, Map as MapIcon, X } from "lucide-react";
 
 interface AdminCommandDashboardProps {
   corridors: any[];
@@ -125,7 +125,7 @@ export function AdminCommandDashboard({
     broadcastAdvisory({
       corridorId: selectedId,
       tier: selectedRisk.tier || "High",
-      messageEn: `National Emergency Advisory: Active flood surge watch in ${selectedCorridor.name}. Evacuate gorge floors.`,
+      messageEn: `National Emergency Advisory: Active flood surge watch in ${selectedCorridor.name}. Evacuate gorge floors immediately.`,
       messageNe: `राष्ट्रिय विपद् सूचना: ${selectedCorridor.name} क्षेत्रमा बाढी तथा पहिरोको उच्च जोखिम। नदी किनार तत्काल खाली गर्नुहोस्।`,
       smsDraft: `HIMALSANKET ALERT: High flood risk in ${selectedCorridor.name}. Move uphill immediately!`,
       issuedBy: "NDRRMA Emergency Operations Center (Level 4)",
@@ -135,16 +135,16 @@ export function AdminCommandDashboard({
   }, [selectedId, selectedRisk, selectedCorridor, broadcastAdvisory]);
 
   return (
-    <div className="w-full h-full flex flex-col min-h-0 bg-[#070D18] text-slate-100 overflow-hidden relative">
+    <div className="w-full h-full flex flex-col min-h-0 bg-[#080E19] text-[#F8FAFC] overflow-hidden relative">
       {/* Mobile Tab Switcher (Visible only below lg) */}
-      <div className="lg:hidden flex items-center justify-between p-2 bg-[#0A1224] border-b border-[#1E293B] shrink-0 text-xs">
-        <div className="flex items-center gap-1 bg-[#111A2E] p-1 rounded-xl border border-[#1E293B]">
+      <div className="lg:hidden flex items-center justify-between p-2 bg-[#101A2A] border-b border-[#27364B] shrink-0 text-xs">
+        <div className="flex items-center gap-1 bg-[#080E19] p-0.5 rounded-lg border border-[#27364B]">
           <button
             onClick={() => setMobileTab("operations")}
-            className={`flex items-center gap-1.5 px-3 py-1 rounded-lg font-bold transition-all cursor-pointer ${
+            className={`flex items-center gap-1.5 px-3 py-1 rounded-md font-bold transition-colors cursor-pointer ${
               mobileTab === "operations"
-                ? "bg-cyan-600 text-white shadow"
-                : "text-[#94A3B8] hover:text-white"
+                ? "bg-[#152238] text-cyan-400 border border-cyan-500/40 shadow-sm"
+                : "text-[#A7B4C8] hover:text-[#F8FAFC]"
             }`}
           >
             <MapIcon className="w-3.5 h-3.5" />
@@ -152,10 +152,10 @@ export function AdminCommandDashboard({
           </button>
           <button
             onClick={() => setMobileTab("telemetry")}
-            className={`flex items-center gap-1.5 px-3 py-1 rounded-lg font-bold transition-all cursor-pointer ${
+            className={`flex items-center gap-1.5 px-3 py-1 rounded-md font-bold transition-colors cursor-pointer ${
               mobileTab === "telemetry"
-                ? "bg-cyan-600 text-white shadow"
-                : "text-[#94A3B8] hover:text-white"
+                ? "bg-[#152238] text-cyan-400 border border-cyan-500/40 shadow-sm"
+                : "text-[#A7B4C8] hover:text-[#F8FAFC]"
             }`}
           >
             <Activity className="w-3.5 h-3.5" />
@@ -163,7 +163,7 @@ export function AdminCommandDashboard({
           </button>
         </div>
 
-        <div className="flex items-center gap-1.5 text-[11px] font-mono text-[#94A3B8]">
+        <div className="flex items-center gap-1.5 text-[11px] font-mono text-[#A7B4C8]">
           <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping inline-block" />
           <span>{selectedCorridor.name.split(" ")[0]}</span>
         </div>
@@ -216,29 +216,29 @@ export function AdminCommandDashboard({
 
         {/* RIGHT COLUMN: Framed GIS Map Viewport (Upper) + Structured Incident Table (Lower) */}
         <div
-          className={`flex-1 flex flex-col min-w-0 min-h-0 bg-[#070D18] ${
+          className={`flex-1 flex flex-col min-w-0 min-h-0 bg-[#080E19] ${
             mobileTab === "operations" ? "flex" : "hidden lg:flex"
           }`}
         >
           {/* UPPER PANE: Framed High-Performance GIS Map */}
           <div className="flex-1 min-h-[300px] lg:min-h-[380px] p-2.5 sm:p-3 pb-1.5 flex flex-col">
-            <div className="w-full h-full rounded-2xl overflow-hidden border border-[#1E293B] shadow-2xl relative bg-[#0A1224] flex flex-col">
+            <div className="w-full h-full rounded-2xl overflow-hidden border border-[#27364B] shadow-2xl relative bg-[#101A2A] flex flex-col">
               {/* Sleek Command Frame Bar */}
-              <div className="px-3 py-1.5 bg-[#090F1D]/90 border-b border-[#1E293B] flex items-center justify-between gap-2 shrink-0 z-10 backdrop-blur-sm">
+              <div className="px-3 py-1.5 bg-[#080E19] border-b border-[#27364B] flex items-center justify-between gap-2 shrink-0 z-10">
                 <div className="flex items-center gap-2">
                   <span className="text-[11px] font-black uppercase text-white tracking-wider flex items-center gap-1.5">
                     <span className="w-2 h-2 rounded-full bg-cyan-400 inline-block" />
                     <span>GIS Tactical Operations Map</span>
                   </span>
-                  <span className="text-[10px] text-[#64748B] font-mono hidden sm:inline">
+                  <span className="text-[10px] text-[#A7B4C8] font-mono hidden sm:inline">
                     • 3D Digital Elevation Model
                   </span>
                 </div>
 
-                <div className="flex items-center gap-1 text-[11px] text-[#94A3B8]">
+                <div className="flex items-center gap-1 text-[11px] text-[#A7B4C8]">
                   <span className="text-cyan-400 font-mono font-bold">{selectedCorridor.name}</span>
                   {selectedBeacon && (
-                    <span className="text-[10px] bg-rose-500/20 text-rose-300 px-1.5 py-0.2 rounded border border-rose-500/40 font-mono animate-pulse">
+                    <span className="text-[10px] bg-rose-500/20 text-rose-300 px-2 py-0.5 rounded border border-rose-500/40 font-mono animate-pulse">
                       Focus: #{String(selectedBeacon.id).slice(-4)}
                     </span>
                   )}
@@ -264,9 +264,9 @@ export function AdminCommandDashboard({
             </div>
           </div>
 
-          {/* LOWER PANE: Structured High-Density Incidents Table (Transcope Orders Benchmark) */}
+          {/* LOWER PANE: Structured High-Density Incidents Table */}
           <div className="h-[260px] sm:h-[280px] xl:h-[310px] shrink-0 p-2.5 sm:p-3 pt-1.5 flex flex-col">
-            <div className="w-full h-full rounded-2xl overflow-hidden border border-[#1E293B] shadow-2xl bg-[#0A1224] flex flex-col">
+            <div className="w-full h-full rounded-2xl overflow-hidden border border-[#27364B] shadow-2xl bg-[#101A2A] flex flex-col">
               <IncidentQueueTable
                 beacons={distressBeacons}
                 selectedBeacon={selectedBeacon}
@@ -283,8 +283,8 @@ export function AdminCommandDashboard({
 
       {/* Advisory Sent Toast */}
       {advisorySentToast && (
-        <div className="fixed top-16 right-6 z-50 p-3 rounded-2xl bg-emerald-600 border border-emerald-400 text-white shadow-2xl flex items-center gap-2 animate-in fade-in slide-in-from-top-4">
-          <CheckCircle2 className="w-5 h-5" />
+        <div className="fixed top-16 right-6 z-50 p-3 rounded-xl bg-emerald-700 border border-emerald-500 text-white shadow-2xl flex items-center gap-2 animate-in fade-in slide-in-from-top-4">
+          <CheckCircle2 className="w-5 h-5 text-emerald-200" />
           <span className="text-xs font-bold">
             National Advisory Broadcasted across Radio & Satellite Relays!
           </span>
@@ -320,8 +320,8 @@ export function AdminCommandDashboard({
 
       {showTimesfmModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in">
-          <div className="w-full max-w-2xl rounded-2xl bg-[#0F1B33] border border-[#2A3B5E] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
-            <div className="p-4 bg-[#16233F] border-b border-[#2A3B5E] flex items-center justify-between">
+          <div className="w-full max-w-2xl rounded-2xl bg-[#101A2A] border border-[#27364B] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+            <div className="p-4 bg-[#080E19] border-b border-[#27364B] flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <BarChart3 className="w-5 h-5 text-cyan-400" />
                 <span className="font-bold text-white text-sm">
@@ -330,12 +330,12 @@ export function AdminCommandDashboard({
               </div>
               <button
                 onClick={() => setShowTimesfmModal(false)}
-                className="text-[#94A3B8] hover:text-white cursor-pointer"
+                className="p-1 rounded-lg text-[#A7B4C8] hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
               >
-                ✕
+                <X className="w-4 h-4" />
               </button>
             </div>
-            <div className="p-4 overflow-y-auto">
+            <div className="p-4 overflow-y-auto custom-scrollbar">
               <TimesfmForecastChart
                 corridorId={selectedId}
                 corridorName={selectedCorridor.name}

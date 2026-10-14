@@ -1,40 +1,110 @@
 @import "tailwindcss";
 
-/* Award-Winning Luxury Design System & Glassmorphic Utilities */
+/* ==========================================================================
+   HIMALSANKET UNIFIED DESIGN SYSTEM TOKENS (Google / Linear / Stripe Benchmark)
+   ========================================================================== */
+
+:root {
+  --color-bg-base: #080E19;
+  --color-surface-elevated: #101A2A;
+  --color-surface-secondary: #152238;
+  --color-surface-tertiary: #1E2D48;
+  --color-border-subtle: #27364B;
+  --color-border-highlight: #3D506E;
+  
+  --color-text-primary: #F8FAFC;
+  --color-text-secondary: #A7B4C8;
+  --color-text-muted: #64748B;
+  
+  --color-accent-cyan: #22D3EE;
+  --color-accent-cyan-hover: #06B6D4;
+  --color-status-success: #22C55E;
+  --color-status-warning: #F5B942;
+  --color-status-danger: #F05252;
+  
+  --radius-card: 12px;
+  --radius-control: 8px;
+  --radius-pill: 9999px;
+}
 
 @layer utilities {
-  /* Spatial Acrylic Glassmorphism */
+  /* Surface Tokens */
+  .bg-surface-base {
+    background-color: #080E19;
+  }
+  .bg-surface-elevated {
+    background-color: #101A2A;
+  }
+  .bg-surface-secondary {
+    background-color: #152238;
+  }
+  .bg-surface-tertiary {
+    background-color: #1E2D48;
+  }
+
+  /* Border Tokens */
+  .border-subtle {
+    border-color: #27364B;
+  }
+  .border-highlight {
+    border-color: #3D506E;
+  }
+
+  /* Text Tokens */
+  .text-primary {
+    color: #F8FAFC;
+  }
+  .text-secondary {
+    color: #A7B4C8;
+  }
+  .text-muted {
+    color: #64748B;
+  }
+
+  /* Spatial Acrylic Surfaces */
+  .surface-card {
+    background-color: #101A2A;
+    border: 1px solid #27364B;
+    border-radius: 12px;
+  }
+
+  .surface-elevated {
+    background-color: #152238;
+    border: 1px solid #27364B;
+    border-radius: 10px;
+  }
+
   .glass-panel {
-    background: rgba(15, 27, 51, 0.75);
-    backdrop-filter: blur(24px);
-    -webkit-backdrop-filter: blur(24px);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45), inset 0 1px 1px 0 rgba(255, 255, 255, 0.1);
+    background: rgba(16, 26, 42, 0.85);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid #27364B;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45), inset 0 1px 1px 0 rgba(255, 255, 255, 0.08);
   }
 
   .glass-panel-subtle {
-    background: rgba(11, 20, 38, 0.6);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    box-shadow: inset 0 1px 1px 0 rgba(255, 255, 255, 0.05);
+    background: rgba(16, 26, 42, 0.65);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid rgba(39, 54, 75, 0.7);
+    box-shadow: inset 0 1px 1px 0 rgba(255, 255, 255, 0.04);
   }
 
-  /* Neon Glow Accents */
+  /* Semantic Accents & Restrained Glows */
   .glow-cyan {
-    box-shadow: 0 0 20px -3px rgba(6, 182, 212, 0.35);
+    box-shadow: 0 0 18px -4px rgba(34, 211, 238, 0.3);
   }
 
   .glow-rose {
-    box-shadow: 0 0 20px -3px rgba(244, 63, 94, 0.45);
+    box-shadow: 0 0 18px -4px rgba(240, 82, 82, 0.4);
   }
 
   .glow-amber {
-    box-shadow: 0 0 20px -3px rgba(245, 158, 11, 0.35);
+    box-shadow: 0 0 18px -4px rgba(245, 185, 66, 0.3);
   }
 
   .glow-emerald {
-    box-shadow: 0 0 20px -3px rgba(16, 185, 129, 0.35);
+    box-shadow: 0 0 18px -4px rgba(34, 197, 94, 0.3);
   }
 
   /* Monospace Tabular Numerals (Eliminates Jitter) */
@@ -49,26 +119,22 @@
   height: 5px;
 }
 .custom-scrollbar::-webkit-scrollbar-track {
-  background: rgba(10, 18, 36, 0.6);
+  background: rgba(8, 14, 25, 0.7);
   border-radius: 9999px;
 }
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: rgba(42, 59, 94, 0.8);
+  background: #27364B;
   border-radius: 9999px;
   border: 1px solid rgba(255, 255, 255, 0.05);
 }
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: rgba(56, 189, 248, 0.7);
+  background: #3D506E;
 }
 
-/* Pulse Wave Keyframes for Tactical Radar & Sensors */
+/* Keyframe Animations */
 @keyframes radar-sweep {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 
 .animate-radar-sweep {
@@ -76,12 +142,8 @@
 }
 
 @keyframes water-ripple {
-  0% {
-    transform: translateX(0);
-  }
-  100% {
-    transform: translateX(-50%);
-  }
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
 }
 
 .animate-water-ripple {

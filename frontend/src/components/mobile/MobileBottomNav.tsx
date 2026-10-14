@@ -40,7 +40,7 @@ export function MobileBottomNav({
   };
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-40 bg-[#0A1224]/95 backdrop-blur-2xl border-t border-white/10 px-3 pt-2 pb-[max(env(safe-area-inset-bottom),8px)] shadow-2xl flex items-center justify-around select-none">
+    <nav className="fixed bottom-0 left-0 right-0 z-40 bg-[#080E19]/95 backdrop-blur-2xl border-t border-[#27364B] px-3 pt-2 pb-[max(env(safe-area-inset-bottom),8px)] shadow-2xl flex items-center justify-around select-none">
       {/* 1. SAFETY / REFUGE */}
       <button
         onClick={() => handleTabClick("safety")}

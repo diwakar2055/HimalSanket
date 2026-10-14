@@ -41,7 +41,7 @@ export function CorridorStoriesBar({
   language,
 }: CorridorStoriesBarProps) {
   return (
-    <div className="w-full bg-[#070D18]/90 backdrop-blur-xl border-b border-white/10 px-3 py-2 overflow-x-auto no-scrollbar select-none z-20">
+    <div className="w-full bg-[#080E19] border-b border-[#27364B] px-3 py-2 overflow-x-auto no-scrollbar select-none z-20">
       <div className="flex items-center gap-3 min-w-max">
         {corridors.map((c) => {
           const isSelected = c.id === selectedId;
@@ -61,10 +61,10 @@ export function CorridorStoriesBar({
                 className={`relative p-[2px] rounded-full transition-all duration-300 ${
                   isSelected
                     ? "bg-gradient-to-tr " + gradient + " shadow-lg shadow-cyan-500/20 scale-105"
-                    : "bg-white/15 hover:bg-white/30"
+                    : "bg-[#27364B] hover:bg-[#3D506E]"
                 }`}
               >
-                <div className="w-13 h-13 rounded-full bg-[#0D1526] p-0.5 flex items-center justify-center border-2 border-[#070D18]">
+                <div className="w-12 h-12 rounded-full bg-[#101A2A] p-0.5 flex items-center justify-center border-2 border-[#080E19]">
                   <span className="text-xl select-none group-hover:scale-110 transition-transform">
                     {emoji}
                   </span>

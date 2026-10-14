@@ -82,7 +82,7 @@ export function EmergencySosModal({
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: "100%", opacity: 0 }}
           transition={{ type: "spring", damping: 25, stiffness: 300 }}
-          className="w-full sm:max-w-md bg-[#0F172A] border-t sm:border border-rose-500/40 rounded-t-3xl sm:rounded-3xl p-6 shadow-2xl text-white relative overflow-hidden"
+          className="w-full sm:max-w-md bg-[#101A2A] border-t sm:border border-[#27364B] rounded-t-3xl sm:rounded-2xl p-6 shadow-2xl text-white relative overflow-hidden"
         >
           {/* Subtle Ambient Radial Glow */}
           <div className="absolute -top-24 left-1/2 -translate-x-1/2 w-64 h-64 bg-rose-600/20 rounded-full blur-3xl pointer-events-none" />

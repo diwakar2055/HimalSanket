@@ -19,6 +19,10 @@ import {
   Shield,
   Activity,
   Map as MapIcon,
+  X,
+  AlertTriangle,
+  Send,
+  Compass,
 } from "lucide-react";
 
 interface RescuerDashboardProps {
@@ -43,12 +47,9 @@ export function RescuerDashboard({
   const { distressBeacons, updateBeaconStatus, fieldDispatches, userProfile } = useUserRole();
 
   const [selectedBeacon, setSelectedBeacon] = useState<DistressBeacon | null>(null);
-  const [filterStatus, setFilterStatus] = useState<"all" | "active" | "rescued">("active");
-  const [activeTab, setActiveTab] = useState<"beacons" | "aviation" | "dispatches">("beacons");
+  const [selectedUnit, setSelectedUnit] = useState<string>("APF Mountain Rescue Squad 1");
+  const [activeTab, setActiveTab] = useState<"aviation" | "dispatches">("aviation");
   const [sheetPosition, setSheetPosition] = useState<"peek" | "half" | "full">("half");
-
-  // Mobile view toggle (Operations vs Tactical Telemetry)
-  const [mobileView, setMobileView] = useState<"map_and_table" | "tactical_sheet">("map_and_table");
 
   // Helicopter Forward Bases for this corridor
   const forwardBases = useMemo(() => {
@@ -60,17 +61,17 @@ export function RescuerDashboard({
     playConfirmationBeep();
     setSelectedBeacon({ ...beacon });
     if (typeof window !== "undefined" && window.innerWidth < 1024) {
-      setSheetPosition("peek");
+      setSheetPosition("half");
     }
   }, []);
 
-  // Quick Dispatch Handler
+  // Dispatch Handler
   const handleDispatch = useCallback(
-    (beacon: DistressBeacon) => {
+    (beacon: DistressBeacon, unitName?: string) => {
       playConfirmationBeep();
-      updateBeaconStatus(beacon.id, "dispatched", "APF Mountain Rescue Squad 1");
+      updateBeaconStatus(beacon.id, "dispatched", unitName || selectedUnit);
     },
-    [updateBeaconStatus]
+    [updateBeaconStatus, selectedUnit]
   );
 
   // Mark Rescued
@@ -85,187 +86,182 @@ export function RescuerDashboard({
   const pendingCount = distressBeacons.filter((b) => b.status === "pending").length;
 
   return (
-    <div className="w-full h-full flex flex-col min-h-0 bg-[#070D18] text-slate-100 overflow-hidden relative">
+    <div className="w-full h-full flex flex-col min-h-0 bg-[#080E19] text-[#F8FAFC] overflow-hidden relative">
       {/* 1. DESKTOP BENTO COMMAND CENTER (lg and above) */}
       <div className="hidden lg:flex flex-1 flex-row min-h-0 overflow-hidden">
-        {/* LEFT COLUMN: SAR Tactical Queue & Aviation Fleet Sidebar (~380px) */}
-        <aside className="w-[360px] xl:w-[410px] shrink-0 h-full flex flex-col bg-[#0A1224] border-r border-[#1E293B] overflow-hidden">
+        {/* LEFT COLUMN: SAR Tactical Queue, Aviation Fleet & Incident Detail Drawer (~380px) */}
+        <aside className="w-[360px] xl:w-[410px] shrink-0 h-full flex flex-col bg-[#101A2A] border-r border-[#27364B] overflow-hidden">
           {/* Tactical Header */}
-          <div className="p-3.5 border-b border-[#1E293B] bg-[#070D18]/80 backdrop-blur-sm flex items-center justify-between shrink-0">
+          <div className="p-3.5 border-b border-[#27364B] bg-[#080E19] flex items-center justify-between shrink-0">
             <div className="flex items-center gap-2.5">
               <div className="w-8 h-8 rounded-xl bg-amber-500/20 border border-amber-500/40 text-amber-400 flex items-center justify-center font-bold text-sm">
                 🚁
               </div>
               <div>
                 <div className="text-xs font-black text-amber-400 uppercase tracking-wide flex items-center gap-2">
-                  <span>SAR Operations Command</span>
+                  <span>SAR Tactical Command</span>
                   {pendingCount > 0 && (
                     <span className="w-2 h-2 rounded-full bg-rose-500 animate-ping inline-block" />
                   )}
                 </div>
-                <div className="text-[10px] text-[#64748B] font-mono">
-                  {userProfile.station || "Dhunche Forward Helipad Base"}
+                <div className="text-[10px] text-[#A7B4C8] font-mono">
+                  {userProfile.station || "Dhunche Forward Base"}
                 </div>
               </div>
             </div>
 
-            <div className="flex items-center gap-1 bg-[#111A2E] p-1 rounded-xl border border-[#1E293B] text-[11px]">
-              <button
-                onClick={() => setActiveTab("beacons")}
-                className={`px-2 py-0.5 rounded-lg font-bold transition-all cursor-pointer ${
-                  activeTab === "beacons" ? "bg-amber-600 text-white shadow" : "text-[#94A3B8] hover:text-white"
-                }`}
-              >
-                SOS ({distressBeacons.length})
-              </button>
+            <div className="flex items-center gap-1 bg-[#152238] p-1 rounded-lg border border-[#27364B] text-[11px]">
               <button
                 onClick={() => setActiveTab("aviation")}
-                className={`px-2 py-0.5 rounded-lg font-bold transition-all cursor-pointer ${
-                  activeTab === "aviation" ? "bg-amber-600 text-white shadow" : "text-[#94A3B8] hover:text-white"
+                className={`px-2.5 py-0.5 rounded-md font-bold transition-colors cursor-pointer ${
+                  activeTab === "aviation"
+                    ? "bg-[#101A2A] text-amber-400 border border-[#27364B] shadow-sm"
+                    : "text-[#A7B4C8] hover:text-[#F8FAFC]"
                 }`}
               >
                 Aviation
               </button>
               <button
                 onClick={() => setActiveTab("dispatches")}
-                className={`px-2 py-0.5 rounded-lg font-bold transition-all cursor-pointer ${
-                  activeTab === "dispatches" ? "bg-amber-600 text-white shadow" : "text-[#94A3B8] hover:text-white"
+                className={`px-2.5 py-0.5 rounded-md font-bold transition-colors cursor-pointer ${
+                  activeTab === "dispatches"
+                    ? "bg-[#101A2A] text-cyan-400 border border-[#27364B] shadow-sm"
+                    : "text-[#A7B4C8] hover:text-[#F8FAFC]"
                 }`}
               >
-                Notes ({fieldDispatches.length})
+                SITREPs ({fieldDispatches.length})
               </button>
             </div>
           </div>
 
           {/* Sub-Views */}
           <div className="flex-1 overflow-y-auto p-3.5 space-y-3 min-h-0 custom-scrollbar">
-            {/* View 1: Active SAR Incident Cards (Quick Inspection) */}
-            {activeTab === "beacons" && (
-              <div className="space-y-2.5">
-                <div className="flex items-center justify-between text-xs text-[#94A3B8] px-1">
-                  <span>Corridor: {corridor.name}</span>
-                  <span className="font-mono text-cyan-300">{pendingCount} Pending Rescue</span>
+            {/* INCIDENT DETAIL & DISPATCH DRAWER (Displays whenever an incident is selected) */}
+            {selectedBeacon ? (
+              <div className="p-3.5 rounded-xl bg-[#152238] border border-cyan-500/40 space-y-3">
+                <div className="flex items-start justify-between gap-2 border-b border-[#27364B] pb-2.5">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="px-2 py-0.5 rounded-md bg-[#080E19] border border-[#27364B] text-cyan-300 font-bold text-[10px] font-mono">
+                        #SOS-{String(selectedBeacon.id).slice(-4)}
+                      </span>
+                      <span
+                        className={`px-2 py-0.5 rounded-full text-[9px] font-mono font-bold uppercase ${
+                          selectedBeacon.priority >= 90
+                            ? "bg-rose-500/20 text-rose-300 border border-rose-500/40"
+                            : "bg-amber-500/20 text-amber-300 border border-amber-500/40"
+                        }`}
+                      >
+                        {selectedBeacon.priority}% Urgency
+                      </span>
+                    </div>
+                    <h4 className="font-bold text-sm text-[#F8FAFC] mt-1">{selectedBeacon.name}</h4>
+                  </div>
+                  <button
+                    onClick={() => setSelectedBeacon(null)}
+                    className="p-1 rounded-md text-[#A7B4C8] hover:text-[#F8FAFC] hover:bg-[#1E2D48] transition-colors cursor-pointer"
+                    title="Close detail panel"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
                 </div>
 
-                {distressBeacons.map((beacon) => {
-                  const isSelected = selectedBeacon?.id === beacon.id;
-                  const isPending = beacon.status === "pending";
+                <div className="space-y-1.5 text-xs text-[#A7B4C8]">
+                  <div className="flex items-center justify-between font-mono text-[11px]">
+                    <span className="flex items-center gap-1 text-[#F8FAFC]">
+                      <MapPin className="w-3.5 h-3.5 text-cyan-400" />
+                      <span>{selectedBeacon.lat.toFixed(4)}°N, {selectedBeacon.lng.toFixed(4)}°E</span>
+                    </span>
+                    <span className="text-amber-400 font-bold">
+                      {selectedBeacon.altitude ? `${selectedBeacon.altitude}m ASL` : "2,780m"}
+                    </span>
+                  </div>
+                  <p className="p-2.5 rounded-lg bg-[#080E19] border border-[#27364B] text-[#F8FAFC] leading-relaxed text-[11px]">
+                    {selectedBeacon.detail}
+                  </p>
+                </div>
 
-                  return (
-                    <div
-                      key={beacon.id}
-                      onClick={() => handleSelectVictim(beacon)}
-                      className={`p-3.5 rounded-2xl border transition-all cursor-pointer relative overflow-hidden ${
-                        isSelected
-                          ? "bg-[#16294A] border-cyan-400 shadow-xl"
-                          : "bg-[#0F1B33]/90 border-[#1E293B] hover:border-[#2A3B5E]"
-                      }`}
+                {/* Team Assignment & Action Bar */}
+                <div className="space-y-2 pt-1 border-t border-[#27364B]">
+                  <label className="text-[10px] font-bold text-[#A7B4C8] uppercase tracking-wider block font-mono">
+                    Assign Response Unit
+                  </label>
+                  <select
+                    value={selectedUnit}
+                    onChange={(e) => setSelectedUnit(e.target.value)}
+                    className="w-full bg-[#080E19] border border-[#27364B] rounded-lg p-2 text-xs text-[#F8FAFC] focus:outline-none focus:border-cyan-500"
+                  >
+                    <option value="APF Mountain Rescue Squad 1">APF Mountain Rescue Squad 1 (Ground)</option>
+                    <option value="Simrik Air AS350 B3e Winch Squad">Simrik Air AS350 B3e (Air Evac)</option>
+                    <option value="Nepal Red Cross Mountain Triage Unit">Red Cross Mountain Triage</option>
+                  </select>
+
+                  <div className="flex items-center gap-2 pt-1">
+                    {selectedBeacon.status === "pending" && (
+                      <button
+                        onClick={() => handleDispatch(selectedBeacon, selectedUnit)}
+                        className="flex-1 py-2 px-3 rounded-lg bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs flex items-center justify-center gap-1.5 cursor-pointer transition-colors shadow-md"
+                      >
+                        <Plane className="w-3.5 h-3.5" />
+                        <span>Dispatch Squad</span>
+                      </button>
+                    )}
+
+                    {selectedBeacon.status === "dispatched" && (
+                      <button
+                        onClick={() => handleMarkRescued(selectedBeacon)}
+                        className="flex-1 py-2 px-3 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center justify-center gap-1.5 cursor-pointer transition-colors shadow-md"
+                      >
+                        <CheckCircle2 className="w-3.5 h-3.5" />
+                        <span>Confirm Extracted</span>
+                      </button>
+                    )}
+
+                    <button
+                      onClick={() => handleSelectVictim(selectedBeacon)}
+                      className="py-2 px-3 rounded-lg bg-[#080E19] hover:bg-[#152238] text-cyan-300 border border-[#27364B] text-xs font-bold flex items-center gap-1 cursor-pointer transition-colors"
+                      title="Re-center map"
                     >
-                      <div className="flex items-start justify-between gap-2 mb-1.5">
-                        <div className="flex items-center gap-1.5">
-                          <span
-                            className={`w-2 h-2 rounded-full ${
-                              isPending ? "bg-rose-500 animate-ping" : "bg-emerald-400"
-                            }`}
-                          />
-                          <span className="font-bold text-white text-xs">{beacon.name}</span>
-                        </div>
-                        <span
-                          className={`px-2 py-0.5 rounded-full text-[9px] font-mono font-bold uppercase border ${
-                            beacon.priority >= 90
-                              ? "bg-rose-500/20 text-rose-300 border-rose-500/50"
-                              : "bg-amber-500/20 text-amber-300 border-amber-500/50"
-                          }`}
-                        >
-                          {beacon.priority}% SOS
-                        </span>
-                      </div>
-
-                      <p className="text-xs text-[#94A3B8] line-clamp-2 leading-relaxed mb-2.5">
-                        {beacon.detail}
-                      </p>
-
-                      <div className="flex items-center justify-between text-[10px] font-mono text-slate-400 pt-2 border-t border-[#1E293B]/70">
-                        <span className="text-cyan-300">
-                          {beacon.lat.toFixed(4)}°N, {beacon.lng.toFixed(4)}°E
-                        </span>
-                        <span className="text-amber-400">
-                          {beacon.altitude ? `${beacon.altitude}m ASL` : "2,780m"}
-                        </span>
-                      </div>
-
-                      <div className="mt-2.5 flex items-center justify-end gap-1.5">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleSelectVictim(beacon);
-                          }}
-                          className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[#16233F] hover:bg-cyan-600 hover:text-white text-cyan-300 text-[10px] font-bold border border-[#2A3B5E] transition-all cursor-pointer"
-                        >
-                          <Crosshair className="w-3 h-3" />
-                          <span>Focus Map</span>
-                        </button>
-                        {isPending && (
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleDispatch(beacon);
-                            }}
-                            className="px-2.5 py-1 rounded-lg bg-amber-600 hover:bg-amber-500 text-white text-[10px] font-bold transition-all cursor-pointer"
-                          >
-                            Dispatch Team
-                          </button>
-                        )}
-                        {beacon.status === "dispatched" && (
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleMarkRescued(beacon);
-                            }}
-                            className="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] font-bold transition-all cursor-pointer"
-                          >
-                            Mark Extracted
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
+                      <Crosshair className="w-3.5 h-3.5" />
+                      <span>Re-center</span>
+                    </button>
+                  </div>
+                </div>
               </div>
-            )}
+            ) : null}
 
-            {/* View 2: Aviation Helipads & Fleet Readiness */}
+            {/* View 1: Aviation Helipads & Fleet Readiness */}
             {activeTab === "aviation" && (
               <div className="space-y-3">
-                <div className="p-3.5 rounded-2xl bg-[#0F1B33]/90 border border-[#1E293B] space-y-2">
+                <div className="p-3.5 rounded-xl bg-[#152238] border border-[#27364B] space-y-2">
                   <div className="flex items-center justify-between text-xs">
-                    <span className="font-bold text-white flex items-center gap-1.5">
+                    <span className="font-bold text-[#F8FAFC] flex items-center gap-1.5">
                       <Plane className="w-4 h-4 text-amber-400" />
                       <span>Air Evac Squadron Readiness</span>
                     </span>
-                    <span className="px-1.5 py-0.5 rounded text-[9px] font-black uppercase bg-emerald-500/20 text-emerald-400 border border-emerald-500/40">
+                    <span className="px-2 py-0.5 rounded text-[9px] font-black uppercase bg-emerald-500/20 text-emerald-400 border border-emerald-500/40">
                       Standby 100%
                     </span>
                   </div>
-                  <div className="text-[11px] text-[#94A3B8] leading-tight">
-                    Simrik Air AS350 B3e stationed at Dhunche Forward Helipad. Ready for high-altitude winch extraction up to 7,000m.
+                  <div className="text-[11px] text-[#A7B4C8] leading-tight">
+                    Simrik Air AS350 B3e stationed at Dhunche Forward Base. Ready for winch extraction up to 7,000m ASL.
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <div className="text-[10px] font-bold text-[#64748B] uppercase tracking-wider px-1">
-                    Designated Mountain Helipads
+                  <div className="text-[10px] font-bold text-[#A7B4C8] uppercase tracking-wider px-1 font-mono">
+                    Designated Mountain Helipads ({corridor.name})
                   </div>
                   {forwardBases.map((base, idx) => (
                     <div
                       key={idx}
-                      className="p-3 rounded-2xl bg-[#0F1B33]/90 border border-[#1E293B] flex items-center justify-between text-xs"
+                      className="p-3 rounded-xl bg-[#152238] border border-[#27364B] flex items-center justify-between text-xs"
                     >
                       <div className="flex items-center gap-2">
                         <span className="text-base">🚁</span>
                         <div>
-                          <div className="font-bold text-white">{base.name}</div>
-                          <div className="text-[10px] text-[#64748B]">Capacity: 2 Helicopters</div>
+                          <div className="font-bold text-[#F8FAFC]">{base.name}</div>
+                          <div className="text-[10px] text-[#A7B4C8]">Capacity: 2 Aircraft</div>
                         </div>
                       </div>
                       <div className="text-right font-mono">
@@ -278,25 +274,25 @@ export function RescuerDashboard({
               </div>
             )}
 
-            {/* View 3: Ground Observations & Voice Transcripts */}
+            {/* View 2: Ground Observations & Voice Transcripts */}
             {activeTab === "dispatches" && (
               <div className="space-y-2">
-                <div className="text-[10px] font-bold text-[#64748B] uppercase tracking-wider px-1">
+                <div className="text-[10px] font-bold text-[#A7B4C8] uppercase tracking-wider px-1 font-mono">
                   Field Observer SITREPs
                 </div>
                 {fieldDispatches.map((d) => (
                   <div
                     key={d.id}
-                    className="p-3 rounded-2xl bg-[#0F1B33]/90 border border-[#1E293B] space-y-1.5 text-xs"
+                    className="p-3 rounded-xl bg-[#152238] border border-[#27364B] space-y-1.5 text-xs"
                   >
                     <div className="flex items-center justify-between">
-                      <span className="font-bold text-white flex items-center gap-1.5">
+                      <span className="font-bold text-[#F8FAFC] flex items-center gap-1.5">
                         <Mic className="w-3.5 h-3.5 text-cyan-400" />
                         <span>{d.senderName}</span>
                       </span>
-                      <span className="text-[10px] text-[#64748B] font-mono">{d.time}</span>
+                      <span className="text-[10px] text-[#A7B4C8] font-mono">{d.time}</span>
                     </div>
-                    <p className="text-slate-300 leading-relaxed text-[11px]">"{d.note}"</p>
+                    <p className="text-slate-200 leading-relaxed text-[11px]">"{d.note}"</p>
                     {d.aiClassification && (
                       <div className="text-[9px] font-mono text-cyan-300 bg-cyan-950/60 px-2 py-0.5 rounded border border-cyan-800">
                         {d.aiClassification}
@@ -309,27 +305,27 @@ export function RescuerDashboard({
           </div>
         </aside>
 
-        {/* RIGHT COLUMN: Upper Framed Map + Lower High-Density Incident Table */}
-        <div className="flex-1 flex flex-col min-w-0 min-h-0 bg-[#070D18]">
+        {/* RIGHT COLUMN: Upper Framed GIS Map + Lower Structured High-Density Table */}
+        <div className="flex-1 flex flex-col min-w-0 min-h-0 bg-[#080E19]">
           {/* UPPER PANE: Framed High-Performance GIS Map */}
           <div className="flex-1 min-h-[360px] p-2.5 sm:p-3 pb-1.5 flex flex-col">
-            <div className="w-full h-full rounded-2xl overflow-hidden border border-[#1E293B] shadow-2xl relative bg-[#0A1224] flex flex-col">
-              {/* Sleek Command Frame Bar */}
-              <div className="px-3 py-1.5 bg-[#090F1D]/90 border-b border-[#1E293B] flex items-center justify-between gap-2 shrink-0 z-10 backdrop-blur-sm">
+            <div className="w-full h-full rounded-2xl overflow-hidden border border-[#27364B] shadow-2xl relative bg-[#101A2A] flex flex-col">
+              {/* Frame Bar */}
+              <div className="px-3 py-1.5 bg-[#080E19] border-b border-[#27364B] flex items-center justify-between gap-2 shrink-0 z-10">
                 <div className="flex items-center gap-2">
                   <span className="text-[11px] font-black uppercase text-amber-400 tracking-wider flex items-center gap-1.5">
                     <span className="w-2 h-2 rounded-full bg-amber-400 inline-block" />
                     <span>SAR Mountain Operations Grid</span>
                   </span>
-                  <span className="text-[10px] text-[#64748B] font-mono hidden sm:inline">
+                  <span className="text-[10px] text-[#A7B4C8] font-mono hidden sm:inline">
                     • Live GPS Coordinates
                   </span>
                 </div>
 
-                <div className="flex items-center gap-1 text-[11px] text-[#94A3B8]">
+                <div className="flex items-center gap-1.5 text-[11px] text-[#A7B4C8]">
                   <span className="text-amber-400 font-mono font-bold">{corridor.name}</span>
                   {selectedBeacon && (
-                    <span className="text-[10px] bg-rose-500/20 text-rose-300 px-1.5 py-0.2 rounded border border-rose-500/40 font-mono animate-pulse">
+                    <span className="text-[10px] bg-rose-500/20 text-rose-300 px-2 py-0.5 rounded border border-rose-500/40 font-mono animate-pulse">
                       Focus: {selectedBeacon.name}
                     </span>
                   )}
@@ -346,8 +342,8 @@ export function RescuerDashboard({
                   distressBeacons={distressBeacons}
                   selectedBeacon={selectedBeacon}
                   onSelectBeacon={handleSelectVictim}
-                  onDispatchBeacon={handleDispatch}
-                  onResolveBeacon={handleMarkRescued}
+                  onDispatchBeacon={(beacon) => handleDispatch(beacon)}
+                  onResolveBeacon={(beacon) => handleMarkRescued(beacon)}
                   simulatedWaterRise={waterSurge}
                   className="w-full h-full"
                 />
@@ -355,15 +351,15 @@ export function RescuerDashboard({
             </div>
           </div>
 
-          {/* LOWER PANE: Structured High-Density Incidents Table */}
+          {/* LOWER PANE: Structured High-Density Incident Table */}
           <div className="h-[270px] xl:h-[310px] shrink-0 p-2.5 sm:p-3 pt-1.5 flex flex-col">
-            <div className="w-full h-full rounded-2xl overflow-hidden border border-[#1E293B] shadow-2xl bg-[#0A1224] flex flex-col">
+            <div className="w-full h-full rounded-2xl overflow-hidden border border-[#27364B] shadow-2xl bg-[#101A2A] flex flex-col">
               <IncidentQueueTable
                 beacons={distressBeacons}
                 selectedBeacon={selectedBeacon}
                 onSelectBeacon={handleSelectVictim}
-                onDispatchBeacon={handleDispatch}
-                onResolveBeacon={handleMarkRescued}
+                onDispatchBeacon={(beacon) => handleDispatch(beacon)}
+                onResolveBeacon={(beacon) => handleMarkRescued(beacon)}
                 corridorName={corridor.name}
                 className="w-full h-full"
               />
@@ -414,60 +410,31 @@ export function RescuerDashboard({
                   <span className="w-2 h-2 rounded-full bg-rose-500 animate-ping inline-block shrink-0" />
                   <span className="truncate">Focused: {selectedBeacon.name}</span>
                 </div>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setSheetPosition("half");
-                  }}
-                  className="text-[11px] text-cyan-400 underline font-semibold shrink-0 cursor-pointer pl-2"
-                >
-                  Expand
-                </button>
+                <span className="text-amber-400 font-mono font-bold text-[10px]">
+                  {selectedBeacon.priority}% SOS
+                </span>
               </div>
             ) : (
-              <div className="flex items-center justify-between text-xs text-slate-300 pt-1">
-                <span className="font-mono text-cyan-300">{corridor.name}</span>
-                <span className="text-amber-400 font-bold">{distressBeacons.length} Incidents</span>
+              <div className="flex items-center justify-between text-xs text-[#A7B4C8] pt-1">
+                <span>Total Distress Queue:</span>
+                <span className="font-mono text-cyan-300 font-bold">{distressBeacons.length} Active Beacons</span>
               </div>
             )
           }
         >
-          <div className="p-3 space-y-2 bg-[#0F1B33] min-h-0">
-            {distressBeacons.map((b) => (
-              <div
-                key={b.id}
-                onClick={() => handleSelectVictim(b)}
-                className="p-3 rounded-xl bg-[#16233F] border border-[#2A3B5E] text-xs space-y-1 cursor-pointer"
-              >
-                <div className="flex justify-between font-bold text-white">
-                  <span>{b.name}</span>
-                  <span className="text-rose-400 font-mono">{b.priority}% SOS</span>
-                </div>
-                <p className="text-[#94A3B8] text-[11px] line-clamp-2">{b.detail}</p>
-                <div className="flex justify-end pt-1 gap-2">
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleSelectVictim(b);
-                    }}
-                    className="px-2 py-0.5 rounded bg-cyan-600 text-white font-bold text-[10px]"
-                  >
-                    Focus Map
-                  </button>
-                  {b.status === "pending" && (
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDispatch(b);
-                      }}
-                      className="px-2 py-0.5 rounded bg-amber-600 text-white font-bold text-[10px]"
-                    >
-                      Dispatch
-                    </button>
-                  )}
-                </div>
-              </div>
-            ))}
+          <div className="flex-1 flex flex-col min-h-0 bg-[#101A2A] overflow-hidden">
+            <IncidentQueueTable
+              beacons={distressBeacons}
+              selectedBeacon={selectedBeacon}
+              onSelectBeacon={(beacon) => {
+                setSelectedBeacon(beacon);
+                setSheetPosition("peek");
+              }}
+              onDispatchBeacon={(beacon) => handleDispatch(beacon)}
+              onResolveBeacon={(beacon) => handleMarkRescued(beacon)}
+              corridorName={corridor.name}
+              className="w-full h-full"
+            />
           </div>
         </MobileBottomSheet>
       </div>
