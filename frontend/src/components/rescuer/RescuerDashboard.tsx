@@ -1,14 +1,12 @@
 import React, { useState, useMemo, useCallback } from "react";
 import { FullScreenHazardMap } from "../map/FullScreenHazardMap";
+import { MobileBottomSheet } from "../mobile/MobileBottomSheet";
 import { MapAsset, CORRIDOR_RESCUE_BASES } from "../../data/hazardMapData";
 import { Language } from "../../data/localization";
 import { useUserRole, DistressBeacon } from "../../context/UserRoleContext";
 import { playConfirmationBeep, playEmergencyChime } from "../../utils/audioAlert";
 import {
   Radio,
-  Crosshair,
-  ShieldAlert,
-  Send,
   CheckCircle2,
   Clock,
   Compass,
@@ -16,7 +14,6 @@ import {
   Plane,
   Users,
   MapPin,
-  ChevronRight,
   Filter,
   Mic,
   Maximize2,
@@ -47,6 +44,7 @@ export function RescuerDashboard({
   const [selectedBeacon, setSelectedBeacon] = useState<DistressBeacon | null>(null);
   const [filterStatus, setFilterStatus] = useState<"all" | "active" | "rescued">("active");
   const [activeTab, setActiveTab] = useState<"beacons" | "dispatches" | "aviation">("beacons");
+  const [sheetPosition, setSheetPosition] = useState<"peek" | "half" | "full">("half");
 
   // Filter beacons
   const filteredBeacons = useMemo(() => {
@@ -80,226 +78,249 @@ export function RescuerDashboard({
     [updateBeaconStatus]
   );
 
+  const pendingCount = distressBeacons.filter((b) => b.status === "pending").length;
+
   return (
-    <div className="w-full flex-1 flex flex-col min-h-0 bg-[#0A1224] text-slate-100 overflow-hidden relative">
-      {/* 1. TACTICAL SAR HEADER BANNER */}
-      <div className="p-3 bg-[#0F1B33]/95 border-b border-[#2A3B5E] backdrop-blur-md z-10 flex flex-wrap items-center justify-between gap-3 shadow-xl">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-500/50 text-amber-400 flex items-center justify-center font-black">
-            🚁
+    <div className="w-full h-full flex flex-col lg:flex-row min-h-0 bg-[#0A1224] text-slate-100 overflow-hidden relative">
+      {/* 1. INTERACTIVE DRAGGABLE BOTTOM SHEET (Mobile) / SIDEBAR (Desktop) */}
+      <MobileBottomSheet
+        position={sheetPosition}
+        onChangePosition={setSheetPosition}
+        title="SAR Incident Command"
+        badge={
+          <span
+            className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase ${
+              pendingCount > 0
+                ? "bg-rose-500/20 text-rose-300 border border-rose-500/40 animate-pulse"
+                : "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40"
+            }`}
+          >
+            {pendingCount > 0 ? `${pendingCount} Urgent SOS` : "All Clear"}
+          </span>
+        }
+        peekContent={
+          <div className="flex items-center justify-between text-xs text-slate-300 pt-1">
+            <span className="font-mono text-cyan-300">{corridor.name}</span>
+            <span className="text-amber-400 font-bold">{distressBeacons.length} Active Incidents</span>
           </div>
-          <div>
+        }
+      >
+        <div className="flex-1 flex flex-col min-h-0 bg-[#111A2E]">
+          {/* Tactical SAR Header Bar */}
+          <div className="p-3 bg-[#0F1B33] border-b border-white/10 flex items-center justify-between gap-2 shrink-0">
             <div className="flex items-center gap-2">
-              <span className="text-xs font-black uppercase tracking-wider text-amber-400 bg-amber-950 px-2 py-0.5 rounded-full border border-amber-700/60">
-                SAR TACTICAL COMMAND
-              </span>
-              <span className="text-xs text-[#94A3B8] font-mono">
-                Call Sign: <strong className="text-white">{userProfile.callSign || "EAGLE-SAR-3"}</strong>
-              </span>
+              <div className="w-8 h-8 rounded-xl bg-amber-500/20 border border-amber-500/40 text-amber-400 flex items-center justify-center font-bold text-sm">
+                🚁
+              </div>
+              <div className="leading-tight">
+                <div className="text-xs font-black text-amber-400 uppercase tracking-wide">
+                  SAR TACTICAL QUEUE
+                </div>
+                <div className="text-[10px] text-slate-400">
+                  {userProfile.station || "Dhunche Helipad Command"}
+                </div>
+              </div>
             </div>
-            <p className="text-xs text-[#94A3B8] mt-0.5">
-              Station: <strong className="text-white">{userProfile.station || "Dhunche Helipad Post"}</strong> &bull; Corridor: <strong className="text-cyan-400">{corridor.name}</strong>
-            </p>
-          </div>
-        </div>
 
-        {/* Quick Triage Statistics Pills */}
-        <div className="flex items-center gap-2 flex-wrap text-xs">
-          <div className="px-3 py-1 rounded-xl bg-rose-950/80 border border-rose-500/50 text-rose-300 font-bold flex items-center gap-1.5">
-            <Radio className="w-3.5 h-3.5 text-rose-400 animate-pulse" />
-            <span>{distressBeacons.filter((b) => b.status === "pending").length} Pending SOS</span>
-          </div>
-          <div className="px-3 py-1 rounded-xl bg-cyan-950/80 border border-cyan-500/50 text-cyan-300 font-bold flex items-center gap-1.5">
-            <Users className="w-3.5 h-3.5 text-cyan-400" />
-            <span>{distressBeacons.filter((b) => b.status === "dispatched").length} Teams Dispatched</span>
-          </div>
-          <div className="px-3 py-1 rounded-xl bg-emerald-950/80 border border-emerald-500/50 text-emerald-300 font-bold flex items-center gap-1.5">
-            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-            <span>{distressBeacons.filter((b) => b.status === "rescued").length} Extracted</span>
-          </div>
-        </div>
-      </div>
-
-      {/* 2. MAIN SPLIT TACTICAL STAGE */}
-      <div className="flex-1 flex flex-col lg:flex-row min-h-0 overflow-hidden">
-        {/* LEFT COLUMN: Triage Incident Queue & Ground Feeds (42% width) */}
-        <div className="w-full lg:w-[460px] xl:w-[500px] flex flex-col bg-[#111A2E] border-r border-[#2A3B5E] overflow-hidden shrink-0">
-          {/* Sub-Tabs: Beacons | Ground Dispatches | Aviation Clearance */}
-          <div className="p-2 bg-[#0F1B33] border-b border-[#2A3B5E] flex items-center justify-between gap-1 text-xs">
-            <button
-              onClick={() => setActiveTab("beacons")}
-              className={`flex-1 py-1.5 px-2 rounded-lg font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
-                activeTab === "beacons" ? "bg-amber-600 text-white shadow" : "text-[#94A3B8] hover:text-white"
-              }`}
-            >
-              <Radio className="w-3.5 h-3.5" />
-              <span>Distress Beacons ({distressBeacons.length})</span>
-            </button>
-            <button
-              onClick={() => setActiveTab("dispatches")}
-              className={`flex-1 py-1.5 px-2 rounded-lg font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
-                activeTab === "dispatches" ? "bg-amber-600 text-white shadow" : "text-[#94A3B8] hover:text-white"
-              }`}
-            >
-              <Mic className="w-3.5 h-3.5" />
-              <span>Voice Notes ({fieldDispatches.length})</span>
-            </button>
-            <button
-              onClick={() => setActiveTab("aviation")}
-              className={`flex-1 py-1.5 px-2 rounded-lg font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
-                activeTab === "aviation" ? "bg-amber-600 text-white shadow" : "text-[#94A3B8] hover:text-white"
-              }`}
-            >
-              <Plane className="w-3.5 h-3.5" />
-              <span>Heli Window</span>
-            </button>
+            {/* Sub-Tabs: Beacons | Ground Notes | Aviation */}
+            <div className="flex items-center bg-[#090F1D] p-1 rounded-xl border border-white/10 text-[11px]">
+              <button
+                onClick={() => setActiveTab("beacons")}
+                className={`px-2.5 py-1 rounded-lg font-bold transition-all cursor-pointer ${
+                  activeTab === "beacons" ? "bg-amber-600 text-white shadow" : "text-slate-400 hover:text-white"
+                }`}
+              >
+                SOS ({distressBeacons.length})
+              </button>
+              <button
+                onClick={() => setActiveTab("aviation")}
+                className={`px-2.5 py-1 rounded-lg font-bold transition-all cursor-pointer ${
+                  activeTab === "aviation" ? "bg-amber-600 text-white shadow" : "text-slate-400 hover:text-white"
+                }`}
+              >
+                Air Evac
+              </button>
+              <button
+                onClick={() => setActiveTab("dispatches")}
+                className={`px-2.5 py-1 rounded-lg font-bold transition-all cursor-pointer ${
+                  activeTab === "dispatches" ? "bg-amber-600 text-white shadow" : "text-slate-400 hover:text-white"
+                }`}
+              >
+                Notes
+              </button>
+            </div>
           </div>
 
-          {/* TAB 1: Distress Beacons Triage Queue */}
+          {/* TAB 1: Distress Beacons Queue */}
           {activeTab === "beacons" && (
-            <div className="flex-1 flex flex-col min-h-0">
-              {/* Filter Sub-bar */}
-              <div className="px-3 py-2 bg-[#16233F]/70 border-b border-[#2A3B5E] flex items-center justify-between text-xs text-[#94A3B8]">
-                <span>Triage Priority Queue</span>
+            <div className="flex-1 overflow-y-auto p-3 space-y-2.5 min-h-0">
+              {/* Filter Pills */}
+              <div className="flex items-center justify-between gap-2 pb-1 text-xs">
                 <div className="flex items-center gap-1">
-                  <button
-                    onClick={() => setFilterStatus("active")}
-                    className={`px-2 py-0.5 rounded text-[11px] font-semibold cursor-pointer ${
-                      filterStatus === "active" ? "bg-rose-600 text-white" : "hover:text-white"
+                  {(["active", "all", "rescued"] as const).map((st) => (
+                    <button
+                      key={st}
+                      onClick={() => setFilterStatus(st)}
+                      className={`px-2.5 py-1 rounded-lg text-[11px] font-bold capitalize transition-all cursor-pointer ${
+                        filterStatus === st
+                          ? "bg-[#1C2C4C] text-cyan-300 border border-cyan-500/40"
+                          : "text-slate-400 hover:text-white hover:bg-white/5"
+                      }`}
+                    >
+                      {st}
+                    </button>
+                  ))}
+                </div>
+                <span className="text-[10px] text-slate-500 font-mono">
+                  {filteredBeacons.length} Incident{filteredBeacons.length === 1 ? "" : "s"}
+                </span>
+              </div>
+
+              {/* Beacon Cards */}
+              {filteredBeacons.map((b) => {
+                const isCritical = b.priority >= 90;
+                const isPending = b.status === "pending";
+                const isSelected = selectedBeacon?.id === b.id;
+
+                return (
+                  <div
+                    key={b.id}
+                    onClick={() => setSelectedBeacon(b)}
+                    className={`p-3.5 rounded-2xl border transition-all cursor-pointer space-y-2 ${
+                      isSelected
+                        ? "bg-[#16233F] border-amber-500 shadow-xl"
+                        : "bg-[#0F1B33]/80 border-white/10 hover:border-white/25"
                     }`}
                   >
-                    Active
-                  </button>
-                  <button
-                    onClick={() => setFilterStatus("all")}
-                    className={`px-2 py-0.5 rounded text-[11px] font-semibold cursor-pointer ${
-                      filterStatus === "all" ? "bg-cyan-600 text-white" : "hover:text-white"
-                    }`}
-                  >
-                    All
-                  </button>
-                  <button
-                    onClick={() => setFilterStatus("rescued")}
-                    className={`px-2 py-0.5 rounded text-[11px] font-semibold cursor-pointer ${
-                      filterStatus === "rescued" ? "bg-emerald-600 text-white" : "hover:text-white"
-                    }`}
-                  >
-                    Rescued
-                  </button>
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex items-center gap-2">
+                        <span
+                          className={`w-2 h-2 rounded-full ${
+                            b.status === "rescued"
+                              ? "bg-emerald-400"
+                              : isCritical
+                              ? "bg-rose-500 animate-ping"
+                              : "bg-amber-400"
+                          }`}
+                        />
+                        <span className="font-black text-xs text-white">{b.name}</span>
+                      </div>
+                      <span
+                        className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-full border ${
+                          b.status === "rescued"
+                            ? "bg-emerald-950 text-emerald-300 border-emerald-500/40"
+                            : isCritical
+                            ? "bg-rose-950 text-rose-300 border-rose-500/40"
+                            : "bg-amber-950 text-amber-300 border-amber-500/40"
+                        }`}
+                      >
+                        {b.priority}% Urgency
+                      </span>
+                    </div>
+
+                    <p className="text-xs text-slate-300 leading-snug">{b.detail}</p>
+
+                    <div className="flex items-center justify-between text-[10px] text-slate-400 pt-1 border-t border-white/5 font-mono">
+                      <span>
+                        GPS: {b.lat.toFixed(4)}°, {b.lng.toFixed(4)}°
+                      </span>
+                      <span>Elev: ~{b.altitude || 2780}m</span>
+                      <span>{b.time}</span>
+                    </div>
+
+                    {/* Action Buttons: 44px touch targets */}
+                    {b.status !== "rescued" && (
+                      <div className="flex items-center gap-2 pt-1">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDispatch(b.id, "APF Mountain Rescue Squad 1");
+                          }}
+                          className="flex-1 py-2 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-xs cursor-pointer shadow transition-all active:scale-95"
+                        >
+                          Dispatch Team
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleMarkRescued(b.id);
+                          }}
+                          className="flex-1 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white font-bold text-xs cursor-pointer shadow transition-all active:scale-95"
+                        >
+                          Mark Extracted
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+
+              {filteredBeacons.length === 0 && (
+                <div className="text-center py-12 text-xs text-slate-500">
+                  No distress incidents matching filter.
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* TAB 2: Aviation Weather Clearance */}
+          {activeTab === "aviation" && (
+            <div className="flex-1 overflow-y-auto p-3 space-y-3 min-h-0 text-xs">
+              <div className="p-4 rounded-2xl bg-gradient-to-br from-emerald-950/50 to-[#0F1B33] border border-emerald-500/40 space-y-2.5 shadow-lg">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-black uppercase text-emerald-400 flex items-center gap-1.5">
+                    <Plane className="w-4 h-4 text-emerald-400" />
+                    <span>AS350 B3e Helie-Ceiling</span>
+                  </span>
+                  <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-mono text-[10px] font-bold border border-emerald-500/40">
+                    VFR OPEN
+                  </span>
+                </div>
+                <p className="text-xs text-slate-300 leading-relaxed">
+                  Valley density altitude permits mountain hover out-of-ground-effect up to 6,800m ASL. Wind speed in canyon mouth: 14 kts.
+                </p>
+                <div className="grid grid-cols-2 gap-2 pt-2 border-t border-emerald-500/20 text-[11px] font-mono">
+                  <div>Cloud Base: <strong>4,200m ASL</strong></div>
+                  <div>Visibility: <strong>&gt;8 km</strong></div>
+                  <div>Turbulence: <strong>Light Ridge Wave</strong></div>
+                  <div>Helipad: <strong>Dhunche Clear</strong></div>
                 </div>
               </div>
 
-              {/* Beacon Cards List */}
-              <div className="flex-1 overflow-y-auto p-3 space-y-2.5">
-                {filteredBeacons.map((b) => {
-                  const isSelected = selectedBeacon?.id === b.id;
-                  const isCrit = b.priority >= 90;
-
-                  return (
-                    <div
-                      key={b.id}
-                      onClick={() => setSelectedBeacon(b)}
-                      className={`p-3 rounded-2xl border transition-all cursor-pointer ${
-                        isSelected
-                          ? "bg-[#1C2C4C] border-cyan-400 shadow-xl"
-                          : "bg-[#0F1B33] border-[#2A3B5E] hover:border-slate-500"
-                      }`}
-                    >
-                      <div className="flex items-center justify-between">
-                        <span
-                          className={`text-[10px] px-2 py-0.5 rounded-full font-extrabold uppercase tracking-wider ${
-                            b.status === "rescued"
-                              ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40"
-                              : isCrit
-                              ? "bg-rose-500/20 text-rose-300 border border-rose-500/40 animate-pulse"
-                              : "bg-amber-500/20 text-amber-300 border border-amber-500/40"
-                          }`}
-                        >
-                          P{isCrit ? "0 CRITICAL" : "1 URGENT"} &bull; {b.priority}% Triage
-                        </span>
-                        <span className="text-[10px] text-[#64748B] font-mono flex items-center gap-1">
-                          <Clock className="w-3 h-3" />
-                          <span>{b.time}</span>
-                        </span>
-                      </div>
-
-                      <div className="mt-2 text-sm font-bold text-white flex items-center justify-between">
-                        <span>{b.name}</span>
-                        <span
-                          className={`text-[10px] uppercase font-bold px-1.5 py-0.5 rounded ${
-                            b.status === "rescued"
-                              ? "text-emerald-400"
-                              : b.status === "dispatched"
-                              ? "text-cyan-400"
-                              : "text-amber-400"
-                          }`}
-                        >
-                          {b.status}
-                        </span>
-                      </div>
-
-                      <p className="mt-1 text-xs text-[#94A3B8] leading-relaxed line-clamp-2">{b.detail}</p>
-
-                      <div className="mt-2.5 pt-2 border-t border-[#2A3B5E] flex items-center justify-between text-xs">
-                        <span className="text-[11px] font-mono text-[#64748B]">
-                          GPS: {b.lat.toFixed(4)}°N, {b.lng.toFixed(4)}°E
-                        </span>
-
-                        {/* Quick Action Buttons */}
-                        <div className="flex items-center gap-1.5">
-                          {b.status !== "rescued" && (
-                            <>
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleDispatch(b.id, "APF High-Altitude Squad 1");
-                                }}
-                                className="px-2.5 py-1 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-[11px] cursor-pointer"
-                              >
-                                Dispatch
-                              </button>
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleMarkRescued(b.id);
-                                }}
-                                className="px-2.5 py-1 rounded-lg bg-emerald-700 hover:bg-emerald-600 text-white font-bold text-[11px] cursor-pointer"
-                              >
-                                Rescued
-                              </button>
-                            </>
-                          )}
-                        </div>
-                      </div>
+              {/* Forward Helipads */}
+              <div className="space-y-2">
+                <div className="text-[10px] font-black uppercase tracking-wider text-slate-400 px-1">
+                  Staging Helipads:
+                </div>
+                {forwardBases.map((base, idx) => (
+                  <div key={idx} className="p-3 rounded-xl bg-[#0F1B33] border border-white/10 flex items-center justify-between">
+                    <div>
+                      <div className="font-bold text-white text-xs">{base.name}</div>
+                      <div className="text-[10px] text-slate-400">{base.agency} &bull; {base.elevation}m</div>
                     </div>
-                  );
-                })}
-
-                {filteredBeacons.length === 0 && (
-                  <div className="text-center py-10 text-xs text-[#64748B]">
-                    No distress beacons matching current filter.
+                    <div className="text-right">
+                      <div className="font-bold text-cyan-300 text-xs">~{base.heliFlightMin} min</div>
+                      <div className="text-[10px] text-slate-400 font-mono">{base.contact}</div>
+                    </div>
                   </div>
-                )}
+                ))}
               </div>
             </div>
           )}
 
-          {/* TAB 2: Field Voice Notes Stream */}
+          {/* TAB 3: Ground Observations */}
           {activeTab === "dispatches" && (
-            <div className="flex-1 overflow-y-auto p-3 space-y-2.5">
-              <div className="text-xs font-bold uppercase tracking-wider text-[#94A3B8] pb-1 border-b border-[#2A3B5E]">
-                Crowd & Guide Voice Observations
-              </div>
+            <div className="flex-1 overflow-y-auto p-3 space-y-2 min-h-0 text-xs">
               {fieldDispatches.map((d) => (
-                <div key={d.id} className="p-3 rounded-2xl bg-[#0F1B33] border border-[#2A3B5E] space-y-1.5">
+                <div key={d.id} className="p-3 rounded-2xl bg-[#0F1B33] border border-white/10 space-y-1">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-white flex items-center gap-1.5">
+                    <span className="font-bold text-white flex items-center gap-1.5 text-xs">
                       <Mic className="w-3.5 h-3.5 text-cyan-400" />
                       <span>{d.senderName}</span>
                     </span>
-                    <span className="text-[10px] text-[#64748B] font-mono">{d.time}</span>
+                    <span className="text-[10px] text-slate-500 font-mono">{d.time}</span>
                   </div>
-                  <p className="text-xs text-[#94A3B8] leading-relaxed">"{d.note}"</p>
+                  <p className="text-slate-300 text-xs leading-relaxed">"{d.note}"</p>
                   {d.aiClassification && (
                     <div className="text-[10px] font-mono text-cyan-300 bg-cyan-950/60 px-2 py-0.5 rounded border border-cyan-800">
                       {d.aiClassification}
@@ -309,79 +330,24 @@ export function RescuerDashboard({
               ))}
             </div>
           )}
-
-          {/* TAB 3: Helicopter Aviation Clearance Card */}
-          {activeTab === "aviation" && (
-            <div className="flex-1 overflow-y-auto p-4 space-y-3 text-xs">
-              <div className="p-4 rounded-2xl bg-gradient-to-br from-emerald-950/60 to-[#0F1B33] border border-emerald-500/40 space-y-2 shadow-xl">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-extrabold uppercase tracking-wider text-emerald-400 flex items-center gap-1.5">
-                    <Plane className="w-4 h-4 text-emerald-400" />
-                    <span>Air Evac Weather Status</span>
-                  </span>
-                  <span className="text-[10px] font-bold text-emerald-300 bg-emerald-900 px-2 py-0.5 rounded-full">
-                    GO 🟢
-                  </span>
-                </div>
-                <div className="text-sm font-bold text-white">Eurocopter AS350 B3e (Squirrel)</div>
-                <div className="grid grid-cols-2 gap-2 text-[11px] pt-1">
-                  <div>
-                    <span className="text-[#64748B]">Operational Ceiling:</span>
-                    <div className="font-bold text-white">4,200m ASL</div>
-                  </div>
-                  <div>
-                    <span className="text-[#64748B]">Current Cloud Base:</span>
-                    <div className="font-bold text-white">3,850m (Marginal ⚠️)</div>
-                  </div>
-                  <div>
-                    <span className="text-[#64748B]">Wind Gusts:</span>
-                    <div className="font-bold text-emerald-400">14 kts (Clear)</div>
-                  </div>
-                  <div>
-                    <span className="text-[#64748B]">Daylight Remaining:</span>
-                    <div className="font-bold text-white">02h 45m</div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Forward Rescue Bases */}
-              <div className="space-y-2">
-                <div className="font-bold uppercase tracking-wider text-[#94A3B8] text-[11px]">
-                  Forward Staging Helipads:
-                </div>
-                {forwardBases.map((base, idx) => (
-                  <div key={idx} className="p-3 rounded-xl bg-[#0F1B33] border border-[#2A3B5E] flex items-center justify-between">
-                    <div>
-                      <div className="font-bold text-white">{base.name}</div>
-                      <div className="text-[10px] text-[#64748B]">{base.agency} &bull; {base.elevation}m</div>
-                    </div>
-                    <div className="text-right">
-                      <div className="font-bold text-cyan-300">~{base.heliFlightMin} min flight</div>
-                      <div className="text-[10px] text-[#64748B] font-mono">{base.contact}</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
         </div>
+      </MobileBottomSheet>
 
-        {/* RIGHT COLUMN: Full-Screen Tactical GIS SAR Map */}
-        <div className="flex-1 relative h-full min-h-[350px]">
-          <FullScreenHazardMap
-            corridor={corridor}
-            assets={assets}
-            mode="rescuer"
-            userPosition={userPosition}
-            distressBeacons={distressBeacons}
-            onSelectBeacon={(beacon) => {
-              setSelectedBeacon(beacon);
-              setActiveTab("beacons");
-            }}
-            simulatedWaterRise={waterSurge}
-            className="w-full h-full"
-          />
-        </div>
+      {/* 2. FULL-SCREEN GOOGLE MAP BASE (ALWAYS VISIBLE IN BACKGROUND) */}
+      <div className="flex-1 relative w-full h-full min-h-[350px]">
+        <FullScreenHazardMap
+          corridor={corridor}
+          assets={assets}
+          mode="rescuer"
+          userPosition={userPosition}
+          distressBeacons={distressBeacons}
+          onSelectBeacon={(beacon) => {
+            setSelectedBeacon(beacon);
+            setSheetPosition("half");
+          }}
+          simulatedWaterRise={waterSurge}
+          className="w-full h-full"
+        />
       </div>
     </div>
   );

@@ -885,7 +885,7 @@ export function FullScreenHazardMap({
 
       {/* FLOATING BOTTOM CENTER: WATER SURGE SLIDER (ADMIN MODE ONLY) */}
       {showSurgeControls && onSurgeChange && (
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 flex items-center gap-3 px-4 py-2 rounded-2xl bg-[#0F1B33]/95 backdrop-blur-xl border border-[#2A3B5E] shadow-2xl text-xs text-white pointer-events-auto">
+        <div className="absolute bottom-16 sm:bottom-4 left-1/2 -translate-x-1/2 z-10 flex items-center gap-3 px-4 py-2 rounded-2xl bg-[#0F1B33]/95 backdrop-blur-xl border border-[#2A3B5E] shadow-2xl text-xs text-white pointer-events-auto">
           <SlidersHorizontal className="w-4 h-4 text-cyan-400" />
           <span className="font-semibold text-[#94A3B8]">Water Surge:</span>
           <input

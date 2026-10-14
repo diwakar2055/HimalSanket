@@ -26,6 +26,7 @@ interface CommandHeaderProps {
   onOpenGuide: () => void;
   audioMuted: boolean;
   onToggleAudioMute: () => void;
+  onOpenPersonaSwitcher?: () => void;
 }
 
 const TIER_COLORS = {
@@ -45,6 +46,7 @@ export function CommandHeader({
   onOpenGuide,
   audioMuted,
   onToggleAudioMute,
+  onOpenPersonaSwitcher,
 }: CommandHeaderProps) {
   const { currentRole, setCurrentRole, userProfile } = useUserRole();
   const tierStyle = TIER_COLORS[activeTier] || TIER_COLORS.Low;
@@ -142,8 +144,8 @@ export function CommandHeader({
           </div>
         </div>
 
-        {/* CENTER: Presentation Persona / User Role Switcher */}
-        <div className="flex items-center bg-[#111A2E] p-1 rounded-2xl border border-[#2A3B5E] shadow-inner text-xs order-last md:order-none w-full md:w-auto justify-center">
+        {/* CENTER: Presentation Persona / User Role Switcher (Desktop) */}
+        <div className="hidden md:flex items-center bg-[#111A2E] p-1 rounded-2xl border border-[#2A3B5E] shadow-inner text-xs">
           <button
             onClick={() => setCurrentRole("civilian")}
             className={`flex items-center gap-1.5 px-3 py-1 rounded-xl font-bold transition-all cursor-pointer ${
@@ -154,7 +156,7 @@ export function CommandHeader({
             title="Civilian & Trekker Safety View"
           >
             <span>👤</span>
-            <span>{language === "ne" ? "नागरिक / पदयात्री" : "Civilian / Trekker"}</span>
+            <span>{language === "ne" ? "नागरिक / पदयात्री" : "Civilian"}</span>
           </button>
 
           <button
@@ -167,7 +169,7 @@ export function CommandHeader({
             title="Search & Rescue Incident Response View"
           >
             <span>🚁</span>
-            <span>{language === "ne" ? "उद्धार टोली (SAR)" : "SAR Rescuer"}</span>
+            <span>{language === "ne" ? "उद्धार टोली" : "Rescuer"}</span>
           </button>
 
           <button
@@ -180,11 +182,11 @@ export function CommandHeader({
             title="National Command Center & GIS View"
           >
             <span>🛡️</span>
-            <span>{language === "ne" ? "विपद् कमान्ड" : "Command Admin"}</span>
+            <span>{language === "ne" ? "कमान्ड" : "Admin"}</span>
           </button>
         </div>
 
-        {/* RIGHT: Language, Audio, Guide, PWA Install & Profile */}
+        {/* RIGHT: Language, Audio, Guide, PWA Install & Clickable Profile Avatar */}
         <div className="flex items-center gap-2">
           {/* PWA Install Button (if available) */}
           {isInstallable && (
@@ -226,16 +228,23 @@ export function CommandHeader({
             <HelpCircle className="w-3.5 h-3.5 text-cyan-400" />
           </button>
 
-          {/* Active User Avatar & Role */}
-          <div className="hidden lg:flex items-center gap-2 pl-2 border-l border-[#2A3B5E]">
-            <div className="w-7 h-7 rounded-full bg-cyan-900 border border-cyan-400/50 flex items-center justify-center text-xs font-bold text-cyan-200">
-              {userProfile.name.charAt(0)}
+          {/* Clickable Profile Avatar (Meta/Instagram Style Persona Switcher) */}
+          <button
+            onClick={onOpenPersonaSwitcher}
+            className="flex items-center gap-2 pl-2 border-l border-[#2A3B5E] hover:opacity-90 cursor-pointer transition-all focus:outline-none"
+            title="Switch presentation profile"
+          >
+            <div className="relative">
+              <div className="w-7 h-7 rounded-full bg-gradient-to-br from-cyan-600 to-blue-800 border border-cyan-400/60 flex items-center justify-center text-xs font-black text-white shadow-md">
+                {userProfile.name.charAt(0)}
+              </div>
+              <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-500 border border-[#0A1224]" />
             </div>
-            <div className="text-left text-[11px] leading-tight">
-              <div className="font-bold text-white truncate max-w-[100px]">{userProfile.name}</div>
+            <div className="hidden lg:block text-left text-[11px] leading-tight">
+              <div className="font-bold text-white truncate max-w-[90px]">{userProfile.name}</div>
               <div className="text-[9px] text-[#64748B] capitalize">{userProfile.role}</div>
             </div>
-          </div>
+          </button>
         </div>
       </div>
     </header>

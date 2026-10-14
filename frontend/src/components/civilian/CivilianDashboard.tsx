@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useCallback } from "react";
 import { FullScreenHazardMap } from "../map/FullScreenHazardMap";
 import { VoiceRecorderModal } from "../VoiceRecorderModal";
+import { MobileBottomSheet } from "../mobile/MobileBottomSheet";
 import { MapAsset } from "../../data/hazardMapData";
 import { Language } from "../../data/localization";
 import { useUserRole } from "../../context/UserRoleContext";
@@ -17,11 +18,9 @@ import {
   MapPin,
   Maximize2,
   Minimize2,
-  PhoneCall,
-  Volume2,
   Navigation,
   CheckCircle2,
-  Clock,
+  Volume2,
 } from "lucide-react";
 
 interface CivilianDashboardProps {
@@ -53,10 +52,9 @@ export function CivilianDashboard({
 }: CivilianDashboardProps) {
   const { broadcastSOS, submitFieldDispatch } = useUserRole();
 
-  const [sosCountdown, setSosCountdown] = useState<number | null>(null);
   const [sosSuccess, setSosSuccess] = useState(false);
   const [isVoiceModalOpen, setIsVoiceModalOpen] = useState(false);
-  const [activeView, setActiveView] = useState<"standard" | "fullmap">("standard");
+  const [sheetPosition, setSheetPosition] = useState<"peek" | "half" | "full">("half");
 
   // Gemini AI Chat state embedded cleanly
   const [chatInput, setChatInput] = useState("");
@@ -127,6 +125,7 @@ export function CivilianDashboard({
       setChatMessages((p) => [...p, userMsg]);
       setChatInput("");
       setIsAiThinking(true);
+      if (sheetPosition === "peek") setSheetPosition("half");
 
       try {
         const response = await fetch("/api/gemini/chat", {
@@ -153,7 +152,6 @@ export function CivilianDashboard({
             { sender: "ai", text: data.reply || "Stay on high ground and proceed uphill safely.", time: "Just now" },
           ]);
         } else {
-          // Local fallback reasoning
           setChatMessages((p) => [
             ...p,
             {
@@ -180,243 +178,233 @@ export function CivilianDashboard({
         setIsAiThinking(false);
       }
     },
-    [chatInput, isAiThinking, corridor, userPosition, geofenceStatus, distanceToHazard, activeScenario, isDanger, nearestRefuge]
+    [chatInput, isAiThinking, corridor, userPosition, geofenceStatus, distanceToHazard, activeScenario, isDanger, nearestRefuge, sheetPosition]
   );
 
   return (
-    <div className="w-full flex-1 flex flex-col min-h-0 bg-[#0A1224] text-slate-100 overflow-hidden relative">
-      {/* 1. HERO REASSURANCE & STATUS BANNER */}
-      <div className="p-3 sm:p-4 bg-[#0F1B33]/90 border-b border-[#2A3B5E] backdrop-blur-md z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-lg">
-        <div className="flex items-center gap-3">
-          <div
-            className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 border ${
+    <div className="w-full h-full flex flex-col lg:flex-row min-h-0 bg-[#0A1224] text-slate-100 overflow-hidden relative">
+      {/* 1. INTERACTIVE DRAGGABLE BOTTOM SHEET (Mobile) / SIDEBAR (Desktop) */}
+      <MobileBottomSheet
+        position={sheetPosition}
+        onChangePosition={setSheetPosition}
+        title={language === "ne" ? "सुरक्षा ककपाइलट" : "Safety Copilot"}
+        badge={
+          <span
+            className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase ${
               isDanger
-                ? "bg-rose-500/20 border-rose-500/50 text-rose-400 animate-pulse"
-                : "bg-emerald-500/20 border-emerald-500/50 text-emerald-400"
+                ? "bg-rose-500/20 text-rose-300 border border-rose-500/40"
+                : "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40"
             }`}
           >
-            {isDanger ? <AlertTriangle className="w-6 h-6 animate-bounce" /> : <Shield className="w-6 h-6" />}
+            {isDanger ? "⚠️ Danger Zone" : "🟢 Safe Haven"}
+          </span>
+        }
+        peekContent={
+          <div className="flex items-center justify-between text-xs text-slate-300 pt-1">
+            <span>Refuge: <strong>{nearestRefuge?.asset.name || "High Ground"}</strong></span>
+            <span className="text-emerald-400 font-bold">~{nearestRefuge?.distance || 350}m</span>
           </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <span
-                className={`text-xs font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${
-                  isDanger ? "bg-rose-600 text-white" : "bg-emerald-600 text-white"
+        }
+      >
+        <div className="flex-1 flex flex-col p-3 sm:p-4 space-y-3 overflow-y-auto">
+          {/* Card 1: Hero Safe / Danger Reassurance Banner */}
+          <div
+            className={`p-3.5 rounded-2xl border transition-all ${
+              isDanger
+                ? "bg-rose-950/40 border-rose-500/50 shadow-xl shadow-rose-950/30"
+                : "bg-[#0F1B33]/80 border-emerald-500/40 shadow-lg"
+            }`}
+          >
+            <div className="flex items-center gap-3">
+              <div
+                className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border ${
+                  isDanger
+                    ? "bg-rose-500/20 border-rose-500/50 text-rose-400 animate-pulse"
+                    : "bg-emerald-500/20 border-emerald-500/50 text-emerald-400"
                 }`}
               >
-                {isDanger ? (language === "ne" ? "गम्भीर जोखिम चेतावनी" : "CRITICAL HAZARD ALERT") : (language === "ne" ? "तपाईं सुरक्षित हुनुहुन्छ" : "YOU ARE IN A SAFE HAVEN")}
-              </span>
-              <span className="text-xs text-[#94A3B8] font-mono">
-                {userPosition ? `${userPosition.lat.toFixed(4)}°N, ${userPosition.lng.toFixed(4)}°E` : "GPS Ready"}
-              </span>
-            </div>
-            <p className="text-sm font-semibold text-white mt-1">
-              {isDanger
-                ? language === "ne"
-                  ? `बाढी वा पहिरोको जोखिम! तुरुन्तै कम्तीमा ३० मिटर उकालो सुरक्षित चट्टानतर्फ जानुहोस्!`
-                  : `River surge or debris threat! Move immediately ≥30m uphill toward solid granite bedrock!`
-                : language === "ne"
-                ? `सक्रिय नदी बाढीभन्दा ~${distanceToHazard || 380} मिटर टाढा। बाटो हाललाई सुरक्षित छ।`
-                : `Located ~${distanceToHazard || 380}m clear of active surge bed. Trail conditions currently safe.`}
-            </p>
-          </div>
-        </div>
-
-        {/* Action Controls in Header: Locate Me & View Toggle */}
-        <div className="flex items-center gap-2 self-end sm:self-center">
-          <button
-            onClick={onLocateMe}
-            disabled={isLocating}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#1C2C4C] hover:bg-[#2A3B5E] text-cyan-300 border border-[#2A3B5E] text-xs font-medium cursor-pointer transition-all"
-          >
-            <MapPin className={`w-3.5 h-3.5 ${isLocating ? "animate-spin text-cyan-400" : ""}`} />
-            <span>{isLocating ? "Locating..." : "My GPS"}</span>
-          </button>
-
-          <button
-            onClick={() => setActiveView(activeView === "standard" ? "fullmap" : "standard")}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#1C2C4C] hover:bg-[#2A3B5E] text-[#94A3B8] hover:text-white border border-[#2A3B5E] text-xs font-medium cursor-pointer transition-all"
-          >
-            {activeView === "standard" ? <Maximize2 className="w-3.5 h-3.5" /> : <Minimize2 className="w-3.5 h-3.5" />}
-            <span>{activeView === "standard" ? "Full Map" : "Split View"}</span>
-          </button>
-        </div>
-      </div>
-
-      {/* 2. MAIN ERGONOMIC STAGE */}
-      <div className="flex-1 flex flex-col lg:flex-row min-h-0 overflow-hidden">
-        {/* LEFT COLUMN: Civilian Tools & Conversational Gemini AI (40% width on desktop) */}
-        {activeView === "standard" && (
-          <div className="w-full lg:w-[420px] xl:w-[460px] flex flex-col bg-[#111A2E] border-r border-[#2A3B5E] overflow-y-auto p-3 sm:p-4 space-y-4 shrink-0">
-            {/* Quick Card 1: Nearest Safe Refuge Guidance */}
-            {nearestRefuge && (
-              <div className="p-3.5 rounded-2xl bg-gradient-to-br from-emerald-950/40 to-[#0F1B33] border border-emerald-500/30 shadow-lg">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-xs font-bold text-emerald-400 uppercase tracking-wider">
-                    <Shield className="w-4 h-4 text-emerald-400" />
-                    <span>{language === "ne" ? "नजिकको सुरक्षित आश्रयस्थल" : "Nearest Safe Refuge"}</span>
-                  </div>
-                  <span className="text-[11px] font-mono text-emerald-300 bg-emerald-950 px-2 py-0.5 rounded-full border border-emerald-700/50">
-                    ~{nearestRefuge.distance}m uphill
-                  </span>
-                </div>
-                <div className="mt-2 text-sm font-bold text-white flex items-center justify-between">
-                  <span>{nearestRefuge.asset.name}</span>
-                  <span className="text-xs text-[#94A3B8]">({nearestRefuge.asset.elevation}m ASL)</span>
-                </div>
-                <p className="mt-1 text-xs text-[#94A3B8] leading-relaxed">
-                  {language === "ne"
-                    ? "उच्च स्थानको चट्टानी मैदान। बाढी र पहिरोको जोखिमबाट सुरक्षित।"
-                    : "High granite bedrock terrace. Out of direct flood wave reach."}
+                {isDanger ? <AlertTriangle className="w-5 h-5" /> : <Shield className="w-5 h-5" />}
+              </div>
+              <div className="flex-1">
+                <span
+                  className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full ${
+                    isDanger ? "bg-rose-600 text-white" : "bg-emerald-600 text-white"
+                  }`}
+                >
+                  {isDanger
+                    ? language === "ne"
+                      ? "जोखिम सतर्कता"
+                      : "CRITICAL HAZARD"
+                    : language === "ne"
+                    ? "तपाईं सुरक्षित हुनुहुन्छ"
+                    : "YOU ARE SAFE"}
+                </span>
+                <p className="text-xs text-white font-semibold mt-1 leading-snug">
+                  {isDanger
+                    ? language === "ne"
+                      ? "खोलाको बहाव नजिक! तत्काल माथिल्लो सुरक्षित चट्टानतर्फ उक्लिनुहोस्!"
+                      : "Surge threat detected! Climb ≥30m uphill toward granite terraces!"
+                    : language === "ne"
+                    ? `सक्रिय बाढीबाट ~${distanceToHazard || 380}m सुरक्षित दूरीमा।`
+                    : `Positioned ~${distanceToHazard || 380}m clear of active surge bed.`}
                 </p>
               </div>
-            )}
-
-            {/* Quick Card 2: 1-Click Tactile Emergency SOS Trigger */}
-            <div className="p-3.5 rounded-2xl bg-gradient-to-br from-rose-950/50 to-[#0F1B33] border border-rose-500/40 shadow-xl space-y-2.5">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 text-xs font-bold text-rose-300 uppercase tracking-wider">
-                  <Radio className="w-4 h-4 text-rose-400 animate-pulse" />
-                  <span>{language === "ne" ? "आपत्कालीन उद्धार संकेत (SOS)" : "Emergency SOS Beacon"}</span>
-                </div>
-                <span className="text-[10px] text-rose-200/70">APF & Army Radio Link</span>
-              </div>
-
-              {sosSuccess ? (
-                <div className="p-3 rounded-xl bg-emerald-600/30 border border-emerald-500 text-emerald-200 text-xs font-bold flex items-center gap-2 animate-in fade-in">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                  <span>Distress Beacon Broadcasted! SAR Teams Notified.</span>
-                </div>
-              ) : (
-                <button
-                  onClick={handleConfirmSOS}
-                  className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-rose-600 to-red-700 hover:from-rose-500 hover:to-red-600 active:scale-98 text-white font-extrabold text-sm shadow-xl flex items-center justify-center gap-2 cursor-pointer transition-all border border-rose-400/40"
-                >
-                  <Radio className="w-4 h-4 animate-ping" />
-                  <span>{language === "ne" ? "🚨 तत्काल आपत्कालीन SOS पठाउनुहोस्" : "🚨 TRANSMIT 1-CLICK SOS DISTRESS"}</span>
-                </button>
-              )}
-
-              <div className="flex items-center justify-between text-[11px] text-[#94A3B8]">
-                <span>Broadcasts live GPS & elevation</span>
-                <button
-                  onClick={() => setIsVoiceModalOpen(true)}
-                  className="text-cyan-400 hover:underline flex items-center gap-1 cursor-pointer"
-                >
-                  <Mic className="w-3 h-3" />
-                  <span>Record Voice Dispatch</span>
-                </button>
-              </div>
-            </div>
-
-            {/* Quick Card 3: Embedded Gemini AI Safety Copilot */}
-            <div className="flex-1 flex flex-col rounded-2xl bg-[#0F1B33] border border-[#2A3B5E] shadow-xl overflow-hidden min-h-[280px]">
-              {/* Header */}
-              <div className="p-2.5 bg-[#16233F] border-b border-[#2A3B5E] flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="p-1 rounded-lg bg-cyan-500/20 text-cyan-300">
-                    <Bot className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <div className="text-xs font-bold text-white flex items-center gap-1">
-                      <span>Gemini Safety Copilot</span>
-                      <Sparkles className="w-3 h-3 text-cyan-400" />
-                    </div>
-                    <div className="text-[10px] text-[#94A3B8]">Bilingual Himalayan Safety AI</div>
-                  </div>
-                </div>
-                <span className="text-[10px] text-emerald-400 bg-emerald-950/80 px-2 py-0.5 rounded-full border border-emerald-800">
-                  Online
-                </span>
-              </div>
-
-              {/* Chat Transcript */}
-              <div className="flex-1 overflow-y-auto p-3 space-y-2.5 text-xs max-h-[220px]">
-                {chatMessages.map((msg, i) => (
-                  <div
-                    key={i}
-                    className={`flex flex-col ${msg.sender === "user" ? "items-end" : "items-start"}`}
-                  >
-                    <div
-                      className={`max-w-[85%] p-2.5 rounded-xl leading-relaxed ${
-                        msg.sender === "user"
-                          ? "bg-cyan-600 text-white rounded-br-none"
-                          : "bg-[#1C2C4C] text-slate-100 border border-[#2A3B5E] rounded-bl-none"
-                      }`}
-                    >
-                      {msg.text}
-                    </div>
-                    <span className="text-[9px] text-[#64748B] mt-0.5 font-mono px-1">{msg.time}</span>
-                  </div>
-                ))}
-
-                {isAiThinking && (
-                  <div className="flex items-center gap-2 text-xs text-cyan-400 p-2">
-                    <Bot className="w-3.5 h-3.5 animate-spin" />
-                    <span>Gemini is evaluating terrain telemetry...</span>
-                  </div>
-                )}
-              </div>
-
-              {/* Suggested Quick Prompt Chips */}
-              <div className="p-2 bg-[#121E36] border-t border-[#2A3B5E] flex items-center gap-1.5 overflow-x-auto text-[11px] no-scrollbar">
-                <button
-                  onClick={() => handleSendChat("Is it safe to walk forward?")}
-                  className="whitespace-nowrap px-2 py-1 rounded-lg bg-[#1C2C4C] hover:bg-[#2A3B5E] text-cyan-300 border border-[#2A3B5E] cursor-pointer"
-                >
-                  🚶 Is trail safe?
-                </button>
-                <button
-                  onClick={() => handleSendChat("Where is the highest ground near me?")}
-                  className="whitespace-nowrap px-2 py-1 rounded-lg bg-[#1C2C4C] hover:bg-[#2A3B5E] text-emerald-300 border border-[#2A3B5E] cursor-pointer"
-                >
-                  🛡️ Nearest high ground?
-                </button>
-                <button
-                  onClick={() => handleSendChat("के अहिले हिँड्न सुरक्षित छ?")}
-                  className="whitespace-nowrap px-2 py-1 rounded-lg bg-[#1C2C4C] hover:bg-[#2A3B5E] text-amber-300 border border-[#2A3B5E] cursor-pointer"
-                >
-                  🇳🇵 हिँड्न सुरक्षित छ?
-                </button>
-              </div>
-
-              {/* Chat Input Bar */}
-              <div className="p-2 bg-[#0F1B33] border-t border-[#2A3B5E] flex items-center gap-1.5">
-                <input
-                  type="text"
-                  value={chatInput}
-                  onChange={(e) => setChatInput(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && handleSendChat()}
-                  placeholder={language === "ne" ? "सुरक्षा प्रश्न सोध्नुहोस्..." : "Ask safety question..."}
-                  className="flex-1 bg-[#16233F] text-xs text-white px-2.5 py-1.5 rounded-lg border border-[#2A3B5E] focus:outline-none focus:ring-1 focus:ring-cyan-500"
-                />
-                <button
-                  onClick={() => handleSendChat()}
-                  disabled={!chatInput.trim() || isAiThinking}
-                  className="p-1.5 rounded-lg bg-cyan-600 hover:bg-cyan-500 disabled:opacity-40 text-white cursor-pointer transition-all"
-                >
-                  <Send className="w-3.5 h-3.5" />
-                </button>
-              </div>
             </div>
           </div>
-        )}
 
-        {/* RIGHT COLUMN: Full-Screen Spatial Trail & High-Ground Map */}
-        <div className="flex-1 relative h-full min-h-[350px]">
-          <FullScreenHazardMap
-            corridor={corridor}
-            assets={assets}
-            mode="civilian"
-            userPosition={userPosition}
-            onLocateMe={onLocateMe}
-            isLocating={isLocating}
-            distanceToHazard={distanceToHazard}
-            geofenceStatus={geofenceStatus}
-            simulatedWaterRise={waterSurge}
-            className="w-full h-full"
-          />
+          {/* Card 2: Nearest Safe Refuge Guidance */}
+          {nearestRefuge && (
+            <div className="p-3.5 rounded-2xl bg-gradient-to-br from-emerald-950/40 to-[#0F1B33] border border-emerald-500/30 shadow-md">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-400 uppercase tracking-wider">
+                  <Shield className="w-4 h-4 text-emerald-400" />
+                  <span>{language === "ne" ? "नजिकको सुरक्षित आश्रय" : "Nearest Safe Refuge"}</span>
+                </div>
+                <span className="text-[11px] font-mono text-emerald-300 bg-emerald-950 px-2 py-0.5 rounded-full border border-emerald-700/50">
+                  ~{nearestRefuge.distance}m uphill
+                </span>
+              </div>
+              <div className="mt-1.5 text-xs font-bold text-white flex items-center justify-between">
+                <span>{nearestRefuge.asset.name}</span>
+                <span className="text-[11px] text-[#94A3B8]">({nearestRefuge.asset.elevation}m ASL)</span>
+              </div>
+            </div>
+          )}
+
+          {/* Card 3: 1-Click SOS Trigger */}
+          <div className="p-3 rounded-2xl bg-[#090F1D] border border-rose-500/30 space-y-2">
+            <div className="flex items-center justify-between text-xs">
+              <span className="font-bold text-rose-300 flex items-center gap-1.5">
+                <Radio className="w-3.5 h-3.5 text-rose-400 animate-pulse" />
+                <span>APF Emergency Radio Relay</span>
+              </span>
+              <span className="text-[10px] text-slate-400">Dhunche Base 3</span>
+            </div>
+            {sosSuccess ? (
+              <div className="p-2.5 rounded-xl bg-emerald-600/30 border border-emerald-500 text-emerald-200 text-xs font-bold flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                <span>SOS Broadcasted! Search & Rescue teams notified.</span>
+              </div>
+            ) : (
+              <button
+                onClick={handleConfirmSOS}
+                className="w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-rose-600 to-red-700 hover:from-rose-500 hover:to-red-600 active:scale-98 text-white font-extrabold text-xs shadow-lg flex items-center justify-center gap-2 cursor-pointer transition-all border border-rose-400/40"
+              >
+                <Radio className="w-3.5 h-3.5 animate-ping" />
+                <span>{language === "ne" ? "तत्काल आपत्कालीन SOS पठाउनुहोस्" : "BROADCAST 1-CLICK SOS DISTRESS"}</span>
+              </button>
+            )}
+          </div>
+
+          {/* Card 4: Gemini AI Safety Copilot (WhatsApp/Instagram Style Thread) */}
+          <div className="flex-1 flex flex-col min-h-[220px] rounded-2xl bg-[#070D18] border border-white/10 overflow-hidden shadow-inner">
+            <div className="p-2.5 bg-[#0F1B33] border-b border-white/10 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-6 h-6 rounded-lg bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center text-white text-xs">
+                  <Sparkles className="w-3.5 h-3.5" />
+                </div>
+                <div>
+                  <div className="text-xs font-bold text-white flex items-center gap-1">
+                    <span>Gemini Safety Copilot</span>
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                  </div>
+                </div>
+              </div>
+              <button
+                onClick={() => setIsVoiceModalOpen(true)}
+                className="p-1.5 rounded-lg bg-[#16233F] hover:bg-[#1C2C4C] text-cyan-400 border border-white/10 text-xs cursor-pointer transition-all"
+                title="Voice Note"
+              >
+                <Mic className="w-3.5 h-3.5" />
+              </button>
+            </div>
+
+            {/* Chat Messages */}
+            <div className="flex-1 overflow-y-auto p-3 space-y-2.5 text-xs">
+              {chatMessages.map((msg, idx) => (
+                <div
+                  key={idx}
+                  className={`flex flex-col ${msg.sender === "user" ? "items-end" : "items-start"}`}
+                >
+                  <div
+                    className={`max-w-[85%] rounded-2xl p-2.5 leading-relaxed ${
+                      msg.sender === "user"
+                        ? "bg-gradient-to-r from-cyan-600 to-blue-600 text-white rounded-br-sm shadow-md"
+                        : "bg-[#111A2E] text-slate-200 border border-white/10 rounded-bl-sm shadow"
+                    }`}
+                  >
+                    {msg.text}
+                  </div>
+                  <span className="text-[9px] text-[#64748B] mt-0.5 px-1 font-mono">{msg.time}</span>
+                </div>
+              ))}
+
+              {isAiThinking && (
+                <div className="flex items-center gap-2 text-xs text-cyan-400 p-2">
+                  <Bot className="w-3.5 h-3.5 animate-spin" />
+                  <span>Gemini is evaluating terrain telemetry...</span>
+                </div>
+              )}
+            </div>
+
+            {/* Suggested Quick Prompt Stickers */}
+            <div className="p-2 bg-[#090F1D] border-t border-white/10 flex items-center gap-1.5 overflow-x-auto text-[11px] no-scrollbar">
+              <button
+                onClick={() => handleSendChat("Is it safe to walk forward?")}
+                className="whitespace-nowrap px-2.5 py-1 rounded-full bg-[#16233F] hover:bg-[#1C2C4C] text-cyan-300 border border-white/10 cursor-pointer transition-colors"
+              >
+                🚶 Trail safe?
+              </button>
+              <button
+                onClick={() => handleSendChat("Where is the highest ground near me?")}
+                className="whitespace-nowrap px-2.5 py-1 rounded-full bg-[#16233F] hover:bg-[#1C2C4C] text-emerald-300 border border-white/10 cursor-pointer transition-colors"
+              >
+                🛡️ High ground?
+              </button>
+              <button
+                onClick={() => handleSendChat("के अहिले हिँड्न सुरक्षित छ?")}
+                className="whitespace-nowrap px-2.5 py-1 rounded-full bg-[#16233F] hover:bg-[#1C2C4C] text-amber-300 border border-white/10 cursor-pointer transition-colors"
+              >
+                🇳🇵 हिँड्न सुरक्षित?
+              </button>
+            </div>
+
+            {/* Chat Input Bar */}
+            <div className="p-2 bg-[#0F1B33] border-t border-white/10 flex items-center gap-1.5">
+              <input
+                type="text"
+                value={chatInput}
+                onChange={(e) => setChatInput(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleSendChat()}
+                placeholder={language === "ne" ? "सुरक्षा प्रश्न सोध्नुहोस्..." : "Ask safety question..."}
+                className="flex-1 bg-[#16233F] text-xs text-white px-3 py-2 rounded-xl border border-white/10 focus:outline-none focus:border-cyan-500 placeholder:text-slate-500"
+              />
+              <button
+                onClick={() => handleSendChat()}
+                disabled={!chatInput.trim() || isAiThinking}
+                className="p-2 rounded-xl bg-cyan-600 hover:bg-cyan-500 disabled:opacity-40 text-white cursor-pointer transition-all shadow"
+              >
+                <Send className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          </div>
         </div>
+      </MobileBottomSheet>
+
+      {/* 2. FULL-SCREEN GOOGLE MAP BASE (ALWAYS VISIBLE IN BACKGROUND) */}
+      <div className="flex-1 relative w-full h-full min-h-[350px]">
+        <FullScreenHazardMap
+          corridor={corridor}
+          assets={assets}
+          mode="civilian"
+          userPosition={userPosition}
+          onLocateMe={onLocateMe}
+          isLocating={isLocating}
+          distanceToHazard={distanceToHazard}
+          geofenceStatus={geofenceStatus}
+          simulatedWaterRise={waterSurge}
+          className="w-full h-full"
+        />
       </div>
 
       {/* Voice Recorder Modal */}

@@ -4,6 +4,10 @@ import { CivilianDashboard } from "./components/civilian/CivilianDashboard";
 import { RescuerDashboard } from "./components/rescuer/RescuerDashboard";
 import { AdminCommandDashboard } from "./components/admin/AdminCommandDashboard";
 import { SystemTourModal } from "./components/SystemTourModal";
+import { CorridorStoriesBar } from "./components/mobile/CorridorStoriesBar";
+import { MobileBottomNav } from "./components/mobile/MobileBottomNav";
+import { EmergencySosModal } from "./components/mobile/EmergencySosModal";
+import { PersonaSwitcherModal } from "./components/mobile/PersonaSwitcherModal";
 import { UserRoleProvider, useUserRole } from "./context/UserRoleContext";
 import { playEmergencyChime, playConfirmationBeep } from "./utils/audioAlert";
 import { Language } from "./data/localization";
@@ -53,11 +57,25 @@ function computeRisk(c: any) {
 }
 
 function MainApp() {
-  const { currentRole, broadcastSOS } = useUserRole();
+  const { currentRole, setCurrentRole, broadcastSOS, distressBeacons } = useUserRole();
 
   const [language, setLanguage] = useState<Language>("en");
   const [audioMuted, setAudioMuted] = useState(false);
   const [isTourOpen, setIsTourOpen] = useState(false);
+  const [isSosModalOpen, setIsSosModalOpen] = useState(false);
+  const [isPersonaModalOpen, setIsPersonaModalOpen] = useState(false);
+
+  // Mobile Bottom Nav Tab State
+  const [mobileNavTab, setMobileNavTab] = useState<"safety" | "map" | "rescue" | "admin">(
+    currentRole === "rescuer" ? "rescue" : currentRole === "admin" ? "admin" : "safety"
+  );
+
+  // Sync mobile nav tab when currentRole changes externally
+  useEffect(() => {
+    if (currentRole === "civilian") setMobileNavTab("safety");
+    else if (currentRole === "rescuer") setMobileNavTab("rescue");
+    else if (currentRole === "admin") setMobileNavTab("admin");
+  }, [currentRole]);
 
   // Corridors & Telemetry
   const [corridors, setCorridors] = useState<any[]>(INITIAL_CORRIDORS);
@@ -89,6 +107,14 @@ function MainApp() {
     });
     return map;
   }, [corridors]);
+
+  // Corridors with live risk tiers for Instagram Stories bar
+  const corridorsWithTiers = useMemo(() => {
+    return corridors.map((c) => ({
+      ...c,
+      tier: risks[c.id]?.tier || "Low",
+    }));
+  }, [corridors, risks]);
 
   const selectedCorridor = useMemo(() => {
     const config = CORRIDOR_CONFIGS[selectedId] || CORRIDOR_CONFIGS.langtang;
@@ -214,7 +240,6 @@ function MainApp() {
         setIsLocating(false);
       },
       () => {
-        // Fallback default
         setUserPosition({
           lat: 28.2140,
           lng: 85.4950,
@@ -245,9 +270,11 @@ function MainApp() {
     [audioMuted, userPosition, broadcastSOS, selectedId]
   );
 
+  const pendingSosCount = distressBeacons.filter((b) => b.status === "pending").length;
+
   return (
-    <div className="w-full h-screen flex flex-col bg-[#0A1224] text-[#F8FAFC] antialiased overflow-hidden selection:bg-cyan-500 selection:text-black">
-      {/* 1. Streamlined Command Header with 1-Click Persona Switcher */}
+    <div className="w-full h-screen flex flex-col bg-[#070D18] text-[#F8FAFC] antialiased overflow-hidden selection:bg-cyan-500 selection:text-black">
+      {/* 1. Big Tech Streamlined Command Header with 1-Click Persona Switcher */}
       <CommandHeader
         activeTier={selectedRisk.tier}
         activeCorridor={selectedCorridor}
@@ -271,10 +298,26 @@ function MainApp() {
           playConfirmationBeep();
           setAudioMuted((prev) => !prev);
         }}
+        onOpenPersonaSwitcher={() => {
+          playConfirmationBeep();
+          setIsPersonaModalOpen(true);
+        }}
       />
 
-      {/* 2. Persona-Tailored Clean Experience */}
-      <main className="flex-1 flex flex-col min-h-0 relative overflow-hidden">
+      {/* 2. Instagram Stories Style Corridor Status Carousel */}
+      <CorridorStoriesBar
+        corridors={corridorsWithTiers}
+        selectedId={selectedId}
+        onSelectCorridor={(id) => {
+          playConfirmationBeep();
+          setSelectedId(id);
+          syncLiveTelemetry(id);
+        }}
+        language={language}
+      />
+
+      {/* 3. Main Viewport Stage (Desktop Split / Mobile Bottom Sheet) */}
+      <main className="flex-1 flex flex-col min-h-0 relative overflow-hidden pb-14 lg:pb-0">
         {currentRole === "civilian" && (
           <CivilianDashboard
             corridor={selectedCorridor}
@@ -323,7 +366,38 @@ function MainApp() {
         )}
       </main>
 
-      {/* 3. System Architecture Tour Modal (For AI Summit Evaluators) */}
+      {/* 4. Mobile Bottom Navigation Bar (Thumb-Zone Optimized) */}
+      <div className="lg:hidden">
+        <MobileBottomNav
+          activeTab={mobileNavTab}
+          onChangeTab={(tab) => {
+            setMobileNavTab(tab);
+          }}
+          onOpenSos={() => {
+            setIsSosModalOpen(true);
+          }}
+          pendingSosCount={pendingSosCount}
+        />
+      </div>
+
+      {/* 5. Apple Emergency SOS Modal */}
+      <EmergencySosModal
+        isOpen={isSosModalOpen}
+        onClose={() => setIsSosModalOpen(false)}
+        onConfirmSOS={(note) => {
+          handleTriggerSOS(note);
+        }}
+        userPosition={userPosition}
+        corridorName={selectedCorridor.name}
+      />
+
+      {/* 6. Instagram/Meta Persona Switcher Modal */}
+      <PersonaSwitcherModal
+        isOpen={isPersonaModalOpen}
+        onClose={() => setIsPersonaModalOpen(false)}
+      />
+
+      {/* 7. System Architecture Tour Modal */}
       <SystemTourModal
         isOpen={isTourOpen}
         onClose={() => setIsTourOpen(false)}
