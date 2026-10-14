@@ -36,8 +36,10 @@ import {
   Map as MapIcon,
   Crosshair,
   Volume2,
+  Globe2,
 } from "lucide-react";
 import { ErrorBoundary } from "../ErrorBoundary";
+import { LeafletHazardMap } from "../LeafletHazardMap";
 
 export interface FullScreenHazardMapProps {
   corridor: CorridorConfig;
@@ -208,11 +210,29 @@ export function FullScreenHazardMap({
   const [keyInput, setKeyInput] = useState(apiKey);
   const [authErrorNotice, setAuthErrorNotice] = useState(false);
 
+  const hasValidGoogleKey = Boolean(
+    apiKey &&
+      apiKey.trim().length > 20 &&
+      !apiKey.includes("YOUR_") &&
+      !authErrorNotice
+  );
+
+  const [engine, setEngine] = useState<"google" | "leaflet">(() => {
+    return hasValidGoogleKey ? "google" : "leaflet";
+  });
+
+  useEffect(() => {
+    if (!hasValidGoogleKey) {
+      setEngine("leaflet");
+    }
+  }, [hasValidGoogleKey]);
+
   // Listen for Google Maps Authentication failure callback
   useEffect(() => {
     const prevAuthFailure = (window as any).gm_authFailure;
     (window as any).gm_authFailure = () => {
       setAuthErrorNotice(true);
+      setEngine("leaflet");
       if (typeof prevAuthFailure === "function") prevAuthFailure();
     };
     return () => {
@@ -232,7 +252,22 @@ export function FullScreenHazardMap({
     } catch (_) {}
     setShowKeyModal(false);
     setAuthErrorNotice(false);
+    if (cleanKey.length > 20) {
+      setEngine("google");
+    }
   };
+
+  const getDynamicStatus = useCallback(
+    (asset: MapAsset): "safe" | "advisory" | "critical" => {
+      if (simulatedWaterRise === 0) return asset.status;
+      const buffer = (asset.hazardThresholdMeters || 3) - simulatedWaterRise;
+      if (buffer <= 0) return "critical";
+      if (buffer <= 1.2) return "critical";
+      if (buffer <= 2.5) return "advisory";
+      return "safe";
+    },
+    [simulatedWaterRise]
+  );
 
   // 2. Map View Styles: terrain (best for mountains), hybrid (satellite + labels), satellite, roadmap
   const [mapType, setMapType] = useState<"terrain" | "hybrid" | "satellite" | "roadmap">("terrain");
@@ -356,22 +391,174 @@ export function FullScreenHazardMap({
     [onSelectAsset]
   );
 
+  // When engine is Leaflet or no valid Google Maps API Key is configured, seamlessly render Leaflet
+  if (engine === "leaflet" || !hasValidGoogleKey) {
+    return (
+      <div className={`relative w-full h-full overflow-hidden select-none bg-[#0c141d] ${className}`}>
+        <LeafletHazardMap
+          corridor={safeCorridor}
+          assets={displayAssets}
+          selectedAsset={activeAsset}
+          onSelectAsset={handleAssetClick}
+          activeLayers={{
+            people: layers.infrastructure,
+            school: layers.infrastructure,
+            bridge: layers.infrastructure,
+            hospital: layers.infrastructure,
+            dam: layers.infrastructure,
+            safeZone: true,
+            hazardZone: layers.landslides,
+          }}
+          simulatedWaterRise={simulatedWaterRise}
+          getDynamicStatus={getDynamicStatus}
+          onSwitchToGoogleView={hasValidGoogleKey ? () => setEngine("google") : undefined}
+          onOpenKeyModal={() => setShowKeyModal(true)}
+          hasGoogleKey={hasValidGoogleKey}
+          userPosition={userPosition}
+          sosDistresses={distressBeacons.map((b) => ({
+            id: b.id,
+            name: b.name,
+            lat: b.lat,
+            lng: b.lng,
+            detail: b.detail || `Priority ${b.priority}`,
+            priority: b.priority,
+            time: b.time,
+          }))}
+          onLocateMe={onLocateMe}
+          isLocating={isLocating}
+          className="w-full h-full"
+        />
+
+        {/* Floating Google Maps Switcher Pill (Top Right) */}
+        <div className="absolute top-3 right-3 z-30 flex items-center gap-2 pointer-events-auto">
+          {hasValidGoogleKey ? (
+            <button
+              onClick={() => setEngine("google")}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#101A2A]/90 backdrop-blur-md border border-cyan-500/40 text-cyan-300 text-xs font-bold shadow-xl hover:bg-[#152238] cursor-pointer"
+            >
+              <Mountain className="w-3.5 h-3.5 text-cyan-400" />
+              <span>Google 3D Elevation</span>
+            </button>
+          ) : (
+            <button
+              onClick={() => setShowKeyModal(true)}
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-[#101A2A]/90 backdrop-blur-md border border-[#27364B] text-[#A7B4C8] hover:text-[#F8FAFC] text-xs font-semibold shadow-xl cursor-pointer"
+              title="Add Google Maps API Key for 3D elevation terrain"
+            >
+              <Key className="w-3.5 h-3.5 text-amber-400" />
+              <span className="hidden sm:inline">Add Google Key</span>
+            </button>
+          )}
+        </div>
+
+        {/* GOOGLE MAPS API KEY CONFIGURATION MODAL */}
+        {showKeyModal && (
+          <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
+            <div className="max-w-md w-full bg-[#0F1B33] border border-[#2A3B5E] rounded-3xl p-6 shadow-2xl space-y-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-cyan-600/20 border border-cyan-500/40 flex items-center justify-center text-cyan-400 shrink-0">
+                  <Key className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-extrabold text-white">Google Maps Platform Key</h3>
+                  <p className="text-xs text-slate-400">Powering high-precision terrain & satellite maps</p>
+                </div>
+              </div>
+
+              <p className="text-xs text-slate-300 leading-relaxed">
+                HimalSanket provides high-resolution ESRI satellite GIS and OpenTopoMap by default with zero setup.
+                Enter your Google Cloud API key to optionally enable Google 3D elevation terrain.
+              </p>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-200">Google Maps API Key</label>
+                <input
+                  type="password"
+                  placeholder="AIzaSy..."
+                  value={keyInput}
+                  onChange={(e) => setKeyInput(e.target.value)}
+                  className="w-full px-3 py-2 bg-[#16233F] border border-[#2A3B5E] rounded-xl text-xs text-white font-mono focus:outline-none focus:border-cyan-500"
+                />
+              </div>
+
+              <div className="flex items-center justify-between pt-2 border-t border-[#2A3B5E]">
+                <a
+                  href="https://console.cloud.google.com/google/maps-apis/credentials"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex items-center gap-1 text-[11px] text-cyan-400 hover:underline"
+                >
+                  <span>Get key on Google Cloud</span>
+                  <ExternalLink className="w-3 h-3" />
+                </a>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setShowKeyModal(false)}
+                    className="px-3 py-1.5 rounded-xl text-xs text-slate-300 hover:text-white hover:bg-[#1C2C4C] transition-all cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleSaveApiKey}
+                    className="px-4 py-1.5 bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-bold rounded-xl shadow-lg cursor-pointer transition-all"
+                  >
+                    Save & Apply
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+
   return (
     <div className={`relative w-full h-full overflow-hidden select-none bg-[#0c141d] ${className}`}>
       <ErrorBoundary
         fallback={
-          <div className="w-full h-full flex flex-col items-center justify-center p-6 bg-[#0A1224] text-center">
-            <AlertTriangle className="w-12 h-12 text-amber-400 mb-3 animate-bounce" />
-            <h3 className="text-lg font-bold text-white mb-2">Google Maps Initialization Notice</h3>
-            <p className="text-xs text-slate-400 max-w-md mb-4">
-              Google Maps Platform is loading. If you are presenting at the AI Summit, you can connect your Google Maps API key below for unwatermarked satellite & terrain imagery.
-            </p>
-            <button
-              onClick={() => setShowKeyModal(true)}
-              className="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-bold rounded-xl shadow-lg cursor-pointer"
-            >
-              Configure Google Maps Key
-            </button>
+          <div className="relative w-full h-full">
+            <div className="absolute top-16 left-1/2 -translate-x-1/2 z-30 px-3 py-1.5 bg-[#101A2A]/90 border border-amber-500/40 rounded-full text-xs text-amber-300 font-semibold backdrop-blur-md flex items-center gap-2 shadow-xl">
+              <AlertTriangle className="w-4 h-4 text-amber-400" />
+              <span>Google Maps unavailable — Tactical Satellite GIS active</span>
+              <button
+                onClick={() => setShowKeyModal(true)}
+                className="ml-2 underline text-cyan-400 text-xs cursor-pointer"
+              >
+                Configure Key
+              </button>
+            </div>
+            <LeafletHazardMap
+              corridor={safeCorridor}
+              assets={displayAssets}
+              selectedAsset={activeAsset}
+              onSelectAsset={handleAssetClick}
+              activeLayers={{
+                people: layers.infrastructure,
+                school: layers.infrastructure,
+                bridge: layers.infrastructure,
+                hospital: layers.infrastructure,
+                dam: layers.infrastructure,
+                safeZone: true,
+                hazardZone: layers.landslides,
+              }}
+              simulatedWaterRise={simulatedWaterRise}
+              getDynamicStatus={getDynamicStatus}
+              hasGoogleKey={false}
+              userPosition={userPosition}
+              sosDistresses={distressBeacons.map((b) => ({
+                id: b.id,
+                name: b.name,
+                lat: b.lat,
+                lng: b.lng,
+                detail: b.detail || `Priority ${b.priority}`,
+                priority: b.priority,
+                time: b.time,
+              }))}
+              onLocateMe={onLocateMe}
+              isLocating={isLocating}
+              className="w-full h-full"
+            />
           </div>
         }
       >
@@ -380,7 +567,6 @@ export function FullScreenHazardMap({
             defaultCenter={safeCorridor.center}
             defaultZoom={safeCorridor.zoom}
             mapTypeId={mapType}
-            mapId="HIMALSANKET_MAP_ID"
             style={{ width: "100%", height: "100%", position: "absolute" }}
             gestureHandling="greedy"
             streetViewControl={false}
@@ -817,6 +1003,14 @@ export function FullScreenHazardMap({
             <MapIcon className="w-3.5 h-3.5" />
             <span className="hidden md:inline">Tactical</span>
           </button>
+          <button
+            onClick={() => setEngine("leaflet")}
+            className="flex items-center gap-1 px-2.5 py-1 rounded-lg font-bold transition-colors cursor-pointer text-[#A7B4C8] hover:text-[#F8FAFC]"
+            title="Switch to Tactical Satellite GIS (Leaflet)"
+          >
+            <Globe2 className="w-3.5 h-3.5 text-teal-400" />
+            <span className="hidden lg:inline">Satellite GIS</span>
+          </button>
         </div>
 
         {/* GIS Layers Dropdown (Rescuer & Admin) */}
@@ -941,14 +1135,14 @@ export function FullScreenHazardMap({
         <button
           onClick={() => setShowKeyModal(true)}
           className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-bold backdrop-blur-md border transition-colors cursor-pointer shadow-xl ${
-            apiKey && apiKey.length > 20
+            hasValidGoogleKey
               ? "bg-emerald-950/60 border-emerald-500/50 text-emerald-300 hover:bg-emerald-900/60"
               : "bg-amber-950/60 border-amber-500/40 text-amber-300 hover:bg-amber-900/60"
           }`}
           title="Configure Google Maps API Key"
         >
           <Key className="w-3.5 h-3.5" />
-          <span className="hidden xl:inline">{apiKey ? "Google Maps Connected" : "Set Maps Key"}</span>
+          <span className="hidden xl:inline">{hasValidGoogleKey ? "Google Maps Connected" : "Set Maps Key"}</span>
         </button>
       </div>
 
