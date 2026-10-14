@@ -1,31 +1,21 @@
 import React, { useState, useMemo, useCallback } from "react";
 import { FullScreenHazardMap } from "../map/FullScreenHazardMap";
+import { TelemetryMetricsSidebar } from "../dashboard/TelemetryMetricsSidebar";
+import { IncidentQueueTable } from "../dashboard/IncidentQueueTable";
 import { SentinelLakeModal } from "../SentinelLakeModal";
 import { ValleyElevationProfileModal } from "../ValleyElevationProfileModal";
 import { SitrepExportModal } from "../SitrepExportModal";
 import { TimesfmForecastChart } from "../TimesfmForecastChart";
-import { MapAsset, CORRIDOR_CONFIGS, CORRIDOR_SENTINEL_LAKES } from "../../data/hazardMapData";
-import { Language } from "../../data/localization";
-import { useUserRole } from "../../context/UserRoleContext";
-import { playConfirmationBeep, playEmergencyChime } from "../../utils/audioAlert";
 import {
-  Layers,
-  Activity,
-  SlidersHorizontal,
-  FileText,
-  TrendingDown,
-  Satellite,
-  RefreshCw,
-  AlertTriangle,
-  Play,
-  RotateCcw,
-  Sparkles,
-  BarChart3,
-  Waves,
-  Compass,
-  Radio,
-  CheckCircle2,
-} from "lucide-react";
+  MapAsset,
+  CORRIDOR_CONFIGS,
+  CORRIDOR_SENTINEL_LAKES,
+  CORRIDOR_RESCUE_BASES,
+} from "../../data/hazardMapData";
+import { Language } from "../../data/localization";
+import { useUserRole, DistressBeacon } from "../../context/UserRoleContext";
+import { playConfirmationBeep, playEmergencyChime } from "../../utils/audioAlert";
+import { CheckCircle2, BarChart3, Activity, Map as MapIcon } from "lucide-react";
 
 interface AdminCommandDashboardProps {
   corridors: any[];
@@ -60,7 +50,13 @@ export function AdminCommandDashboard({
   language,
   assets,
 }: AdminCommandDashboardProps) {
-  const { distressBeacons, broadcastAdvisory } = useUserRole();
+  const { distressBeacons, broadcastAdvisory, updateBeaconStatus } = useUserRole();
+
+  // Selected victim / beacon to focus Google Map
+  const [selectedBeacon, setSelectedBeacon] = useState<DistressBeacon | null>(null);
+
+  // Mobile View Toggle: "operations" (Map + Table) vs "telemetry" (Left Column)
+  const [mobileTab, setMobileTab] = useState<"operations" | "telemetry">("operations");
 
   // Modals state
   const [inspectingLake, setInspectingLake] = useState<any>(null);
@@ -81,6 +77,35 @@ export function AdminCommandDashboard({
       centerName: config.centerName,
     };
   }, [corridors, selectedId]);
+
+  // Helicopter Forward Bases for this corridor
+  const forwardBases = useMemo(() => {
+    return CORRIDOR_RESCUE_BASES[selectedId] || CORRIDOR_RESCUE_BASES.langtang || [];
+  }, [selectedId]);
+
+  // Focus victim location on map with slight zoom
+  const handleSelectVictim = useCallback((beacon: DistressBeacon) => {
+    playConfirmationBeep();
+    setSelectedBeacon({ ...beacon });
+  }, []);
+
+  // Dispatch SAR Team
+  const handleDispatch = useCallback(
+    (beacon: DistressBeacon) => {
+      playConfirmationBeep();
+      updateBeaconStatus(beacon.id, "dispatched", "APF Mountain Rescue Squad 1");
+    },
+    [updateBeaconStatus]
+  );
+
+  // Mark Beacon Extracted / Resolved
+  const handleResolve = useCallback(
+    (beacon: DistressBeacon) => {
+      playConfirmationBeep();
+      updateBeaconStatus(beacon.id, "rescued");
+    },
+    [updateBeaconStatus]
+  );
 
   // Trigger Disaster Simulation Drill
   const triggerDrill = useCallback(
@@ -110,161 +135,60 @@ export function AdminCommandDashboard({
   }, [selectedId, selectedRisk, selectedCorridor, broadcastAdvisory]);
 
   return (
-    <div className="w-full flex-1 flex flex-col min-h-0 bg-[#0A1224] text-slate-100 overflow-hidden relative">
-      {/* 1. TOP ENTERPRISE HUD BAR (Floating glassmorphism strip) */}
-      <div className="p-2 sm:p-3 bg-[#0F1B33]/90 border-b border-[#2A3B5E] backdrop-blur-xl z-20 flex flex-wrap items-center justify-between gap-3 shadow-2xl">
-        {/* Left: Corridor & Fused Mathematical Score */}
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-black text-white flex items-center gap-1.5">
-              <span>🛡️ {selectedCorridor.name}</span>
-            </span>
-            <span className="text-xs text-[#64748B] font-mono">({selectedCorridor.region})</span>
-          </div>
-
-          <div
-            className={`px-2.5 py-0.5 rounded-full text-xs font-black uppercase tracking-wider border flex items-center gap-1.5 ${
-              selectedRisk.tier === "Critical"
-                ? "bg-rose-500/20 text-rose-300 border-rose-500/50 animate-pulse"
-                : selectedRisk.tier === "High"
-                ? "bg-orange-500/20 text-orange-300 border-orange-500/50"
-                : selectedRisk.tier === "Moderate"
-                ? "bg-amber-500/20 text-amber-300 border-amber-500/50"
-                : "bg-emerald-500/20 text-emerald-300 border-emerald-500/50"
+    <div className="w-full h-full flex flex-col min-h-0 bg-[#070D18] text-slate-100 overflow-hidden relative">
+      {/* Mobile Tab Switcher (Visible only below lg) */}
+      <div className="lg:hidden flex items-center justify-between p-2 bg-[#0A1224] border-b border-[#1E293B] shrink-0 text-xs">
+        <div className="flex items-center gap-1 bg-[#111A2E] p-1 rounded-xl border border-[#1E293B]">
+          <button
+            onClick={() => setMobileTab("operations")}
+            className={`flex items-center gap-1.5 px-3 py-1 rounded-lg font-bold transition-all cursor-pointer ${
+              mobileTab === "operations"
+                ? "bg-cyan-600 text-white shadow"
+                : "text-[#94A3B8] hover:text-white"
             }`}
           >
-            <span className="w-2 h-2 rounded-full bg-current animate-ping" />
-            <span>{selectedRisk.tier} RISK</span>
-            <span className="font-mono">({Math.round((selectedRisk.score || 0.3) * 100)}%)</span>
-          </div>
-        </div>
-
-        {/* Center: Live Sensor HUD Gauges */}
-        <div className="hidden md:flex items-center gap-4 text-xs">
-          <div className="flex items-center gap-1.5">
-            <span className="text-[#64748B]">Rainfall:</span>
-            <strong className="text-cyan-300 font-mono">{selectedCorridor.rainfall}mm</strong>
-            <span className="text-[10px] text-[#64748B]">/ {selectedCorridor.rainThreshold}mm</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <span className="text-[#64748B]">Seismic:</span>
-            <strong className="text-amber-300 font-mono">{selectedCorridor.seismic} M</strong>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <span className="text-[#64748B]">Lake Delta:</span>
-            <strong className="text-rose-300 font-mono">+{selectedCorridor.lakeChange}%</strong>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <span className="text-[#64748B]">Slope Susceptibility:</span>
-            <strong className="text-white font-mono">{selectedCorridor.susceptibility}</strong>
-          </div>
-        </div>
-
-        {/* Right: Simulation Presentation Bar + Sync */}
-        <div className="flex items-center gap-2 flex-wrap">
-          {/* Quick Scenario Pills for Summit Presentation */}
-          <div className="flex items-center gap-1 bg-[#16233F] p-1 rounded-xl border border-[#2A3B5E] text-xs">
-            <span className="text-[10px] text-[#64748B] uppercase font-bold px-1 hidden xl:inline">Drills:</span>
-            <button
-              onClick={() => triggerDrill("baseline")}
-              className={`px-2 py-0.5 rounded-lg font-medium transition-all cursor-pointer ${
-                activeScenario === "baseline" ? "bg-cyan-600 text-white shadow" : "text-[#94A3B8] hover:text-white"
-              }`}
-            >
-              Baseline
-            </button>
-            <button
-              onClick={() => triggerDrill("cloudburst_spike")}
-              className={`px-2 py-0.5 rounded-lg font-medium transition-all cursor-pointer ${
-                activeScenario === "cloudburst_spike" ? "bg-orange-600 text-white shadow" : "text-[#94A3B8] hover:text-white"
-              }`}
-            >
-              🌧️ Cloudburst
-            </button>
-            <button
-              onClick={() => triggerDrill("glof_lake_expansion")}
-              className={`px-2 py-0.5 rounded-lg font-medium transition-all cursor-pointer ${
-                activeScenario === "glof_lake_expansion" ? "bg-cyan-600 text-white shadow" : "text-[#94A3B8] hover:text-white"
-              }`}
-            >
-              🛰️ GLOF
-            </button>
-            <button
-              onClick={() => triggerDrill("critical_cascade")}
-              className={`px-2 py-0.5 rounded-lg font-medium transition-all cursor-pointer ${
-                activeScenario === "critical_cascade" ? "bg-rose-600 text-white shadow animate-pulse" : "text-[#94A3B8] hover:text-white"
-              }`}
-            >
-              🚨 Cascade
-            </button>
-          </div>
-
-          {/* Sync Button */}
-          <button
-            onClick={() => syncLiveTelemetry(selectedId)}
-            disabled={isSensingSyncing}
-            className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-[#1C2C4C] hover:bg-[#2A3B5E] text-cyan-300 border border-[#2A3B5E] text-xs font-semibold cursor-pointer disabled:opacity-50"
-            title="Poll DHM & USGS Feeds"
-          >
-            <RefreshCw className={`w-3 h-3 ${isSensingSyncing ? "animate-spin text-cyan-400" : ""}`} />
-            <span className="hidden sm:inline">Sync</span>
+            <MapIcon className="w-3.5 h-3.5" />
+            <span>Map & Incidents</span>
           </button>
+          <button
+            onClick={() => setMobileTab("telemetry")}
+            className={`flex items-center gap-1.5 px-3 py-1 rounded-lg font-bold transition-all cursor-pointer ${
+              mobileTab === "telemetry"
+                ? "bg-cyan-600 text-white shadow"
+                : "text-[#94A3B8] hover:text-white"
+            }`}
+          >
+            <Activity className="w-3.5 h-3.5" />
+            <span>Risk Telemetry</span>
+          </button>
+        </div>
+
+        <div className="flex items-center gap-1.5 text-[11px] font-mono text-[#94A3B8]">
+          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping inline-block" />
+          <span>{selectedCorridor.name.split(" ")[0]}</span>
         </div>
       </div>
 
-      {/* 2. FULL-SCREEN GIS CANVAS CONTAINER */}
-      <div className="flex-1 relative w-full h-full min-h-[450px]">
-        <FullScreenHazardMap
-          corridor={selectedCorridor}
-          assets={assets}
-          mode="admin"
-          userPosition={userPosition}
-          distressBeacons={distressBeacons}
-          simulatedWaterRise={waterSurge}
-          showSurgeControls={true}
-          onSurgeChange={setWaterSurge}
-          className="w-full h-full"
-        />
-
-        {/* Floating Bottom Left: Corridor Quick Switcher */}
-        <div className="absolute bottom-4 left-4 z-10 hidden sm:flex items-center gap-1 p-1 rounded-2xl bg-[#0F1B33]/90 backdrop-blur-xl border border-[#2A3B5E] shadow-2xl">
-          {corridors.map((c) => (
-            <button
-              key={c.id}
-              onClick={() => {
-                playConfirmationBeep();
-                setSelectedId(c.id);
-                syncLiveTelemetry(c.id);
-              }}
-              className={`px-2.5 py-1 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
-                selectedId === c.id
-                  ? "bg-cyan-600 text-white shadow-lg"
-                  : "text-[#94A3B8] hover:text-white hover:bg-[#1C2C4C]"
-              }`}
-            >
-              {c.name.split(" ")[0]}
-            </button>
-          ))}
-        </div>
-
-        {/* Floating Bottom Right: Tactical Tools Dock */}
-        <div className="absolute bottom-16 sm:bottom-4 right-3 sm:right-4 z-10 flex items-center gap-2">
-          {/* TimesFM 24h Forecast Modal Button */}
-          <button
-            onClick={() => {
-              playConfirmationBeep();
-              setShowTimesfmModal(true);
-            }}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[#0F1B33]/90 hover:bg-[#1C2C4C] backdrop-blur-xl border border-[#2A3B5E] text-cyan-300 hover:text-white text-xs font-bold shadow-2xl cursor-pointer transition-all"
-            title="Inspect Google TimesFM 24h Rainfall Forecast"
-          >
-            <BarChart3 className="w-3.5 h-3.5 text-cyan-400" />
-            <span className="hidden md:inline">TimesFM Forecast</span>
-          </button>
-
-          {/* Sentinel-2 Lake Inspector Button */}
-          <button
-            onClick={() => {
+      {/* TRANSCOPE HIGH-DENSITY BENTO COMMAND GRID */}
+      <div className="flex-1 flex flex-col lg:flex-row min-h-0 overflow-hidden">
+        {/* LEFT COLUMN: Telemetry & Multi-Hazard Intelligence (~360px-400px width on desktop) */}
+        <div
+          className={`w-full lg:w-[360px] xl:w-[410px] shrink-0 h-full ${
+            mobileTab === "telemetry" ? "flex" : "hidden lg:flex"
+          } flex-col min-h-0`}
+        >
+          <TelemetryMetricsSidebar
+            corridor={selectedCorridor}
+            risk={selectedRisk}
+            liveData={liveData}
+            activeScenario={activeScenario}
+            onTriggerScenario={triggerDrill}
+            waterSurge={waterSurge}
+            onSurgeChange={setWaterSurge}
+            isSensingSyncing={isSensingSyncing}
+            onSyncTelemetry={() => syncLiveTelemetry(selectedId)}
+            forwardBases={forwardBases}
+            onInspectLake={() => {
               playConfirmationBeep();
               const lake =
                 liveData?.sentinel_satellite_lake ||
@@ -272,48 +196,88 @@ export function AdminCommandDashboard({
                 (CORRIDOR_SENTINEL_LAKES as any).langtang;
               setInspectingLake(lake);
             }}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[#0F1B33]/90 hover:bg-[#1C2C4C] backdrop-blur-xl border border-[#2A3B5E] text-sky-300 hover:text-white text-xs font-bold shadow-2xl cursor-pointer transition-all"
-            title="Inspect ESA Sentinel-2 Glacial Lake NDWI"
-          >
-            <Satellite className="w-3.5 h-3.5 text-sky-400" />
-            <span className="hidden md:inline">Sentinel-2 Lake</span>
-          </button>
-
-          {/* Valley Profile Button */}
-          <button
-            onClick={() => {
+            onInspectProfile={() => {
               playConfirmationBeep();
               setShowProfileModal(true);
             }}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[#0F1B33]/90 hover:bg-[#1C2C4C] backdrop-blur-xl border border-[#2A3B5E] text-amber-300 hover:text-white text-xs font-bold shadow-2xl cursor-pointer transition-all"
-            title="Longitudinal Elevation & Flood Wave Velocity Profile"
-          >
-            <TrendingDown className="w-3.5 h-3.5 text-amber-400" />
-            <span className="hidden md:inline">Valley Profile</span>
-          </button>
-
-          {/* SITREP & Satellite SMS Export */}
-          <button
-            onClick={() => {
+            onInspectTimesfm={() => {
+              playConfirmationBeep();
+              setShowTimesfmModal(true);
+            }}
+            onOpenSitrep={() => {
               playConfirmationBeep();
               setShowSitrepModal(true);
             }}
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-500 hover:to-teal-600 backdrop-blur-xl border border-emerald-400/40 text-white text-xs font-extrabold shadow-2xl cursor-pointer transition-all"
-            title="Compile Official Situation Report & 2G SMS Broadcast"
-          >
-            <FileText className="w-3.5 h-3.5" />
-            <span>SITREP & SMS</span>
-          </button>
+            onBroadcastAdvisory={handleQuickAdvisory}
+            role="admin"
+            className="w-full h-full"
+          />
+        </div>
 
-          {/* Quick 1-Click National Advisory Broadcast */}
-          <button
-            onClick={handleQuickAdvisory}
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-extrabold shadow-2xl cursor-pointer transition-all border border-rose-400/40"
-            title="Broadcast National Emergency Warning"
-          >
-            <Radio className="w-3.5 h-3.5 animate-pulse" />
-            <span className="hidden sm:inline">Broadcast Advisory</span>
-          </button>
+        {/* RIGHT COLUMN: Framed GIS Map Viewport (Upper) + Structured Incident Table (Lower) */}
+        <div
+          className={`flex-1 flex flex-col min-w-0 min-h-0 bg-[#070D18] ${
+            mobileTab === "operations" ? "flex" : "hidden lg:flex"
+          }`}
+        >
+          {/* UPPER PANE: Framed High-Performance GIS Map */}
+          <div className="flex-1 min-h-[300px] lg:min-h-[380px] p-2.5 sm:p-3 pb-1.5 flex flex-col">
+            <div className="w-full h-full rounded-2xl overflow-hidden border border-[#1E293B] shadow-2xl relative bg-[#0A1224] flex flex-col">
+              {/* Sleek Command Frame Bar */}
+              <div className="px-3 py-1.5 bg-[#090F1D]/90 border-b border-[#1E293B] flex items-center justify-between gap-2 shrink-0 z-10 backdrop-blur-sm">
+                <div className="flex items-center gap-2">
+                  <span className="text-[11px] font-black uppercase text-white tracking-wider flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-cyan-400 inline-block" />
+                    <span>GIS Tactical Operations Map</span>
+                  </span>
+                  <span className="text-[10px] text-[#64748B] font-mono hidden sm:inline">
+                    • 3D Digital Elevation Model
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-1 text-[11px] text-[#94A3B8]">
+                  <span className="text-cyan-400 font-mono font-bold">{selectedCorridor.name}</span>
+                  {selectedBeacon && (
+                    <span className="text-[10px] bg-rose-500/20 text-rose-300 px-1.5 py-0.2 rounded border border-rose-500/40 font-mono animate-pulse">
+                      Focus: #{String(selectedBeacon.id).slice(-4)}
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* Map Canvas */}
+              <div className="flex-1 relative w-full h-full min-h-0">
+                <FullScreenHazardMap
+                  corridor={selectedCorridor}
+                  assets={assets}
+                  mode="admin"
+                  userPosition={userPosition}
+                  distressBeacons={distressBeacons}
+                  selectedBeacon={selectedBeacon}
+                  onSelectBeacon={handleSelectVictim}
+                  simulatedWaterRise={waterSurge}
+                  showSurgeControls={false}
+                  onSurgeChange={setWaterSurge}
+                  className="w-full h-full"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* LOWER PANE: Structured High-Density Incidents Table (Transcope Orders Benchmark) */}
+          <div className="h-[260px] sm:h-[280px] xl:h-[310px] shrink-0 p-2.5 sm:p-3 pt-1.5 flex flex-col">
+            <div className="w-full h-full rounded-2xl overflow-hidden border border-[#1E293B] shadow-2xl bg-[#0A1224] flex flex-col">
+              <IncidentQueueTable
+                beacons={distressBeacons}
+                selectedBeacon={selectedBeacon}
+                onSelectBeacon={handleSelectVictim}
+                onDispatchBeacon={handleDispatch}
+                onResolveBeacon={handleResolve}
+                corridorName={selectedCorridor.name}
+                className="w-full h-full"
+              />
+            </div>
+          </div>
         </div>
       </div>
 
@@ -321,7 +285,9 @@ export function AdminCommandDashboard({
       {advisorySentToast && (
         <div className="fixed top-16 right-6 z-50 p-3 rounded-2xl bg-emerald-600 border border-emerald-400 text-white shadow-2xl flex items-center gap-2 animate-in fade-in slide-in-from-top-4">
           <CheckCircle2 className="w-5 h-5" />
-          <span className="text-xs font-bold">National Advisory Broadcasted across Radio & Satellite Relays!</span>
+          <span className="text-xs font-bold">
+            National Advisory Broadcasted across Radio & Satellite Relays!
+          </span>
         </div>
       )}
 
@@ -358,7 +324,9 @@ export function AdminCommandDashboard({
             <div className="p-4 bg-[#16233F] border-b border-[#2A3B5E] flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <BarChart3 className="w-5 h-5 text-cyan-400" />
-                <span className="font-bold text-white text-sm">Google TimesFM 24h Precipitation Forecast</span>
+                <span className="font-bold text-white text-sm">
+                  Google TimesFM 24h Precipitation Forecast
+                </span>
               </div>
               <button
                 onClick={() => setShowTimesfmModal(false)}

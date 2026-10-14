@@ -77,7 +77,7 @@ export function CommandHeader({
 
   return (
     <header className="w-full bg-[#0A1224]/95 border-b border-[#1E293B] shadow-2xl sticky top-0 z-40 backdrop-blur-xl">
-      <div className="max-w-7xl mx-auto px-3 sm:px-4 py-2 flex items-center justify-between gap-2 sm:gap-4 flex-wrap">
+      <div className="w-full px-3 sm:px-5 py-2 flex items-center justify-between gap-2 sm:gap-4 flex-wrap">
         {/* LEFT: HimalSanket Brand + Corridor Picker + Hazard Indicator */}
         <div className="flex items-center gap-3">
           {/* Brand Emblem */}
