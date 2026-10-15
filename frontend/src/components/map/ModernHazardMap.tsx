@@ -240,8 +240,84 @@ export function ModernHazardMap({
     assetsLayerRef.current.clearLayers();
     hazardsLayerRef.current.clearLayers();
 
-    // A. CIVILIAN MODE: ONLY Safe Shelters
+    // Unified Specific Facility Icons for Civilian, SAR, and Command Admin
+    const getFacilityIconConfig = (asset: MapAsset) => {
+      let iconHtml = "";
+      let popupBadge = "";
+      let badgeColor = "";
+
+      if (asset.type === "hospital") {
+        popupBadge = "🏥 Health Post / Clinic";
+        badgeColor = "text-rose-600";
+        iconHtml = `
+          <div class="flex items-center justify-center w-7 h-7 rounded-full bg-rose-600 text-white shadow-md border-2 border-white ring-1 ring-rose-400 cursor-pointer hover:scale-110 transition-transform">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+          </div>
+        `;
+      } else if (asset.type === "school") {
+        popupBadge = "🏫 Evacuation Shelter / School";
+        badgeColor = "text-sky-700";
+        iconHtml = `
+          <div class="flex items-center justify-center w-7 h-7 rounded-lg bg-sky-700 text-white shadow-md border-2 border-white ring-1 ring-sky-400 cursor-pointer hover:scale-110 transition-transform">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
+              <path d="M6 12v5c3 3 9 3 12 0v-5"/>
+            </svg>
+          </div>
+        `;
+      } else if (asset.type === "people") {
+        popupBadge = `🏘️ Village (${asset.population || 50} Pax)`;
+        badgeColor = "text-indigo-700";
+        iconHtml = `
+          <div class="flex items-center justify-center w-7 h-7 rounded-full bg-indigo-700 text-white shadow-md border-2 border-white ring-1 ring-indigo-400 cursor-pointer hover:scale-110 transition-transform">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+              <circle cx="9" cy="7" r="4"/>
+              <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
+              <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+            </svg>
+          </div>
+        `;
+      } else if (asset.type === "safeZone") {
+        popupBadge = "🛡️ Safe Evac Zone";
+        badgeColor = "text-emerald-700";
+        iconHtml = `
+          <div class="flex items-center justify-center w-6 h-6 rounded-full bg-emerald-600 text-white shadow-sm border border-white cursor-pointer hover:scale-110 transition-transform">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+          </div>
+        `;
+      } else if (asset.type === "bridge") {
+        popupBadge = "🌉 River Bridge";
+        badgeColor = "text-amber-700";
+        iconHtml = `
+          <div class="flex items-center justify-center w-6 h-6 rounded-md bg-amber-600 text-white shadow-sm border border-white cursor-pointer hover:scale-110 transition-transform">
+            <span class="text-[10px] font-bold">═</span>
+          </div>
+        `;
+      } else if (asset.type === "dam") {
+        popupBadge = "🌊 Hydropower Dam / Spillway";
+        badgeColor = "text-cyan-700";
+        iconHtml = `
+          <div class="flex items-center justify-center w-6 h-6 rounded-md bg-cyan-700 text-white shadow-sm border border-white cursor-pointer hover:scale-110 transition-transform">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="6" width="18" height="12" rx="2"/>
+              <path d="M7 6v12M12 6v12M17 6v12"/>
+            </svg>
+          </div>
+        `;
+      }
+
+      return { iconHtml, popupBadge, badgeColor };
+    };
+
+    // A. CIVILIAN MODE: Safe Shelters, Bridges, Health Posts, Schools, and Landslide Hazards
     if (mode === "civilian") {
+      // 1. Safe Shelters
       const safeZones = assets.filter((a) => a.type === "safeZone");
       safeZones.forEach((sz) => {
         const icon = L.divIcon({
@@ -270,6 +346,49 @@ export function ModernHazardMap({
           </div>
         `);
         sheltersLayerRef.current?.addLayer(marker);
+      });
+
+      // 2. Bridges, Health Posts, and Schools for Civilian / Trekker Navigation
+      const civilianFacilities = assets.filter(
+        (a) => a.type === "bridge" || a.type === "hospital" || a.type === "school"
+      );
+      civilianFacilities.forEach((asset) => {
+        const { iconHtml, popupBadge, badgeColor } = getFacilityIconConfig(asset);
+        if (iconHtml) {
+          const icon = L.divIcon({
+            className: "custom-leaflet-icon",
+            html: iconHtml,
+            iconSize: [28, 28],
+            iconAnchor: [14, 14],
+          });
+          const marker = L.marker([asset.lat, asset.lng], { icon });
+          marker.bindPopup(`
+            <div class="p-2 min-w-[210px] font-sans">
+              <span class="text-[10px] font-mono ${badgeColor} font-bold block uppercase">${popupBadge}</span>
+              <strong class="text-sm text-slate-900 block mt-0.5">${asset.name}</strong>
+              <div class="text-xs text-slate-600 font-mono mt-1">Elev: ${asset.elevation}m ASL</div>
+              ${asset.contact ? `<div class="text-xs text-slate-700 font-medium mt-0.5">Contact: <strong>${asset.contact}</strong></div>` : ""}
+              ${asset.capacity ? `<div class="text-xs text-slate-700 font-medium">Capacity: <strong>${asset.capacity}</strong> persons</div>` : ""}
+              ${asset.hazardThresholdMeters ? `<div class="text-xs text-amber-700 font-medium">Flood Threshold: +${asset.hazardThresholdMeters}m surge</div>` : ""}
+              <p class="text-[11px] text-slate-500 mt-1 leading-snug">${asset.riskNote || asset.description || ""}</p>
+            </div>
+          `);
+          assetsLayerRef.current?.addLayer(marker);
+        }
+      });
+
+      // 3. Active Landslide Risk Zones
+      const landslides = CORRIDOR_LANDSLIDE_ZONES[corridor.id] || [];
+      landslides.forEach((lz) => {
+        const poly = L.polygon(lz.polygon, {
+          color: "#e11d48",
+          weight: 1.5,
+          fillColor: "#f43f5e",
+          fillOpacity: 0.18,
+          dashArray: "3, 5",
+        });
+        poly.bindTooltip(`⚠️ Landslide Risk: ${lz.name}`, { sticky: true });
+        hazardsLayerRef.current?.addLayer(poly);
       });
     }
 
@@ -357,81 +476,6 @@ export function ModernHazardMap({
         basesLayerRef.current?.addLayer(marker);
       });
 
-      // Helper: Unified Specific Facility Icons for SAR and Command Admin
-      const getFacilityIconConfig = (asset: MapAsset) => {
-        let iconHtml = "";
-        let popupBadge = "";
-        let badgeColor = "";
-
-        if (asset.type === "hospital") {
-          popupBadge = "🏥 Health Post / Clinic";
-          badgeColor = "text-rose-600";
-          iconHtml = `
-            <div class="flex items-center justify-center w-7 h-7 rounded-full bg-rose-600 text-white shadow-md border-2 border-white ring-1 ring-rose-400 cursor-pointer hover:scale-110 transition-transform">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-                <line x1="12" y1="5" x2="12" y2="19"></line>
-                <line x1="5" y1="12" x2="19" y2="12"></line>
-              </svg>
-            </div>
-          `;
-        } else if (asset.type === "school") {
-          popupBadge = "🏫 Evacuation Shelter / School";
-          badgeColor = "text-sky-700";
-          iconHtml = `
-            <div class="flex items-center justify-center w-7 h-7 rounded-lg bg-sky-700 text-white shadow-md border-2 border-white ring-1 ring-sky-400 cursor-pointer hover:scale-110 transition-transform">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
-                <path d="M6 12v5c3 3 9 3 12 0v-5"/>
-              </svg>
-            </div>
-          `;
-        } else if (asset.type === "people") {
-          popupBadge = `🏘️ Village (${asset.population || 50} Pax)`;
-          badgeColor = "text-indigo-700";
-          iconHtml = `
-            <div class="flex items-center justify-center w-7 h-7 rounded-full bg-indigo-700 text-white shadow-md border-2 border-white ring-1 ring-indigo-400 cursor-pointer hover:scale-110 transition-transform">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
-                <circle cx="9" cy="7" r="4"/>
-                <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
-                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-              </svg>
-            </div>
-          `;
-        } else if (asset.type === "safeZone") {
-          popupBadge = "🛡️ Safe Evac Zone";
-          badgeColor = "text-emerald-700";
-          iconHtml = `
-            <div class="flex items-center justify-center w-6 h-6 rounded-full bg-emerald-600 text-white shadow-sm border border-white cursor-pointer hover:scale-110 transition-transform">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="20 6 9 17 4 12"></polyline>
-              </svg>
-            </div>
-          `;
-        } else if (asset.type === "bridge") {
-          popupBadge = "🌉 River Bridge";
-          badgeColor = "text-amber-700";
-          iconHtml = `
-            <div class="flex items-center justify-center w-6 h-6 rounded-md bg-amber-600 text-white shadow-sm border border-white cursor-pointer hover:scale-110 transition-transform">
-              <span class="text-[10px] font-bold">═</span>
-            </div>
-          `;
-        } else if (asset.type === "dam") {
-          popupBadge = "🌊 Hydropower Dam / Spillway";
-          badgeColor = "text-cyan-700";
-          iconHtml = `
-            <div class="flex items-center justify-center w-6 h-6 rounded-md bg-cyan-700 text-white shadow-sm border border-white cursor-pointer hover:scale-110 transition-transform">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="3" y="6" width="18" height="12" rx="2"/>
-                <path d="M7 6v12M12 6v12M17 6v12"/>
-              </svg>
-            </div>
-          `;
-        }
-
-        return { iconHtml, popupBadge, badgeColor };
-      };
-
       // 3. Critical Facilities: Health Posts, Schools, Villages, and Shelters
       assets.forEach((asset) => {
         const { iconHtml, popupBadge, badgeColor } = getFacilityIconConfig(asset);
@@ -462,84 +506,9 @@ export function ModernHazardMap({
 
     // C. ADMIN MODE: Infrastructure Assets, Landslides, and Distress Markers
     if (mode === "admin") {
-      // Helper: Unified Specific Facility Icons for Admin Mode as well
-      const getAdminFacilityIcon = (asset: MapAsset) => {
-        let iconHtml = "";
-        let popupBadge = "";
-        let badgeColor = "";
-
-        if (asset.type === "hospital") {
-          popupBadge = "🏥 Health Post / Clinic";
-          badgeColor = "text-rose-600";
-          iconHtml = `
-            <div class="flex items-center justify-center w-7 h-7 rounded-full bg-rose-600 text-white shadow-md border-2 border-white ring-1 ring-rose-400 cursor-pointer hover:scale-110 transition-transform">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-                <line x1="12" y1="5" x2="12" y2="19"></line>
-                <line x1="5" y1="12" x2="19" y2="12"></line>
-              </svg>
-            </div>
-          `;
-        } else if (asset.type === "school") {
-          popupBadge = "🏫 Evacuation Shelter / School";
-          badgeColor = "text-sky-700";
-          iconHtml = `
-            <div class="flex items-center justify-center w-7 h-7 rounded-lg bg-sky-700 text-white shadow-md border-2 border-white ring-1 ring-sky-400 cursor-pointer hover:scale-110 transition-transform">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
-                <path d="M6 12v5c3 3 9 3 12 0v-5"/>
-              </svg>
-            </div>
-          `;
-        } else if (asset.type === "people") {
-          popupBadge = `🏘️ Village (${asset.population || 50} Pax)`;
-          badgeColor = "text-indigo-700";
-          iconHtml = `
-            <div class="flex items-center justify-center w-7 h-7 rounded-full bg-indigo-700 text-white shadow-md border-2 border-white ring-1 ring-indigo-400 cursor-pointer hover:scale-110 transition-transform">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
-                <circle cx="9" cy="7" r="4"/>
-                <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
-                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-              </svg>
-            </div>
-          `;
-        } else if (asset.type === "safeZone") {
-          popupBadge = "🛡️ Safe Evac Zone";
-          badgeColor = "text-emerald-700";
-          iconHtml = `
-            <div class="flex items-center justify-center w-6 h-6 rounded-full bg-emerald-600 text-white shadow-sm border border-white cursor-pointer hover:scale-110 transition-transform">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="20 6 9 17 4 12"></polyline>
-              </svg>
-            </div>
-          `;
-        } else if (asset.type === "bridge") {
-          popupBadge = "🌉 River Bridge";
-          badgeColor = "text-amber-700";
-          iconHtml = `
-            <div class="flex items-center justify-center w-6 h-6 rounded-md bg-amber-600 text-white shadow-sm border border-white cursor-pointer hover:scale-110 transition-transform">
-              <span class="text-[10px] font-bold">═</span>
-            </div>
-          `;
-        } else if (asset.type === "dam") {
-          popupBadge = "🌊 Hydropower Dam / Spillway";
-          badgeColor = "text-cyan-700";
-          iconHtml = `
-            <div class="flex items-center justify-center w-6 h-6 rounded-md bg-cyan-700 text-white shadow-sm border border-white cursor-pointer hover:scale-110 transition-transform">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="3" y="6" width="18" height="12" rx="2"/>
-                <path d="M7 6v12M12 6v12M17 6v12"/>
-              </svg>
-            </div>
-          `;
-        }
-
-        return { iconHtml, popupBadge, badgeColor };
-      };
-
-      // 1. Assets (Rendered with specific facility symbols identical to SAR)
+      // 1. Assets (Rendered with specific facility symbols identical to SAR and Civilian)
       assets.forEach((asset) => {
-        const { iconHtml, popupBadge, badgeColor } = getAdminFacilityIcon(asset);
+        const { iconHtml, popupBadge, badgeColor } = getFacilityIconConfig(asset);
 
         if (iconHtml) {
           const icon = L.divIcon({
@@ -698,10 +667,28 @@ export function ModernHazardMap({
           <span>River Channel</span>
         </span>
         {mode === "civilian" && (
-          <span className="flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-emerald-500" />
-            <span>Safe Shelter</span>
-          </span>
+          <>
+            <span className="flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-emerald-500" />
+              <span>Safe Shelter</span>
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-rose-500" />
+              <span>Health Posts</span>
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-sm bg-sky-600" />
+              <span>Schools</span>
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-sm bg-amber-600 flex items-center justify-center text-[7px] text-white font-bold leading-none">═</span>
+              <span>Bridges</span>
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="w-2.5 h-1.5 rounded-sm bg-rose-500/40 border border-rose-500" />
+              <span>Landslides</span>
+            </span>
+          </>
         )}
         {(mode === "rescuer" || mode === "admin") && (
           <>
