@@ -18,9 +18,16 @@
   
   --color-accent-cyan: #22D3EE;
   --color-accent-cyan-hover: #06B6D4;
+  
+  /* Semantic 4-Severity System */
+  --severity-safe: #22C55E;
+  --severity-moderate: #EAB308;
+  --severity-high: #F97316;
+  --severity-critical: #DC2626;
+
   --color-status-success: #22C55E;
-  --color-status-warning: #F5B942;
-  --color-status-danger: #F05252;
+  --color-status-warning: #EAB308;
+  --color-status-danger: #DC2626;
   
   --radius-card: 12px;
   --radius-control: 8px;
@@ -111,6 +118,22 @@
   .tabular-nums {
     font-variant-numeric: tabular-nums;
   }
+
+  /* 4 Semantic Severity Utilities */
+  .text-severity-safe { color: #22C55E; }
+  .text-severity-moderate { color: #EAB308; }
+  .text-severity-high { color: #F97316; }
+  .text-severity-critical { color: #DC2626; }
+
+  .bg-severity-safe { background-color: #22C55E; }
+  .bg-severity-moderate { background-color: #EAB308; }
+  .bg-severity-high { background-color: #F97316; }
+  .bg-severity-critical { background-color: #DC2626; }
+
+  .border-severity-safe { border-color: #22C55E; }
+  .border-severity-moderate { border-color: #EAB308; }
+  .border-severity-high { border-color: #F97316; }
+  .border-severity-critical { border-color: #DC2626; }
 }
 
 /* Custom Sleek Tactical Scrollbar */

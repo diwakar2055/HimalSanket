@@ -130,21 +130,21 @@ export function EmergencySosModal({
 
                 <div className="grid grid-cols-2 gap-2 text-[11px] font-mono">
                   <div>
-                    <span className="text-slate-500 block text-[9px]">CORRIDOR</span>
+                    <span className="text-slate-500 block text-[9px]">Corridor</span>
                     <strong className="text-white">{corridorName}</strong>
                   </div>
                   <div>
-                    <span className="text-slate-500 block text-[9px]">GPS COORDINATES</span>
+                    <span className="text-slate-500 block text-[9px]">GPS coordinates</span>
                     <strong className="text-cyan-300">
                       {lat.toFixed(4)}°N, {lng.toFixed(4)}°E
                     </strong>
                   </div>
                   <div>
-                    <span className="text-slate-500 block text-[9px]">ALTITUDE</span>
+                    <span className="text-slate-500 block text-[9px]">Altitude</span>
                     <strong className="text-white">{alt}m ASL</strong>
                   </div>
                   <div>
-                    <span className="text-slate-500 block text-[9px]">DESPATCH BASE</span>
+                    <span className="text-slate-500 block text-[9px]">Dispatch base</span>
                     <strong className="text-amber-300">APF Base 3 (Dhunche)</strong>
                   </div>
                 </div>
@@ -152,8 +152,8 @@ export function EmergencySosModal({
 
               {/* Incident Type Selector */}
               <div className="w-full text-left space-y-1">
-                <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-                  Emergency Nature
+                <label className="text-[11px] font-bold text-slate-400">
+                  Emergency nature
                 </label>
                 <select
                   value={incidentType}
@@ -177,9 +177,9 @@ export function EmergencySosModal({
                 </button>
                 <button
                   onClick={handleTriggerEmergency}
-                  className="flex-1 py-3 bg-rose-600 hover:bg-rose-500 text-white text-xs font-black uppercase tracking-wider rounded-2xl shadow-xl shadow-rose-600/40 transition-all cursor-pointer active:scale-95"
+                  className="flex-1 py-3 bg-[#DC2626] hover:bg-[#B91C1C] text-white text-xs font-bold rounded-2xl shadow-xl shadow-red-950/50 transition-all cursor-pointer active:scale-95"
                 >
-                  Send Immediately
+                  Send now
                 </button>
               </div>
             </div>

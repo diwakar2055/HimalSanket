@@ -73,15 +73,15 @@ export function IncidentQueueTable({
       {/* 1. Header Toolbar with Filter Tabs and Search Bar */}
       <div className="p-3 border-b border-[#27364B] bg-[#101A2A] flex flex-col sm:flex-row sm:items-center justify-between gap-3 shrink-0">
         <div className="flex items-center gap-2.5">
-          <div className="w-7 h-7 rounded-lg bg-rose-500/15 border border-rose-500/30 flex items-center justify-center text-rose-400 font-bold shadow-inner">
+          <div className="w-7 h-7 rounded-lg bg-rose-500/15 border border-[#DC2626]/40 flex items-center justify-center text-rose-400 font-bold shadow-inner">
             <ShieldAlert className="w-4 h-4 text-rose-400" />
           </div>
           <div>
-            <h3 className="text-xs font-black uppercase text-[#F8FAFC] tracking-wider flex items-center gap-2">
-              <span>SAR Distress Incidents Queue</span>
+            <h3 className="text-xs font-bold text-[#F8FAFC] tracking-wide flex items-center gap-2">
+              <span>Distress incident queue</span>
               {counts.pending > 0 && (
-                <span className="px-2 py-0.5 rounded-full text-[9px] font-mono font-bold bg-rose-500/20 text-rose-300 border border-rose-500/40 animate-pulse">
-                  {counts.pending} Urgent SOS
+                <span className="px-2 py-0.5 rounded-full text-[9px] font-mono font-bold bg-[#DC2626]/20 text-rose-300 border border-[#DC2626]/40 animate-pulse">
+                  {counts.pending} urgent SOS
                 </span>
               )}
             </h3>
@@ -108,7 +108,7 @@ export function IncidentQueueTable({
               onClick={() => setActiveTab("pending")}
               className={`px-2.5 py-1 rounded-md font-bold transition-colors cursor-pointer ${
                 activeTab === "pending"
-                  ? "bg-rose-600/90 text-white shadow-sm"
+                  ? "bg-[#DC2626] text-white shadow-sm"
                   : "text-[#A7B4C8] hover:text-[#F8FAFC]"
               }`}
             >
@@ -118,7 +118,7 @@ export function IncidentQueueTable({
               onClick={() => setActiveTab("dispatched")}
               className={`px-2.5 py-1 rounded-md font-bold transition-colors cursor-pointer ${
                 activeTab === "dispatched"
-                  ? "bg-amber-600/90 text-white shadow-sm"
+                  ? "bg-[#EAB308] text-slate-900 shadow-sm"
                   : "text-[#A7B4C8] hover:text-[#F8FAFC]"
               }`}
             >
@@ -128,7 +128,7 @@ export function IncidentQueueTable({
               onClick={() => setActiveTab("rescued")}
               className={`px-2.5 py-1 rounded-md font-bold transition-colors cursor-pointer ${
                 activeTab === "rescued"
-                  ? "bg-emerald-600/90 text-white shadow-sm"
+                  ? "bg-[#22C55E] text-white shadow-sm"
                   : "text-[#A7B4C8] hover:text-[#F8FAFC]"
               }`}
             >
@@ -221,12 +221,12 @@ export function IncidentQueueTable({
                     <td className="py-3 px-3 whitespace-nowrap">
                       <div className="flex items-center gap-2">
                         <span
-                          className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase font-mono border tabular-nums ${
+                          className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold font-mono border tabular-nums ${
                             beacon.priority >= 90
-                              ? "bg-rose-500/20 text-rose-300 border-rose-500/50"
+                              ? "bg-[#DC2626]/20 text-rose-300 border-[#DC2626]/50"
                               : beacon.priority >= 70
-                              ? "bg-orange-500/20 text-orange-300 border-orange-500/50"
-                              : "bg-amber-500/20 text-amber-300 border-amber-500/50"
+                              ? "bg-[#F97316]/20 text-orange-300 border-[#F97316]/50"
+                              : "bg-[#EAB308]/20 text-amber-300 border-[#EAB308]/50"
                           }`}
                         >
                           {beacon.priority}% SOS
@@ -237,19 +237,19 @@ export function IncidentQueueTable({
                     {/* 5. Evac Status */}
                     <td className="py-3 px-3 whitespace-nowrap">
                       {isPending && (
-                        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-500/20 text-rose-300 border border-rose-500/40 animate-pulse">
-                          <span className="w-1.5 h-1.5 rounded-full bg-rose-400" />
-                          Pending Evac
+                        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#DC2626]/20 text-rose-300 border border-[#DC2626]/40 animate-pulse">
+                          <span className="w-1.5 h-1.5 rounded-full bg-[#DC2626]" />
+                          Pending evac
                         </span>
                       )}
                       {isDispatched && (
-                        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40">
+                        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#EAB308]/20 text-amber-300 border border-[#EAB308]/40">
                           <Plane className="w-3 h-3 text-amber-400" />
-                          {beacon.assignedUnit || "SAR Team En-Route"}
+                          {beacon.assignedUnit || "SAR team en-route"}
                         </span>
                       )}
                       {isRescued && (
-                        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
+                        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#22C55E]/20 text-emerald-300 border border-[#22C55E]/40">
                           <CheckCircle2 className="w-3 h-3 text-emerald-400" />
                           Extracted
                         </span>

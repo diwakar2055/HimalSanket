@@ -14,6 +14,7 @@ import {
   Sparkles,
   SlidersHorizontal,
   Compass,
+  CloudRain,
 } from "lucide-react";
 
 interface TelemetryMetricsSidebarProps {
@@ -45,36 +46,36 @@ interface TelemetryMetricsSidebarProps {
 
 const TIER_STYLES = {
   Low: {
-    badge: "bg-emerald-950/40 text-emerald-300 border-emerald-500/40",
+    badge: "bg-[#22C55E]/15 text-[#22C55E] border-[#22C55E]/40",
     gauge: "#22C55E",
     gradientFrom: "#22C55E",
     gradientTo: "#34D399",
-    label: "LOW RISK",
+    label: "Safe baseline",
     subtext: "Hydrological & seismic telemetry within nominal safety envelopes.",
   },
   Moderate: {
-    badge: "bg-amber-950/40 text-amber-300 border-amber-500/40",
-    gauge: "#F5B942",
-    gradientFrom: "#F5B942",
+    badge: "bg-[#EAB308]/15 text-[#EAB308] border-[#EAB308]/40",
+    gauge: "#EAB308",
+    gradientFrom: "#EAB308",
     gradientTo: "#FBBF24",
-    label: "MODERATE WATCH",
+    label: "Moderate watch",
     subtext: "Elevated monsoon runoff detected. Helipads and ground squads on standby.",
   },
   High: {
-    badge: "bg-orange-950/40 text-orange-300 border-orange-500/40",
-    gauge: "#FB923C",
-    gradientFrom: "#EA580C",
+    badge: "bg-[#F97316]/15 text-[#F97316] border-[#F97316]/40",
+    gauge: "#F97316",
+    gradientFrom: "#F97316",
     gradientTo: "#FB923C",
-    label: "HIGH ALERT",
+    label: "Elevated risk",
     subtext: "Heavy precipitation & moraine dam destabilization warning active.",
   },
   Critical: {
-    badge: "bg-rose-950/60 text-rose-300 border-rose-500/60 animate-pulse",
-    gauge: "#F05252",
-    gradientFrom: "#E11D48",
+    badge: "bg-[#DC2626]/20 text-[#DC2626] border-[#DC2626]/60 animate-pulse",
+    gauge: "#DC2626",
+    gradientFrom: "#DC2626",
     gradientTo: "#FDA4AF",
-    label: "CRITICAL THREAT",
-    subtext: "GLOF Outburst or flash debris surge imminent. Immediate gorge evacuation active.",
+    label: "Critical threat",
+    subtext: "GLOF outburst or flash debris surge imminent. Immediate gorge evacuation active.",
   },
 };
 
@@ -275,7 +276,8 @@ export function TelemetryMetricsSidebar({
             <div>
               <div className="flex justify-between text-[10px] text-[#A7B4C8] mb-1 font-mono">
                 <span className="flex items-center gap-1.5 text-[#F8FAFC]">
-                  <span>🌧️</span> <span>Rainfall Runoff</span>
+                  <CloudRain className="w-3.5 h-3.5 text-cyan-400" />
+                  <span>Rainfall runoff</span>
                 </span>
                 <span className="text-cyan-300 font-bold tabular-nums">
                   {corridor.rainfall || 0} / {rainThreshold} mm
@@ -293,7 +295,8 @@ export function TelemetryMetricsSidebar({
             <div>
               <div className="flex justify-between text-[10px] text-[#A7B4C8] mb-1 font-mono">
                 <span className="flex items-center gap-1.5 text-[#F8FAFC]">
-                  <span>⚡</span> <span>Seismic Tremor</span>
+                  <Activity className="w-3.5 h-3.5 text-[#EAB308]" />
+                  <span>Seismic tremor</span>
                 </span>
                 <span className="text-amber-300 font-bold tabular-nums">{seismicMag} M_L</span>
               </div>
@@ -309,7 +312,8 @@ export function TelemetryMetricsSidebar({
             <div>
               <div className="flex justify-between text-[10px] text-[#A7B4C8] mb-1 font-mono">
                 <span className="flex items-center gap-1.5 text-[#F8FAFC]">
-                  <span>🛰️</span> <span>Glacial Lake Swell</span>
+                  <Satellite className="w-3.5 h-3.5 text-blue-400" />
+                  <span>Glacial lake swell</span>
                 </span>
                 <span className="text-indigo-300 font-bold tabular-nums">+{lakeChange}%</span>
               </div>

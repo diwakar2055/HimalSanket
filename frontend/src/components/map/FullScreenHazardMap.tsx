@@ -75,9 +75,21 @@ const DARK_MAP_STYLES: google.maps.MapTypeStyle[] = [
     stylers: [{ color: "#38bdf8" }],
   },
   {
-    featureType: "poi",
+    featureType: "administrative.land_parcel",
+    stylers: [{ visibility: "off" }],
+  },
+  {
+    featureType: "poi.business",
+    stylers: [{ visibility: "off" }],
+  },
+  {
+    featureType: "poi.attraction",
+    stylers: [{ visibility: "off" }],
+  },
+  {
+    featureType: "poi.medical",
     elementType: "labels.text.fill",
-    stylers: [{ color: "#0284c7" }],
+    stylers: [{ color: "#22c55e" }],
   },
   {
     featureType: "poi.park",
@@ -85,19 +97,23 @@ const DARK_MAP_STYLES: google.maps.MapTypeStyle[] = [
     stylers: [{ color: "#062828" }],
   },
   {
+    featureType: "poi.park",
+    elementType: "labels.text.fill",
+    stylers: [{ color: "#2dd4bf" }],
+  },
+  {
     featureType: "road",
     elementType: "geometry",
     stylers: [{ color: "#1e293b" }],
   },
   {
-    featureType: "road",
-    elementType: "geometry.stroke",
-    stylers: [{ color: "#0f172a" }],
+    featureType: "road.local",
+    elementType: "labels",
+    stylers: [{ visibility: "off" }],
   },
   {
-    featureType: "road.highway",
-    elementType: "geometry",
-    stylers: [{ color: "#2563eb" }, { lightness: -40 }],
+    featureType: "transit",
+    stylers: [{ visibility: "off" }],
   },
   {
     featureType: "water",
@@ -696,7 +712,7 @@ export function FullScreenHazardMap({
               distressBeacons.map((beacon) => {
                 const isCritical = beacon.priority >= 90;
                 const isRescued = beacon.status === "rescued";
-                const color = isRescued ? "bg-emerald-600" : isCritical ? "bg-rose-600" : "bg-amber-600";
+                const color = isRescued ? "bg-[#22C55E]" : isCritical ? "bg-[#DC2626]" : "bg-[#EAB308]";
                 const isSelected = activeBeacon?.id === beacon.id;
 
                 return (
@@ -716,7 +732,7 @@ export function FullScreenHazardMap({
                         <>
                           <div
                             className={`absolute -inset-3 rounded-full opacity-70 animate-ping ${
-                              isCritical ? "bg-rose-500" : "bg-amber-500"
+                              isCritical ? "bg-[#DC2626]" : "bg-[#EAB308]"
                             }`}
                           />
                           {isSelected && (
@@ -727,7 +743,7 @@ export function FullScreenHazardMap({
                       <div
                         className={`w-9 h-9 rounded-full ${color} border-2 border-white flex items-center justify-center text-white font-black text-xs transition-all ${
                           isSelected
-                            ? "ring-4 ring-rose-400 ring-offset-2 ring-offset-black shadow-[0_0_25px_rgba(244,63,94,0.9)] animate-bounce"
+                            ? "ring-4 ring-rose-400 ring-offset-2 ring-offset-black shadow-[0_0_25px_rgba(220,38,38,0.9)] animate-bounce"
                             : "shadow-2xl"
                         }`}
                       >
@@ -763,7 +779,7 @@ export function FullScreenHazardMap({
                 >
                   <div className="flex items-center justify-center cursor-pointer hover:scale-110 transition-transform">
                     <div className="w-7 h-7 rounded-lg bg-emerald-600 border-2 border-white shadow-lg flex items-center justify-center text-white text-xs font-bold">
-                      🚁
+                      <Radio className="w-3.5 h-3.5 text-white" />
                     </div>
                   </div>
                 </AdvancedMarker>
@@ -789,11 +805,11 @@ export function FullScreenHazardMap({
                     <div
                       className={`w-6 h-6 rounded-full flex items-center justify-center text-[11px] shadow-md border ${
                         isSafe
-                          ? "bg-emerald-600 border-emerald-300 text-white"
+                          ? "bg-[#22C55E] border-emerald-300 text-white"
                           : "bg-blue-600 border-blue-300 text-white"
                       }`}
                     >
-                      {isSafe ? "🛡️" : "📍"}
+                      {isSafe ? <Shield className="w-3 h-3 text-white" /> : <MapPin className="w-3 h-3 text-white" />}
                     </div>
                   </div>
                 </AdvancedMarker>
@@ -930,13 +946,13 @@ export function FullScreenHazardMap({
           <span className="text-[#A7B4C8] text-[11px]">({safeCorridor.region})</span>
           {geofenceStatus && (
             <span
-              className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase ${
+              className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
                 geofenceStatus === "DANGER"
-                  ? "bg-rose-500/20 text-rose-300 border border-rose-500/50 animate-pulse"
-                  : "bg-emerald-500/20 text-emerald-300 border border-emerald-500/50"
+                  ? "bg-[#DC2626]/20 text-rose-300 border border-[#DC2626]/50 animate-pulse"
+                  : "bg-[#22C55E]/20 text-emerald-300 border border-[#22C55E]/50"
               }`}
             >
-              {geofenceStatus === "DANGER" ? "⚠️ Danger Zone" : "🟢 Safe Haven"}
+              {geofenceStatus === "DANGER" ? "Danger zone" : "Safe zone"}
             </span>
           )}
         </div>
@@ -945,7 +961,7 @@ export function FullScreenHazardMap({
         {distanceToHazard !== null && distanceToHazard !== undefined && (
           <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#101A2A]/85 backdrop-blur-md border border-[#27364B] text-[11px] text-[#A7B4C8] shadow-md">
             <Compass className="w-3.5 h-3.5 text-cyan-400" />
-            <span>Hazard Distance:</span>
+            <span>Hazard distance:</span>
             <strong className="text-[#F8FAFC] font-mono">{distanceToHazard}m</strong>
           </div>
         )}
@@ -988,7 +1004,7 @@ export function FullScreenHazardMap({
             }`}
             title="Pure Photorealistic Satellite Imagery"
           >
-            <span className="text-xs">🛰️</span>
+            <Satellite className="w-3.5 h-3.5" />
             <span className="hidden md:inline">Satellite</span>
           </button>
           <button

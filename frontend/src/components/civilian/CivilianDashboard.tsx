@@ -317,15 +317,86 @@ export function CivilianDashboard({
       >
         <div className="flex-1 flex flex-col min-h-0 bg-[#101A2A] overflow-hidden">
           {/* COMPACT UNIFIED SAFETY & SOS COMMAND BAR */}
-          <div className="p-3 bg-[#080E19] border-b border-[#27364B] flex flex-col gap-2 shrink-0">
-            {/* Transparent Status Disclosure Row */}
+          <div className="p-3 bg-[#080E19] border-b border-[#27364B] flex flex-col gap-2.5 shrink-0">
+            {/* 1. Primary Emergency SOS Action (Most Prominent Interactive Element) */}
+            <div className="flex items-center gap-2">
+              {sosSuccess ? (
+                <div className="flex-1 py-3 px-4 rounded-xl bg-emerald-950/80 border border-emerald-500/60 text-emerald-200 text-xs font-bold flex items-center justify-between shadow-lg">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
+                    <span>Distress active. APF rescue squad dispatched.</span>
+                  </div>
+                  <span className="text-[10px] font-mono text-emerald-300 font-semibold px-2 py-0.5 rounded bg-emerald-900/60">Active</span>
+                </div>
+              ) : sosCountdown !== null ? (
+                /* Active 3-Second Countdown Valve */
+                <div className="flex-1 py-2 px-3 rounded-xl bg-rose-950/90 border-2 border-[#DC2626] flex items-center justify-between gap-2 shadow-2xl">
+                  <div className="flex items-center gap-2.5 text-xs font-bold text-rose-200">
+                    <span className="w-7 h-7 rounded-full bg-[#DC2626] text-white flex items-center justify-center font-mono font-black text-xs animate-ping">
+                      {sosCountdown}
+                    </span>
+                    <span>Broadcasting SOS in {sosCountdown}s...</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      onClick={cancelSosCountdown}
+                      className="px-3 py-1.5 rounded-lg bg-[#152238] hover:bg-[#1E2D48] text-[#F8FAFC] border border-[#27364B] text-xs font-bold cursor-pointer transition-colors"
+                      title="Abort SOS alert"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={() => {
+                        if (countdownTimerRef.current) clearTimeout(countdownTimerRef.current);
+                        setSosCountdown(null);
+                        handleConfirmSOS();
+                      }}
+                      className="px-3 py-1.5 rounded-lg bg-[#DC2626] hover:bg-rose-500 text-white text-xs font-extrabold cursor-pointer transition-colors shadow-md"
+                      title="Bypass countdown and transmit immediately"
+                    >
+                      Send now
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                /* Primary Emergency SOS Button (Generous Touch Target, Maximum Contrast) */
+                <button
+                  onClick={startSosCountdown}
+                  className="flex-1 py-3.5 px-4 rounded-xl bg-[#DC2626] hover:bg-[#B91C1C] active:scale-[0.98] text-white font-extrabold text-sm shadow-xl shadow-red-950/60 flex items-center justify-center gap-2.5 cursor-pointer transition-all border border-red-400/50 focus-visible:ring-2 focus-visible:ring-red-400 focus:outline-none"
+                  title="Send emergency SOS alert (with 3-second safeguard countdown)"
+                >
+                  <Radio className="w-4 h-4 text-white animate-pulse" />
+                  <span>Send SOS alert</span>
+                </button>
+              )}
+
+              {/* Voice Note Modal Trigger (Secondary) */}
+              <button
+                onClick={() => setIsVoiceModalOpen(true)}
+                className="py-3.5 px-3 rounded-xl bg-[#101A2A] hover:bg-[#152238] text-[#A7B4C8] hover:text-[#F8FAFC] border border-[#27364B] text-xs font-semibold flex items-center gap-1.5 cursor-pointer transition-colors shadow-sm focus-visible:ring-2 focus-visible:ring-cyan-400 focus:outline-none"
+                title="Record ground voice note"
+              >
+                <Mic className="w-4 h-4 text-cyan-400" />
+                <span className="hidden sm:inline">Voice note</span>
+              </button>
+            </div>
+
+            {/* Cancelled Notice Feedback */}
+            {sosCancelledNotice && (
+              <div className="text-[11px] text-amber-300 bg-amber-950/40 border border-amber-500/30 px-2.5 py-1 rounded-lg flex items-center gap-1.5">
+                <AlertCircle className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                <span>SOS transmission cancelled. No alert was sent.</span>
+              </div>
+            )}
+
+            {/* 2. Transparent Status & Refuge Disclosure Row */}
             <div className="flex items-center justify-between gap-2 text-xs">
               {/* Status Badge */}
               <div
                 className={`flex-1 flex items-center gap-2 px-3 py-1.5 rounded-xl border text-[11px] font-medium ${
                   isDanger
-                    ? "bg-rose-950/40 border-rose-500/50 text-rose-300 animate-pulse"
-                    : "bg-[#101A2A] border-emerald-500/40 text-emerald-300"
+                    ? "bg-[#DC2626]/20 border-[#DC2626]/50 text-rose-200 animate-pulse"
+                    : "bg-[#22C55E]/15 border-[#22C55E]/40 text-emerald-200"
                 }`}
               >
                 {isDanger ? (
@@ -334,13 +405,13 @@ export function CivilianDashboard({
                   <Shield className="w-4 h-4 text-emerald-400 shrink-0" />
                 )}
                 <div>
-                  <div className="font-bold uppercase tracking-wide text-[10px]">
-                    {isDanger ? "THREAT ZONE: MOVE UPHILL" : "MONITORED BASELINE"}
+                  <div className="font-bold tracking-wide text-[10px]">
+                    {isDanger ? "Threat zone: move uphill" : "Monitored baseline"}
                   </div>
                   <div className="text-[9px] text-[#A7B4C8]">
                     {isDanger
-                      ? `~${formatDistanceDisplay(distanceToHazard)} from river bed surge`
-                      : `No active surge anomalies detected (~${formatDistanceDisplay(distanceToHazard)} buffer)`}
+                      ? `~${formatDistanceDisplay(distanceToHazard)} from river surge channel`
+                      : `No active surge anomalies detected (~${formatDistanceDisplay(distanceToHazard)} buffer). Baseline does not guarantee zero risk.`}
                   </div>
                 </div>
               </div>
@@ -358,77 +429,6 @@ export function CivilianDashboard({
                 </div>
               )}
             </div>
-
-            {/* Apple-Style Safeguarded SOS Action & Cancel Valve */}
-            <div className="flex items-center gap-2">
-              {sosSuccess ? (
-                <div className="flex-1 py-2 px-3 rounded-xl bg-emerald-950/60 border border-emerald-500/50 text-emerald-200 text-xs font-bold flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                    <span>Distress Active! APF SAR Squad Dispatched.</span>
-                  </div>
-                  <span className="text-[10px] font-mono text-emerald-400 font-normal">Active</span>
-                </div>
-              ) : sosCountdown !== null ? (
-                /* Active 3-Second Countdown Valve */
-                <div className="flex-1 py-1.5 px-2.5 rounded-xl bg-rose-950/80 border-2 border-rose-500 flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-2 text-xs font-bold text-rose-300">
-                    <span className="w-6 h-6 rounded-full bg-rose-600 text-white flex items-center justify-center font-mono font-black text-xs animate-ping">
-                      {sosCountdown}
-                    </span>
-                    <span>Broadcasting SOS in {sosCountdown}s...</span>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <button
-                      onClick={cancelSosCountdown}
-                      className="px-2.5 py-1 rounded-lg bg-[#152238] hover:bg-[#1E2D48] text-[#F8FAFC] border border-[#27364B] text-[11px] font-bold cursor-pointer transition-colors"
-                      title="Abort SOS Broadcast"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      onClick={() => {
-                        if (countdownTimerRef.current) clearTimeout(countdownTimerRef.current);
-                        setSosCountdown(null);
-                        handleConfirmSOS();
-                      }}
-                      className="px-2.5 py-1 rounded-lg bg-rose-600 hover:bg-rose-500 text-white text-[11px] font-extrabold cursor-pointer transition-colors"
-                      title="Bypass countdown and transmit immediately"
-                    >
-                      Send Now
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                /* Primary Emergency SOS Button */
-                <button
-                  onClick={startSosCountdown}
-                  className="flex-1 py-2 px-3 rounded-xl bg-gradient-to-r from-rose-600 to-red-700 hover:from-rose-500 hover:to-red-600 active:scale-98 text-white font-extrabold text-xs shadow-md flex items-center justify-center gap-2 cursor-pointer transition-all border border-rose-400/40"
-                  title="Initiate Emergency Distress Broadcast (with 3-second safeguard countdown)"
-                >
-                  <Radio className="w-3.5 h-3.5 text-white animate-pulse" />
-                  <span>EMERGENCY SOS DISTRESS</span>
-                </button>
-              )}
-
-              {/* Voice Note Modal Trigger */}
-              <button
-                onClick={() => setIsVoiceModalOpen(true)}
-                className="p-2 px-2.5 rounded-xl bg-[#152238] hover:bg-[#1E2D48] text-cyan-400 border border-[#27364B] text-xs font-bold flex items-center gap-1.5 cursor-pointer transition-colors shadow-sm"
-                title="Record Ground SITREP Voice Note"
-              >
-                <Mic className="w-3.5 h-3.5" />
-                <span className="text-[11px] hidden sm:inline">Voice Note</span>
-              </button>
-            </div>
-
-            {/* Cancelled Notice Feedback */}
-            {sosCancelledNotice && (
-              <div className="text-[11px] text-amber-300 bg-amber-950/40 border border-amber-500/30 px-2.5 py-1 rounded-lg flex items-center gap-1.5">
-                <AlertCircle className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-                <span>SOS transmission cancelled. No alert was sent.</span>
-              </div>
-            )}
           </div>
 
           {/* VIEW SUB-TABS: AI Safety Copilot vs Refuge Directory */}

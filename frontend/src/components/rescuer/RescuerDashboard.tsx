@@ -95,13 +95,13 @@ export function RescuerDashboard({
           <div className="p-3.5 border-b border-[#27364B] bg-[#080E19] flex items-center justify-between shrink-0">
             <div className="flex items-center gap-2.5">
               <div className="w-8 h-8 rounded-xl bg-amber-500/20 border border-amber-500/40 text-amber-400 flex items-center justify-center font-bold text-sm">
-                🚁
+                <Radio className="w-4 h-4 text-amber-400" />
               </div>
               <div>
-                <div className="text-xs font-black text-amber-400 uppercase tracking-wide flex items-center gap-2">
-                  <span>SAR Tactical Command</span>
+                <div className="text-xs font-bold text-amber-400 tracking-wide flex items-center gap-2">
+                  <span>SAR tactical command</span>
                   {pendingCount > 0 && (
-                    <span className="w-2 h-2 rounded-full bg-rose-500 animate-ping inline-block" />
+                    <span className="w-2 h-2 rounded-full bg-[#DC2626] animate-ping inline-block" />
                   )}
                 </div>
                 <div className="text-[10px] text-[#A7B4C8] font-mono">

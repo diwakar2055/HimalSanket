@@ -226,12 +226,12 @@ export function AdminCommandDashboard({
               {/* Sleek Command Frame Bar */}
               <div className="px-3 py-1.5 bg-[#080E19] border-b border-[#27364B] flex items-center justify-between gap-2 shrink-0 z-10">
                 <div className="flex items-center gap-2">
-                  <span className="text-[11px] font-black uppercase text-white tracking-wider flex items-center gap-1.5">
+                  <span className="text-[11px] font-bold text-white tracking-wide flex items-center gap-1.5">
                     <span className="w-2 h-2 rounded-full bg-cyan-400 inline-block" />
-                    <span>GIS Tactical Operations Map</span>
+                    <span>Tactical operations map</span>
                   </span>
                   <span className="text-[10px] text-[#A7B4C8] font-mono hidden sm:inline">
-                    • 3D Digital Elevation Model
+                    • 3D elevation model
                   </span>
                 </div>
 
