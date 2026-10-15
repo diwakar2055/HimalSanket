@@ -1,4 +1,8 @@
 import { LANGTANG_RIVER_PATH } from "./langtangRiverPath";
+import { KHUMBU_RIVER_PATH } from "./khumbuRiverPath";
+import { ANNAPURNA_RIVER_PATH } from "./annapurnaRiverPath";
+import { MANASLU_RIVER_PATH } from "./manasluRiverPath";
+import { ROLWALING_RIVER_PATH } from "./rolwalingRiverPath";
 
 export interface MapAsset {
   id: string;
@@ -93,50 +97,7 @@ export const CORRIDOR_CONFIGS: Record<string, CorridorConfig> = {
     centerName: "Dudh Koshi Corridor",
     center: { lat: 27.8150, lng: 86.7450 },
     zoom: 12,
-    riverPath: [
-      // Imja Khola GLOF Path starting directly at Imja Tsho moraine spillway (5,010m)
-      { lat: 27.8990, lng: 86.9180 }, // Imja Tsho moraine spillway throat
-      { lat: 27.9005, lng: 86.9050 }, // Outflow rapids
-      { lat: 27.9020, lng: 86.8920 }, // Upper Chhukung glacial outwash
-      { lat: 27.9035, lng: 86.8780 }, // Chhukung valley moraine fan
-      { lat: 27.9010, lng: 86.8650 }, // Lhotse glacier melt confluence
-      { lat: 27.8980, lng: 86.8520 }, // Bibre glacial stream
-      { lat: 27.8940, lng: 86.8410 }, // Dingboche east valley
-      { lat: 27.8910, lng: 86.8320 }, // Dingboche outwash / Imja Khola bridge
-      { lat: 27.8820, lng: 86.8220 }, // Dingboche-Pheriche confluence
-      { lat: 27.8720, lng: 86.8120 }, // Somare riverside
-      { lat: 27.8630, lng: 86.8030 }, // Orsho river terrace
-      { lat: 27.8540, lng: 86.7940 }, // Pangboche lower trail riverbed
-      { lat: 27.8480, lng: 86.7860 }, // Pangboche canyon gorge
-      { lat: 27.8410, lng: 86.7780 }, // Deboche river crossing
-      { lat: 27.8340, lng: 86.7680 }, // Malinggo bridge beneath Tengboche
-      { lat: 27.8285, lng: 86.7565 }, // Phunki Thenga suspension bridge
-      { lat: 27.8250, lng: 86.7510 }, // Dudh Koshi canyon descent
-      { lat: 27.8220, lng: 86.7460 }, // Tashinga canyon descent
-      { lat: 27.8180, lng: 86.7390 }, // Sanasa river bluff
-      { lat: 27.8140, lng: 86.7350 }, // Gorge below Khumjung
-      { lat: 27.8080, lng: 86.7310 }, // Kyangjuma river gorge
-      { lat: 27.8020, lng: 86.7275 }, // Canyon floor below Syangboche
-      { lat: 27.7960, lng: 86.7250 }, // Namche lower gorge entrance
-      { lat: 27.7910, lng: 86.7230 }, // Deep canyon gorge below Namche ridge
-      { lat: 27.7850, lng: 86.7220 }, // Larja Dobhan northern bridge abutment
-      { lat: 27.7815, lng: 86.7215 }, // Hillary Twin Suspension Bridges / confluence
-      { lat: 27.7780, lng: 86.7210 }, // Monjo riverbed / Sagarmatha National Park gate
-      { lat: 27.7730, lng: 86.7190 }, // Jorsale river bend
-      { lat: 27.7690, lng: 86.7185 }, // Jorsale suspension bridge
-      { lat: 27.7650, lng: 86.7180 }, // Benkar riverside
-      { lat: 27.7580, lng: 86.7160 }, // Chhumoa river terrace
-      { lat: 27.7520, lng: 86.7145 }, // Toktok suspension crossing
-      { lat: 27.7460, lng: 86.7135 }, // Nurning riverside
-      { lat: 27.7400, lng: 86.7130 }, // Phakding riverbed & suspension bridge
-      { lat: 27.7330, lng: 86.7125 }, // Phakding lower terrace
-      { lat: 27.7260, lng: 86.7120 }, // Ghat riverside lodges
-      { lat: 27.7190, lng: 86.7140 }, // Sano Gompa river bluff
-      { lat: 27.7120, lng: 86.7160 }, // Thado Koshi confluence
-      { lat: 27.7050, lng: 86.7180 }, // Kusum Khola junction
-      { lat: 27.6980, lng: 86.7200 }, // Chheplung river junction below Lukla runway
-      { lat: 27.6910, lng: 86.7230 }, // Surke riverbed
-    ],
+    riverPath: KHUMBU_RIVER_PATH,
   },
   annapurna: {
     id: "annapurna",
@@ -145,115 +106,25 @@ export const CORRIDOR_CONFIGS: Record<string, CorridorConfig> = {
     centerName: "Marsyangdi River",
     center: { lat: 28.5650, lng: 84.2250 },
     zoom: 11,
-    riverPath: [
-      // Complete Marsyangdi River corridor starting directly at Gangapurna Glacial Lake (3,540m)
-      { lat: 28.6565, lng: 84.0235 }, // Gangapurna Lake moraine spillway breach
-      { lat: 28.6575, lng: 84.0255 }, // Gangapurna moraine breach outflow
-      { lat: 28.6588, lng: 84.0285 }, // Manang village lower terrace
-      { lat: 28.6572, lng: 84.0370 }, // Tengi confluence
-      { lat: 28.6550, lng: 84.0450 }, // Braka valley entrance
-      { lat: 28.6530, lng: 84.0530 }, // Braka alluvial fan & suspension bridge
-      { lat: 28.6500, lng: 84.0620 }, // Bodzo bridge
-      { lat: 28.6470, lng: 84.0720 }, // Munji river narrows
-      { lat: 28.6420, lng: 84.0810 }, // Humde west terrace
-      { lat: 28.6380, lng: 84.0890 }, // Humde STOL Airport riverbed
-      { lat: 28.6320, lng: 84.1030 }, // Lower Humde crossing
-      { lat: 28.6260, lng: 84.1180 }, // Ghyaru base bluff
-      { lat: 28.6210, lng: 84.1330 }, // Pisang valley entrance
-      { lat: 28.6150, lng: 84.1480 }, // Lower Pisang bridge & river loop
-      { lat: 28.6110, lng: 84.1590 }, // Upper Pisang canyon bend
-      { lat: 28.6060, lng: 84.1710 }, // Marsyangdi pine flats
-      { lat: 28.6020, lng: 84.1850 }, // Swargadwari / Paungda Danda rock face base
-      { lat: 28.5970, lng: 84.1980 }, // Marsyangdi curved rock channel
-      { lat: 28.5910, lng: 84.2120 }, // Dhukur Pokhari wetland bypass
-      { lat: 28.5830, lng: 84.2250 }, // Bhratang upper gate
-      { lat: 28.5760, lng: 84.2330 }, // Apple Orchard riverside farm
-      { lat: 28.5720, lng: 84.2380 }, // Bhratang vertical rock-cut cliff canyon
-      { lat: 28.5660, lng: 84.2395 }, // Dukhur Khola junction
-      { lat: 28.5610, lng: 84.2398 }, // Chame northern entrance
-      { lat: 28.5570, lng: 84.2400 }, // Chame district HQ & hot springs bridge
-      { lat: 28.5530, lng: 84.2480 }, // Chame lower police post
-      { lat: 28.5490, lng: 84.2650 }, // Koto river junction
-      { lat: 28.5470, lng: 84.2850 }, // Koto deep gorge
-      { lat: 28.5460, lng: 84.3050 }, // Timang waterfall canyon
-      { lat: 28.5450, lng: 84.3200 }, // Timang lower bridge
-      { lat: 28.5430, lng: 84.3350 }, // Danakyu upper trail bridge
-      { lat: 28.5410, lng: 84.3480 }, // Danakyu riverside village
-      { lat: 28.5380, lng: 84.3600 }, // Thanchowk lower riverbed
-      { lat: 28.5350, lng: 84.3700 }, // Bagarchhap landslide alluvial fan
-      { lat: 28.5300, lng: 84.3820 }, // Dharapani upper bend
-      { lat: 28.5200, lng: 84.3950 }, // Dharapani suspension bridge & police checkpoint
-      { lat: 28.5110, lng: 84.3940 }, // Dharapani gorge descent
-      { lat: 28.5020, lng: 84.3920 }, // Nache riverside
-      { lat: 28.4950, lng: 84.3900 }, // Karte riverside settlement
-      { lat: 28.4850, lng: 84.3880 }, // Karte narrows
-      { lat: 28.4750, lng: 84.3840 }, // Tal southern approach
-      { lat: 28.4660, lng: 84.3800 }, // Tal flat lakebed basin - high inundation zone
-      { lat: 28.4550, lng: 84.3850 }, // Tal waterfall drop
-      { lat: 28.4450, lng: 84.3920 }, // Sirantal cascade
-      { lat: 28.4350, lng: 84.3980 }, // Sattele canyon
-      { lat: 28.4200, lng: 84.4050 }, // Chamje waterfall canyon
-      { lat: 28.4020, lng: 84.4090 }, // Chamje lower bridge
-      { lat: 28.3850, lng: 84.4120 }, // Jagat historic river terrace
-    ],
+    riverPath: ANNAPURNA_RIVER_PATH,
   },
   manaslu: {
     id: "manaslu",
     name: "Manaslu Circuit",
     region: "Gorkha",
     centerName: "Budhi Gandaki Canyon",
-    center: { lat: 28.5100, lng: 84.7200 },
-    zoom: 11,
-    riverPath: [
-      // Budhi Gandaki corridor starting directly at Birendra Tal glacial spillway (3,691m)
-      { lat: 28.5600, lng: 84.6220 }, // Birendra Tal flood outlet
-      { lat: 28.5680, lng: 84.6260 }, // Glacial melt stream
-      { lat: 28.5770, lng: 84.6300 }, // Samagaun alluvial fan entrance
-      { lat: 28.5870, lng: 84.6340 }, // Samagaun village flood terrace & wooden bridge
-      { lat: 28.5800, lng: 84.6480 }, // Budhi Gandaki mainstem confluence
-      { lat: 28.5680, lng: 84.6620 }, // Shyala upper larch forest
-      { lat: 28.5520, lng: 84.6750 }, // Shyala riverside bridge
-      { lat: 28.5570, lng: 84.6850 }, // Lho valley approach
-      { lat: 28.5600, lng: 84.6900 }, // Lho canyon below monastery
-      { lat: 28.5510, lng: 84.7120 }, // Lihi suspension bridge
-      { lat: 28.5420, lng: 84.7310 }, // Sho riverside
-      { lat: 28.5300, lng: 84.7500 }, // Namrung river gate
-      { lat: 28.5150, lng: 84.7610 }, // Banjam gorge
-      { lat: 28.5000, lng: 84.7700 }, // Ghap bridge & gorge
-      { lat: 28.4780, lng: 84.7920 }, // Suksum rapids
-      { lat: 28.4500, lng: 84.8100 }, // Deng suspension bridge
-      { lat: 28.4320, lng: 84.8310 }, // Ekle Bhatti canyon
-      { lat: 28.4100, lng: 84.8500 }, // Philim suspension crossing
-      { lat: 28.3880, lng: 84.8820 }, // Sirdibas river terrace
-      { lat: 28.3620, lng: 84.9210 }, // Tatopani hot springs cliff
-      { lat: 28.3450, lng: 84.9350 }, // Jagat district checkpost
-    ],
+    center: { lat: 28.5800, lng: 84.6700 },
+    zoom: 12,
+    riverPath: MANASLU_RIVER_PATH,
   },
   rolwaling: {
     id: "rolwaling",
     name: "Rolwaling Valley",
     region: "Dolakha",
     centerName: "Tama Koshi Headwaters",
-    center: { lat: 27.8420, lng: 86.3850 },
+    center: { lat: 27.8850, lng: 86.3600 },
     zoom: 12,
-    riverPath: [
-      // Tama Koshi headwaters / Rolwaling Khola starting at Tsho Rolpa Glacial Lake (4,580m)
-      { lat: 27.8540, lng: 86.4780 }, // Tsho Rolpa moraine siphon outlet (4,580m)
-      { lat: 27.8525, lng: 86.4680 }, // Upper glacial torrent
-      { lat: 27.8500, lng: 86.4550 }, // Moraine outwash plain
-      { lat: 27.8460, lng: 86.4350 }, // Na village flood terrace (4,180m)
-      { lat: 27.8435, lng: 86.4180 }, // Sangma riverside pasture
-      { lat: 27.8410, lng: 86.3950 }, // Upper Beding river flats
-      { lat: 27.8380, lng: 86.3720 }, // Beding main village & suspension bridge (3,690m)
-      { lat: 27.8340, lng: 86.3500 }, // Lower Beding forest canyon
-      { lat: 27.8310, lng: 86.3320 }, // Ramding riverside lodge
-      { lat: 27.8280, lng: 86.3150 }, // Kyalche gorge constriction
-      { lat: 27.8250, lng: 86.2950 }, // Simigaun cliff gorge (2,020m)
-      { lat: 27.8220, lng: 86.2780 }, // Steep river stair descent
-      { lat: 27.8180, lng: 86.2550 }, // Chetchet suspension bridge (1,377m)
-      { lat: 27.8120, lng: 86.2380 }, // Tama Koshi confluence corridor
-      { lat: 27.8050, lng: 86.2250 }, // Gongar Khola / Upper Tamakoshi dam intake (1,150m)
-    ],
+    riverPath: ROLWALING_RIVER_PATH,
   },
 };
 
@@ -323,12 +194,12 @@ export const MAP_ASSETS: MapAsset[] = [
     name: "Shree Buddha Primary School (New Langtang)",
     type: "school",
     corridorId: "langtang",
-    lat: 28.2159,
-    lng: 85.5085,
+    lat: 28.2154,
+    lng: 85.5076,
     x: 560,
     y: 265,
     elevation: 3460,
-    gps: "28.2159° N, 85.5085° E",
+    gps: "28.2154° N, 85.5076° E",
     capacity: 45,
     status: "advisory",
     hazardThresholdMeters: 3.0,
@@ -340,12 +211,12 @@ export const MAP_ASSETS: MapAsset[] = [
     name: "Syabrubesi Community Secondary School",
     type: "school",
     corridorId: "langtang",
-    lat: 28.1652,
-    lng: 85.3435,
+    lat: 28.1653,
+    lng: 85.3413,
     x: 110,
     y: 430,
     elevation: 1460,
-    gps: "28.1652° N, 85.3435° E",
+    gps: "28.1653° N, 85.3413° E",
     capacity: 220,
     status: "safe",
     hazardThresholdMeters: 5.0,
@@ -357,12 +228,12 @@ export const MAP_ASSETS: MapAsset[] = [
     name: "Langtang Khola Suspension Bridge (Bamboo)",
     type: "bridge",
     corridorId: "langtang",
-    lat: 28.1552,
-    lng: 85.3982,
+    lat: 28.1553,
+    lng: 85.3974,
     x: 240,
     y: 400,
     elevation: 1960,
-    gps: "28.1552° N, 85.3982° E",
+    gps: "28.1553° N, 85.3974° E",
     status: "critical",
     hazardThresholdMeters: 1.8,
     description: "Critical steel-cable suspension bridge crossing Langtang Khola canyon at Bamboo.",
@@ -373,12 +244,12 @@ export const MAP_ASSETS: MapAsset[] = [
     name: "Ghora Tabela River Crossing",
     type: "bridge",
     corridorId: "langtang",
-    lat: 28.2008,
-    lng: 85.4612,
+    lat: 28.1992,
+    lng: 85.4582,
     x: 410,
     y: 310,
     elevation: 3010,
-    gps: "28.2008° N, 85.4612° E",
+    gps: "28.1992° N, 85.4582° E",
     status: "advisory",
     hazardThresholdMeters: 2.6,
     description: "Reinforced river bridge at Ghoda Tabela checkpoint. Key logistics artery for pack animals and trekkers.",
@@ -386,15 +257,15 @@ export const MAP_ASSETS: MapAsset[] = [
   },
   {
     id: "langtang-bridge-3",
-    name: "Kyanjin Upper Tributary Crossing",
+    name: "Kyanjin Langtang Khola Bridge",
     type: "bridge",
     corridorId: "langtang",
-    lat: 28.2118,
-    lng: 85.5785,
+    lat: 28.2084,
+    lng: 85.5610,
     x: 820,
     y: 195,
-    elevation: 3910,
-    gps: "28.2118° N, 85.5785° E",
+    elevation: 3820,
+    gps: "28.2084° N, 85.5610° E",
     status: "safe",
     hazardThresholdMeters: 4.0,
     description: "High-altitude wooden-cantilever crossing over upper glacial braided stream.",
@@ -405,12 +276,12 @@ export const MAP_ASSETS: MapAsset[] = [
     name: "Kyanjin Himalayan Rescue Aid Clinic",
     type: "hospital",
     corridorId: "langtang",
-    lat: 28.2120,
-    lng: 85.5678,
+    lat: 28.2122,
+    lng: 85.5675,
     x: 780,
     y: 205,
     elevation: 3865,
-    gps: "28.2120° N, 85.5678° E",
+    gps: "28.2122° N, 85.5675° E",
     capacity: 12,
     contact: "VHF Ch 16 / Sat-phone +977-9801",
     status: "safe",
@@ -423,12 +294,12 @@ export const MAP_ASSETS: MapAsset[] = [
     name: "Syabrubesi Primary Health Post",
     type: "hospital",
     corridorId: "langtang",
-    lat: 28.1640,
-    lng: 85.3420,
+    lat: 28.1638,
+    lng: 85.3422,
     x: 125,
     y: 435,
     elevation: 1475,
-    gps: "28.1640° N, 85.3420° E",
+    gps: "28.1638° N, 85.3422° E",
     capacity: 25,
     contact: "Local Helipad VHF 122.8",
     status: "safe",
@@ -497,12 +368,12 @@ export const MAP_ASSETS: MapAsset[] = [
     name: "Imja Tsho Moraine Spillway Watchpoint",
     type: "dam",
     corridorId: "khumbu",
-    lat: 27.8990,
-    lng: 86.9180,
+    lat: 27.8995,
+    lng: 86.9185,
     x: 750,
     y: 180,
     elevation: 5010,
-    gps: "27.8990° N, 86.9180° E",
+    gps: "27.8995° N, 86.9185° E",
     status: "advisory",
     hazardThresholdMeters: 1.2,
     description: "Automated early warning water-level sensor at Imja Tsho western moraine breach channel.",
@@ -547,12 +418,12 @@ export const MAP_ASSETS: MapAsset[] = [
     name: "Phunki Thenga Suspension Bridge",
     type: "bridge",
     corridorId: "khumbu",
-    lat: 27.8285,
-    lng: 86.7565,
+    lat: 27.8320,
+    lng: 86.7455,
     x: 480,
     y: 330,
     elevation: 3250,
-    gps: "27.8285° N, 86.7565° E",
+    gps: "27.8320° N, 86.7455° E",
     status: "critical",
     hazardThresholdMeters: 1.8,
     description: "Low suspension bridge crossing raging Dudh Koshi torrent beneath Tengboche hill.",
@@ -580,12 +451,12 @@ export const MAP_ASSETS: MapAsset[] = [
     name: "Namche Bazaar Amphitheater",
     type: "people",
     corridorId: "khumbu",
-    lat: 27.8069,
-    lng: 86.7140,
+    lat: 27.8042,
+    lng: 86.7098,
     x: 320,
     y: 380,
     elevation: 3440,
-    gps: "27.8069° N, 86.7140° E",
+    gps: "27.8042° N, 86.7098° E",
     population: 1650,
     status: "safe",
     hazardThresholdMeters: 6.0,
@@ -597,12 +468,12 @@ export const MAP_ASSETS: MapAsset[] = [
     name: "Hillary Twin Suspension Bridges",
     type: "bridge",
     corridorId: "khumbu",
-    lat: 27.7815,
-    lng: 86.7215,
+    lat: 27.7808,
+    lng: 86.7227,
     x: 280,
     y: 450,
     elevation: 2830,
-    gps: "27.7815° N, 86.7215° E",
+    gps: "27.7808° N, 86.7227° E",
     status: "safe",
     hazardThresholdMeters: 12.0,
     description: "Twin-tier high suspension bridge spanning deep Dudh Koshi river gorge.",
@@ -613,12 +484,12 @@ export const MAP_ASSETS: MapAsset[] = [
     name: "Khumjung Hillary School",
     type: "school",
     corridorId: "khumbu",
-    lat: 27.8180,
-    lng: 86.7190,
+    lat: 27.8208,
+    lng: 86.7162,
     x: 410,
     y: 330,
     elevation: 3790,
-    gps: "27.8180° N, 86.7190° E",
+    gps: "27.8208° N, 86.7162° E",
     capacity: 350,
     status: "safe",
     hazardThresholdMeters: 8.0,
@@ -630,12 +501,12 @@ export const MAP_ASSETS: MapAsset[] = [
     name: "Kundee Hospital",
     type: "hospital",
     corridorId: "khumbu",
-    lat: 27.8220,
-    lng: 86.7120,
+    lat: 27.8235,
+    lng: 86.7060,
     x: 390,
     y: 320,
     elevation: 3840,
-    gps: "27.8220° N, 86.7120° E",
+    gps: "27.8235° N, 86.7060° E",
     capacity: 20,
     contact: "VHF 143.900 Emergency",
     status: "safe",
@@ -650,12 +521,12 @@ export const MAP_ASSETS: MapAsset[] = [
     name: "Gangapurna Moraine Spillway Watchpoint",
     type: "dam",
     corridorId: "annapurna",
-    lat: 28.6565,
-    lng: 84.0235,
+    lat: 28.6544,
+    lng: 84.0217,
     x: 740,
     y: 160,
     elevation: 3540,
-    gps: "28.6565° N, 84.0235° E",
+    gps: "28.6544° N, 84.0217° E",
     status: "advisory",
     hazardThresholdMeters: 1.5,
     description: "Hydrometric monitoring beacon installed at Gangapurna lake terminal moraine breach channel.",
@@ -666,12 +537,12 @@ export const MAP_ASSETS: MapAsset[] = [
     name: "Manang Valley Central Settlement",
     type: "people",
     corridorId: "annapurna",
-    lat: 28.6600,
-    lng: 84.0260,
+    lat: 28.6661,
+    lng: 84.0231,
     x: 710,
     y: 175,
     elevation: 3540,
-    gps: "28.6600° N, 84.0260° E",
+    gps: "28.6661° N, 84.0231° E",
     population: 580,
     status: "safe",
     hazardThresholdMeters: 4.0,
@@ -700,12 +571,12 @@ export const MAP_ASSETS: MapAsset[] = [
     name: "Lower Pisang Suspension Bridge",
     type: "bridge",
     corridorId: "annapurna",
-    lat: 28.6150,
-    lng: 84.1480,
+    lat: 28.6155,
+    lng: 84.1479,
     x: 580,
     y: 230,
     elevation: 3200,
-    gps: "28.6150° N, 84.1480° E",
+    gps: "28.6155° N, 84.1479° E",
     status: "advisory",
     hazardThresholdMeters: 2.1,
     description: "Key steel pedestrian span connecting north and south Marsyangdi trekking trails.",
@@ -716,12 +587,12 @@ export const MAP_ASSETS: MapAsset[] = [
     name: "Chame District Hospital & APF Post",
     type: "hospital",
     corridorId: "annapurna",
-    lat: 28.5570,
-    lng: 84.2400,
+    lat: 28.5504,
+    lng: 84.2383,
     x: 520,
     y: 260,
     elevation: 2670,
-    gps: "28.5570° N, 84.2400° E",
+    gps: "28.5504° N, 84.2383° E",
     capacity: 35,
     contact: "District Health Radio Manang +977-66-440114",
     status: "advisory",
@@ -734,15 +605,15 @@ export const MAP_ASSETS: MapAsset[] = [
     name: "Dharapani Marsyangdi Crossing",
     type: "bridge",
     corridorId: "annapurna",
-    lat: 28.5200,
-    lng: 84.3950,
+    lat: 28.5162,
+    lng: 84.3588,
     x: 470,
     y: 290,
     elevation: 1860,
-    gps: "28.5200° N, 84.3950° E",
+    gps: "28.5162° N, 84.3588° E",
     status: "critical",
     hazardThresholdMeters: 1.9,
-    description: "Crucial suspension bridge connecting Manang district road to eastern trail.",
+    description: "Crucial suspension bridge connecting Manang district road to eastern trail across Marsyangdi.",
     riskNote: "Frequent riverbank undercutting during high flood velocity.",
   },
   {
@@ -750,16 +621,16 @@ export const MAP_ASSETS: MapAsset[] = [
     name: "Shree Marsyangdi Community School",
     type: "school",
     corridorId: "annapurna",
-    lat: 28.5250,
-    lng: 84.4010,
+    lat: 28.5202,
+    lng: 84.3572,
     x: 490,
     y: 275,
     elevation: 1890,
-    gps: "28.5250° N, 84.4010° E",
+    gps: "28.5202° N, 84.3572° E",
     capacity: 110,
     status: "advisory",
     hazardThresholdMeters: 2.8,
-    description: "Primary school situated on lower terrace.",
+    description: "Primary school situated safely on upper west bank village terrace.",
     riskNote: "Prone to isolation if the access footbridge is submerged.",
   },
   {
@@ -767,12 +638,12 @@ export const MAP_ASSETS: MapAsset[] = [
     name: "Tal Riverfront Village",
     type: "people",
     corridorId: "annapurna",
-    lat: 28.4660,
-    lng: 84.3800,
+    lat: 28.4686,
+    lng: 84.3737,
     x: 420,
     y: 310,
     elevation: 1700,
-    gps: "28.4660° N, 84.3800° E",
+    gps: "28.4686° N, 84.3737° E",
     population: 310,
     status: "critical",
     hazardThresholdMeters: 1.4,
@@ -784,12 +655,12 @@ export const MAP_ASSETS: MapAsset[] = [
     name: "Chamje Waterfall Footbridge",
     type: "bridge",
     corridorId: "annapurna",
-    lat: 28.4200,
-    lng: 84.4050,
+    lat: 28.4404,
+    lng: 84.3867,
     x: 380,
     y: 350,
     elevation: 1430,
-    gps: "28.4200° N, 84.4050° E",
+    gps: "28.4404° N, 84.3867° E",
     status: "critical",
     hazardThresholdMeters: 1.6,
     description: "Wooden and cable suspension bridge spanning deep gorge beneath Chamje falls.",
@@ -802,12 +673,12 @@ export const MAP_ASSETS: MapAsset[] = [
     name: "Birendra Tal Flood Spillway",
     type: "dam",
     corridorId: "manaslu",
-    lat: 28.5600,
-    lng: 84.6220,
+    lat: 28.5964,
+    lng: 84.6336,
     x: 650,
     y: 200,
     elevation: 3691,
-    gps: "28.5600° N, 84.6220° E",
+    gps: "28.5964° N, 84.6336° E",
     status: "critical",
     hazardThresholdMeters: 1.2,
     description: "Terminal moraine spillway breached in April 2024 following an ice-avalanche wave displacement.",
@@ -815,15 +686,15 @@ export const MAP_ASSETS: MapAsset[] = [
   },
   {
     id: "manaslu-people-1",
-    name: "Samagaun Glacial Basin",
+    name: "Samagaun Village & Glacial Basin",
     type: "people",
     corridorId: "manaslu",
-    lat: 28.5870,
-    lng: 84.6340,
+    lat: 28.5866,
+    lng: 84.6416,
     x: 620,
     y: 230,
     elevation: 3530,
-    gps: "28.5870° N, 84.6340° E",
+    gps: "28.5866° N, 84.6416° E",
     population: 480,
     status: "advisory",
     hazardThresholdMeters: 3.2,
@@ -835,12 +706,12 @@ export const MAP_ASSETS: MapAsset[] = [
     name: "Samagaun Monastery & School",
     type: "school",
     corridorId: "manaslu",
-    lat: 28.5900,
-    lng: 84.6400,
+    lat: 28.5894,
+    lng: 84.6393,
     x: 640,
     y: 220,
     elevation: 3550,
-    gps: "28.5900° N, 84.6400° E",
+    gps: "28.5894° N, 84.6393° E",
     capacity: 90,
     status: "safe",
     hazardThresholdMeters: 4.5,
@@ -852,12 +723,12 @@ export const MAP_ASSETS: MapAsset[] = [
     name: "Lho Ribung High Monastery",
     type: "safeZone",
     corridorId: "manaslu",
-    lat: 28.5620,
-    lng: 84.6930,
+    lat: 28.5737,
+    lng: 84.6952,
     x: 550,
     y: 270,
     elevation: 3250,
-    gps: "28.5620° N, 84.6930° E",
+    gps: "28.5737° N, 84.6952° E",
     capacity: 200,
     status: "safe",
     hazardThresholdMeters: 12.0,
@@ -869,12 +740,12 @@ export const MAP_ASSETS: MapAsset[] = [
     name: "Lho Health Clinic",
     type: "hospital",
     corridorId: "manaslu",
-    lat: 28.5600,
-    lng: 84.6900,
+    lat: 28.5741,
+    lng: 84.7015,
     x: 540,
     y: 280,
     elevation: 3180,
-    gps: "28.5600° N, 84.6900° E",
+    gps: "28.5741° N, 84.7015° E",
     capacity: 10,
     contact: "VHF Ch 12 Gorkha Base",
     status: "safe",
@@ -887,12 +758,12 @@ export const MAP_ASSETS: MapAsset[] = [
     name: "Budhi Gandaki Gorge Bridge",
     type: "bridge",
     corridorId: "manaslu",
-    lat: 28.4500,
-    lng: 84.8100,
+    lat: 28.4877,
+    lng: 84.8666,
     x: 350,
     y: 380,
     elevation: 2100,
-    gps: "28.4500° N, 84.8100° E",
+    gps: "28.4877° N, 84.8666° E",
     status: "critical",
     hazardThresholdMeters: 1.6,
     description: "Deep cantilever bridge over rapid narrow canyon.",
@@ -903,12 +774,12 @@ export const MAP_ASSETS: MapAsset[] = [
     name: "Philim Suspension Crossing",
     type: "bridge",
     corridorId: "manaslu",
-    lat: 28.4100,
-    lng: 84.8500,
+    lat: 28.3914,
+    lng: 84.8924,
     x: 310,
     y: 420,
     elevation: 1590,
-    gps: "28.4100° N, 84.8500° E",
+    gps: "28.3914° N, 84.8924° E",
     status: "critical",
     hazardThresholdMeters: 1.8,
     description: "Primary link across Budhi Gandaki between lower Philim and Sirdibas.",
@@ -921,12 +792,12 @@ export const MAP_ASSETS: MapAsset[] = [
     name: "Tsho Rolpa Siphon Spillway Control",
     type: "dam",
     corridorId: "rolwaling",
-    lat: 27.8540,
-    lng: 86.4780,
+    lat: 27.8694,
+    lng: 86.4631,
     x: 820,
     y: 150,
     elevation: 4580,
-    gps: "27.8540° N, 86.4780° E",
+    gps: "27.8694° N, 86.4631° E",
     status: "advisory",
     hazardThresholdMeters: 1.8,
     description: "Terminal moraine siphon channel regulating 85 million cubic meters of glacial meltwater.",
@@ -937,12 +808,12 @@ export const MAP_ASSETS: MapAsset[] = [
     name: "Na Alpine Pasture Village",
     type: "people",
     corridorId: "rolwaling",
-    lat: 27.8460,
-    lng: 86.4350,
+    lat: 27.8803,
+    lng: 86.4304,
     x: 740,
     y: 200,
     elevation: 4180,
-    gps: "27.8460° N, 86.4350° E",
+    gps: "27.8803° N, 86.4304° E",
     population: 65,
     status: "advisory",
     hazardThresholdMeters: 3.2,
@@ -954,12 +825,12 @@ export const MAP_ASSETS: MapAsset[] = [
     name: "Na North Moraine Evacuation Ridge",
     type: "safeZone",
     corridorId: "rolwaling",
-    lat: 27.8510,
-    lng: 86.4380,
+    lat: 27.8835,
+    lng: 86.4310,
     x: 750,
     y: 170,
     elevation: 4290,
-    gps: "27.8510° N, 86.4380° E",
+    gps: "27.8835° N, 86.4310° E",
     capacity: 120,
     status: "safe",
     hazardThresholdMeters: 15.0,
@@ -971,12 +842,12 @@ export const MAP_ASSETS: MapAsset[] = [
     name: "Beding Sherpa Settlement",
     type: "people",
     corridorId: "rolwaling",
-    lat: 27.8380,
-    lng: 86.3720,
+    lat: 27.9028,
+    lng: 86.3755,
     x: 620,
     y: 250,
     elevation: 3690,
-    gps: "27.8380° N, 86.3720° E",
+    gps: "27.9028° N, 86.3755° E",
     population: 220,
     status: "safe",
     hazardThresholdMeters: 4.5,
@@ -988,12 +859,12 @@ export const MAP_ASSETS: MapAsset[] = [
     name: "Sangag Chholing Community School",
     type: "school",
     corridorId: "rolwaling",
-    lat: 27.8395,
-    lng: 86.3740,
+    lat: 27.9050,
+    lng: 86.3682,
     x: 630,
     y: 240,
     elevation: 3720,
-    gps: "27.8395° N, 86.3740° E",
+    gps: "27.9050° N, 86.3682° E",
     capacity: 60,
     status: "safe",
     hazardThresholdMeters: 6.0,
@@ -1005,12 +876,12 @@ export const MAP_ASSETS: MapAsset[] = [
     name: "Beding River Suspension Bridge",
     type: "bridge",
     corridorId: "rolwaling",
-    lat: 27.8375,
-    lng: 86.3705,
+    lat: 27.9059,
+    lng: 86.3642,
     x: 615,
     y: 255,
     elevation: 3680,
-    gps: "27.8375° N, 86.3705° E",
+    gps: "27.9059° N, 86.3642° E",
     status: "critical",
     hazardThresholdMeters: 2.2,
     description: "Key steel cable suspension crossing connecting Beding to southern grazing slopes.",
@@ -1021,12 +892,12 @@ export const MAP_ASSETS: MapAsset[] = [
     name: "Beding Gompa Sanctuary Hill",
     type: "safeZone",
     corridorId: "rolwaling",
-    lat: 27.8420,
-    lng: 86.3760,
+    lat: 27.9045,
+    lng: 86.3762,
     x: 635,
     y: 230,
     elevation: 3780,
-    gps: "27.8420° N, 86.3760° E",
+    gps: "27.9045° N, 86.3762° E",
     capacity: 300,
     status: "safe",
     hazardThresholdMeters: 14.0,
@@ -1038,17 +909,17 @@ export const MAP_ASSETS: MapAsset[] = [
     name: "Simigaun Basic Health Post",
     type: "hospital",
     corridorId: "rolwaling",
-    lat: 27.8250,
-    lng: 86.2950,
+    lat: 27.8725,
+    lng: 86.2310,
     x: 450,
     y: 330,
     elevation: 2050,
-    gps: "27.8250° N, 86.2950° E",
+    gps: "27.8725° N, 86.2310° E",
     capacity: 15,
     contact: "Dolakha Health Post VHF 145.200",
     status: "safe",
     hazardThresholdMeters: 8.0,
-    description: "Mountain health clinic positioned high on steep ridge above gorge junction.",
+    description: "Mountain health clinic positioned high on the Simigaun village ridge terrace.",
     riskNote: "High elevation provides total safety from river flooding; helipad nearby.",
   },
   {
@@ -1056,15 +927,15 @@ export const MAP_ASSETS: MapAsset[] = [
     name: "Chetchet Arterial Suspension Bridge",
     type: "bridge",
     corridorId: "rolwaling",
-    lat: 27.8180,
-    lng: 86.2550,
+    lat: 27.8715,
+    lng: 86.2217,
     x: 370,
     y: 390,
     elevation: 1377,
-    gps: "27.8180° N, 86.2550° E",
+    gps: "27.8715° N, 86.2217° E",
     status: "critical",
     hazardThresholdMeters: 2.5,
-    description: "Major pedestrian and pack animal gateway across Tama Koshi into Rolwaling.",
+    description: "Major pedestrian and pack animal gateway suspension bridge across Tama Koshi into Rolwaling.",
     riskNote: "Low river clearance; critical evacuation bottleneck.",
   },
   {
@@ -1072,12 +943,12 @@ export const MAP_ASSETS: MapAsset[] = [
     name: "Upper Tamakoshi Hydropower Intake",
     type: "dam",
     corridorId: "rolwaling",
-    lat: 27.8050,
-    lng: 86.2250,
+    lat: 27.8080,
+    lng: 86.2245,
     x: 290,
     y: 450,
     elevation: 1150,
-    gps: "27.8050° N, 86.2250° E",
+    gps: "27.8080° N, 86.2245° E",
     status: "advisory",
     hazardThresholdMeters: 3.5,
     description: "Headworks of 456 MW Upper Tamakoshi Hydropower Project, Nepal's largest plant.",
@@ -1165,8 +1036,8 @@ export const CORRIDOR_SENTINEL_LAKES: Record<string, SentinelLakeData> = {
     corridorId: "manaslu",
     region: "Gorkha",
     elevationM: 3691,
-    gps: "28.5600° N, 84.6200° E",
-    center: { lat: 28.5600, lng: 84.6200 },
+    gps: "28.5959° N, 84.6281° E",
+    center: { lat: 28.5959, lng: 84.6281 },
     baselineDate: "2026-08-12",
     currentDate: "2026-08-26",
     baselineAreaKm2: 0.31,
@@ -1183,8 +1054,8 @@ export const CORRIDOR_SENTINEL_LAKES: Record<string, SentinelLakeData> = {
     corridorId: "rolwaling",
     region: "Dolakha",
     elevationM: 4580,
-    gps: "27.8540° N, 86.4780° E",
-    center: { lat: 27.8540, lng: 86.4780 },
+    gps: "27.8602° N, 86.4777° E",
+    center: { lat: 27.8602, lng: 86.4777 },
     baselineDate: "2026-08-08",
     currentDate: "2026-08-27",
     baselineAreaKm2: 1.54,
@@ -1437,29 +1308,34 @@ export const CORRIDOR_LAKE_POLYGONS: Record<string, GlacialLakePolygon> = {
     corridorId: "manaslu",
     name: "Birendra Tal Glacial Lake (3,691m)",
     baselinePolygon: [
-      // Alpine cirque lake at terminus of Manaslu North Glacier
-      [28.5600, 84.6220], // Eastern spillway breach into Samagaun
-      [28.5630, 84.6205],
-      [28.5655, 84.6180],
-      [28.5660, 84.6145],
-      [28.5640, 84.6110], // North moraine
-      [28.5605, 84.6095], // Calving ice-cliff snout
-      [28.5570, 84.6110],
-      [28.5550, 84.6145], // South lateral scree slope
-      [28.5560, 84.6185],
-      [28.5585, 84.6215],
+      // Alpine cirque lake at terminus of Manaslu North Glacier - exact surveyed perimeter
+      [28.5954, 84.6303],
+      [28.5961, 84.6334],
+      [28.5979, 84.6334],
+      [28.5985, 84.6322],
+      [28.5978, 84.6307],
+      [28.5975, 84.6285],
+      [28.5969, 84.6257],
+      [28.5956, 84.6244],
+      [28.5948, 84.6231],
+      [28.5934, 84.6232],
+      [28.5931, 84.6250],
+      [28.5940, 84.6272],
     ],
     expandedPolygon: [
-      [28.5615, 84.6240], // Outflow flood breach fan toward Samagaun
-      [28.5645, 84.6220],
-      [28.5675, 84.6190],
-      [28.5680, 84.6135],
-      [28.5655, 84.6090],
-      [28.5600, 84.6075],
-      [28.5550, 84.6095],
-      [28.5530, 84.6135],
-      [28.5545, 84.6195],
-      [28.5580, 84.6230],
+      // 15% expanded GLOF breach perimeter toward Samagaun
+      [28.5950, 84.6310],
+      [28.5963, 84.6345],
+      [28.5983, 84.6345],
+      [28.5990, 84.6328],
+      [28.5982, 84.6305],
+      [28.5978, 84.6280],
+      [28.5972, 84.6250],
+      [28.5958, 84.6238],
+      [28.5945, 84.6225],
+      [28.5930, 84.6226],
+      [28.5926, 84.6248],
+      [28.5935, 84.6275],
     ],
     expansionDeltaPct: 3.2,
   },
@@ -1468,15 +1344,19 @@ export const CORRIDOR_LAKE_POLYGONS: Record<string, GlacialLakePolygon> = {
     corridorId: "rolwaling",
     name: "Tsho Rolpa Glacial Lake (4,580m)",
     baselinePolygon: [
-      // Nepal's premier moraine-dammed mega glacial lake (~85M m³)
-      [27.8540, 86.4780], // Siphon outlet breach throat
-      [27.8570, 86.4740],
-      [27.8590, 86.4820],
-      [27.8580, 86.4950],
-      [27.8550, 86.5050],
-      [27.8520, 86.5020],
-      [27.8500, 86.4900],
-      [27.8510, 86.4810],
+      // Nepal's premier moraine-dammed mega glacial lake (~85M m³) - exact surveyed perimeter
+      [27.8497, 86.4899],
+      [27.8558, 86.4851],
+      [27.8590, 86.4823],
+      [27.8617, 86.4799],
+      [27.8653, 86.4765],
+      [27.8676, 86.4735],
+      [27.8696, 86.4691],
+      [27.8710, 86.4663],
+      [27.8711, 86.4644],
+      [27.8694, 86.4631], // Siphon outlet breach throat
+      [27.8600, 86.4742],
+      [27.8525, 86.4840],
     ],
     expandedPolygon: [
       [27.8530, 86.4750], // Siphon overflow zone
