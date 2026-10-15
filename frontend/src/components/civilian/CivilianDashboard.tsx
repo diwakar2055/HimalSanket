@@ -1,35 +1,33 @@
 import React, { useState, useMemo, useCallback, useRef, useEffect } from "react";
-import { FullScreenHazardMap } from "../map/FullScreenHazardMap";
+import { motion, AnimatePresence } from "motion/react";
+import { ModernHazardMap } from "../map/ModernHazardMap";
 import { VoiceRecorderModal } from "../VoiceRecorderModal";
-import { MobileBottomSheet } from "../mobile/MobileBottomSheet";
 import { MapAsset } from "../../data/hazardMapData";
 import { Language } from "../../data/localization";
 import { useUserRole } from "../../context/UserRoleContext";
 import { playEmergencyChime, playConfirmationBeep } from "../../utils/audioAlert";
+import { MarkdownMessage } from "../common/MarkdownMessage";
+import { GeminiWebChatWindow } from "./GeminiWebChatWindow";
 import {
   Shield,
   AlertTriangle,
-  Compass,
   Radio,
   Mic,
   Bot,
   Send,
-  Sparkles,
   MapPin,
-  Maximize2,
-  Minimize2,
-  Navigation,
   CheckCircle2,
   Volume2,
-  VolumeX,
-  X,
   Copy,
   Check,
-  ChevronRight,
-  BookOpen,
+  Crosshair,
+  X,
   MessageSquare,
-  AlertCircle,
-  Clock,
+  Maximize2,
+  Minimize2,
+  Sparkles,
+  ArrowRight,
+  Map,
 } from "lucide-react";
 
 interface CivilianDashboardProps {
@@ -46,9 +44,8 @@ interface CivilianDashboardProps {
   waterSurge?: number;
 }
 
-function formatDistanceDisplay(meters: number | null | undefined): string {
+function formatDistance(meters: number | null | undefined): string {
   if (meters === null || meters === undefined) return "350m";
-  if (meters > 50000) return "> 50 km";
   if (meters >= 1000) return `${(meters / 1000).toFixed(1)} km`;
   return `${Math.round(meters)}m`;
 }
@@ -68,22 +65,53 @@ export function CivilianDashboard({
 }: CivilianDashboardProps) {
   const { broadcastSOS, submitFieldDispatch } = useUserRole();
 
+  // Civilian view mode: "map" (Live Map & Shelters) or "chat" (Dedicated Gemini Web Window)
+  const [civilianView, setCivilianView] = useState<"map" | "chat">("map");
+
+  // Tab mode for civilian view: "ai" (AI Trail Assistant) or "shelters" (Safe Shelters)
+  const [activeTab, setActiveTab] = useState<"ai" | "shelters">("shelters");
+
+  // Chat expansion state for comfortable, immersive guidance reading
+  const [isChatExpanded, setIsChatExpanded] = useState(false);
+  const [isDesktop, setIsDesktop] = useState(
+    typeof window !== "undefined" ? window.innerWidth >= 1024 : true
+  );
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsDesktop(window.innerWidth >= 1024);
+    };
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  // Invalidate and refresh Leaflet canvas whenever chat expands or collapses
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      window.dispatchEvent(new Event("resize"));
+    }, 320);
+    return () => clearTimeout(timer);
+  }, [isChatExpanded]);
+
+  // Selected shelter to pan map
+  const [selectedShelter, setSelectedShelter] = useState<MapAsset | null>(null);
+
+  // SOS state
   const [sosSuccess, setSosSuccess] = useState(false);
   const [sosCountdown, setSosCountdown] = useState<number | null>(null);
-  const [sosCancelledNotice, setSosCancelledNotice] = useState(false);
   const countdownTimerRef = useRef<NodeJS.Timeout | null>(null);
 
+  // Modals & Panels
   const [isVoiceModalOpen, setIsVoiceModalOpen] = useState(false);
-  const [sheetPosition, setSheetPosition] = useState<"peek" | "half" | "full">("half");
-  const [activeTab, setActiveTab] = useState<"chat" | "refuges">("chat");
-  const [isFullscreenChat, setIsFullscreenChat] = useState(false);
-  const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+  const [reportType, setReportType] = useState<"water" | "crack" | "sound" | "other">("water");
+  const [reportNote, setReportNote] = useState("");
+  const [reportSubmitted, setReportSubmitted] = useState(false);
 
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-
-  // Gemini AI Chat state with rich conversation thread
+  // Chatbot State
   const [chatInput, setChatInput] = useState("");
   const [isAiThinking, setIsAiThinking] = useState(false);
+  const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
   const [chatMessages, setChatMessages] = useState<
     Array<{ sender: "user" | "ai"; text: string; time: string }>
   >([
@@ -92,39 +120,41 @@ export function CivilianDashboard({
       text:
         language === "ne"
           ? `नमस्ते! म हिमालसंकेत सुरक्षा सहायक हुँ। तपाईं ${corridor.name} क्षेत्रमा हुनुहुन्छ। बाटोको अवस्था, नजिकको सुरक्षित ठाउँ वा मौसमबारे केही सोध्न सक्नुहुन्छ।`
-          : `Hello! I am your HimalSanket Safety Copilot. You are in the ${corridor.name} corridor. Feel free to ask about trail safety, nearest safe high-ground shelters, or weather conditions.`,
-      time: "Just now",
+          : `Hello! I am your HimalSanket Safety Assistant for ${corridor.name}. I can guide you to high-ground shelters, answer route questions, and help you stay clear of flood surges.`,
+      time: "Now",
     },
   ]);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Auto-scroll chat to bottom on new message
+  // Auto-scroll chat
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [chatMessages, isAiThinking]);
 
-  // Find nearest safe refuge
-  const nearestRefuge = useMemo(() => {
-    const safeZones = assets.filter((a) => a.type === "safeZone");
-    if (safeZones.length === 0) return null;
-    if (!userPosition) return { asset: safeZones[0], distance: 350 };
-
-    let closest = safeZones[0];
-    let minD = Infinity;
-    safeZones.forEach((sz) => {
-      const d = Math.round(
-        Math.hypot((userPosition.lat - sz.lat) * 111000, (userPosition.lng - sz.lng) * 102000)
-      );
-      if (d < minD) {
-        minD = d;
-        closest = sz;
-      }
-    });
-    return { asset: closest, distance: minD };
+  // Nearest safe shelters
+  const safeShelters = useMemo(() => {
+    return assets
+      .filter((a) => a.type === "safeZone")
+      .map((sz) => {
+        let dist = 350;
+        if (userPosition) {
+          dist = Math.round(
+            Math.hypot((userPosition.lat - sz.lat) * 111000, (userPosition.lng - sz.lng) * 102000)
+          );
+        }
+        return { ...sz, dist };
+      })
+      .sort((a, b) => a.dist - b.dist);
   }, [assets, userPosition]);
 
-  const isDanger = geofenceStatus === "DANGER" || (distanceToHazard !== null && distanceToHazard < 150);
+  const nearestRefuge = safeShelters[0] || null;
 
-  // Trigger SOS Beacon with verified coordinates
+  const isDanger =
+    geofenceStatus === "DANGER" ||
+    (distanceToHazard !== null && distanceToHazard < 150) ||
+    waterSurge > 1.5;
+
+  // Handle SOS Broadcast
   const handleConfirmSOS = useCallback(() => {
     playEmergencyChime();
     const lat = userPosition?.lat || corridor.center?.lat || 28.214;
@@ -132,25 +162,22 @@ export function CivilianDashboard({
     const alt = userPosition?.altitude || 2780;
 
     broadcastSOS({
-      name: `Trekker SOS — ${corridor.name}`,
+      name: `Civilian Distress — ${corridor.name} (${formatDistance(distanceToHazard)} from River)`,
       lat,
       lng,
       altitude: alt,
-      detail: `Emergency civilian distress triggered at ${lat.toFixed(4)}°N, ${lng.toFixed(
-        4
-      )}°E. Altitude: ~${Math.round(alt)}m ASL. Distance to surge channel: ${formatDistanceDisplay(
-        distanceToHazard
-      )}.`,
+      detail: `Civilian caught near surge path at elevation ~${Math.round(alt)}m ASL. Distance to river: ${formatDistance(distanceToHazard)}. Immediate tactical extraction requested.`,
       priority: 98,
+      contact: "+977 9841-892100 (Pasang Sherpa)",
       corridorId: corridor.id,
     });
 
     onTriggerSOS("Emergency SOS Broadcasted to APF Search & Rescue Base!");
     setSosSuccess(true);
-    setTimeout(() => setSosSuccess(false), 8000);
+    setTimeout(() => setSosSuccess(false), 9000);
   }, [userPosition, corridor, distanceToHazard, broadcastSOS, onTriggerSOS]);
 
-  // 3-Second Safeguard Countdown Handler
+  // 3-Second Countdown Safeguard
   const startSosCountdown = useCallback(() => {
     playEmergencyChime();
     setSosCountdown(3);
@@ -162,8 +189,6 @@ export function CivilianDashboard({
       countdownTimerRef.current = null;
     }
     setSosCountdown(null);
-    setSosCancelledNotice(true);
-    setTimeout(() => setSosCancelledNotice(false), 3000);
   }, []);
 
   useEffect(() => {
@@ -181,24 +206,29 @@ export function CivilianDashboard({
     };
   }, [sosCountdown, handleConfirmSOS]);
 
-  // Speak AI message out loud
-  const handleSpeakMessage = useCallback((text: string) => {
-    if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
-    window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.rate = 1.0;
-    utterance.pitch = 1.0;
-    window.speechSynthesis.speak(utterance);
-  }, []);
+  // Handle Quick Hazard Report Submission
+  const handleSubmitReport = (e: React.FormEvent) => {
+    e.preventDefault();
+    playConfirmationBeep();
+    submitFieldDispatch({
+      senderName: "Citizen Report",
+      type: reportType,
+      note: reportNote || `Hazard observed along ${corridor.name} trail.`,
+      lat: userPosition?.lat,
+      lng: userPosition?.lng,
+      hasVoice: false,
+      aiClassification: `Category: ${reportType.toUpperCase()}`,
+      corridorId: corridor.id,
+    });
+    setReportSubmitted(true);
+    setTimeout(() => {
+      setReportSubmitted(false);
+      setIsReportModalOpen(false);
+      setReportNote("");
+    }, 2000);
+  };
 
-  // Copy message
-  const handleCopy = useCallback((text: string, idx: number) => {
-    navigator.clipboard.writeText(text);
-    setCopiedIdx(idx);
-    setTimeout(() => setCopiedIdx(null), 2000);
-  }, []);
-
-  // Ask Gemini Safety AI
+  // Chat with Gemini
   const handleSendChat = useCallback(
     async (textToSend?: string) => {
       const query = textToSend || chatInput;
@@ -209,7 +239,6 @@ export function CivilianDashboard({
       setChatMessages((p) => [...p, userMsg]);
       setChatInput("");
       setIsAiThinking(true);
-      if (sheetPosition === "peek") setSheetPosition("half");
 
       try {
         const response = await fetch("/api/gemini/chat", {
@@ -222,9 +251,11 @@ export function CivilianDashboard({
               rainfall: corridor.rainfall,
               seismic: corridor.seismic,
               userPosition,
-              geofenceStatus,
+              geofenceStatus: isDanger ? "DANGER" : "SAFE",
+              isDanger,
               distanceToHazard,
               activeScenario,
+              waterSurge,
             },
           }),
         });
@@ -235,7 +266,7 @@ export function CivilianDashboard({
             ...p,
             {
               sender: "ai",
-              text: data.reply || "Stay on high ground and proceed uphill safely.",
+              text: data.reply || "Move to higher ground and stay clear of river banks.",
               time: "Just now",
             },
           ]);
@@ -246,10 +277,10 @@ export function CivilianDashboard({
               sender: "ai",
               text: isDanger
                 ? "⚠️ Warning: You are close to the river surge bed. Climb immediately at least 30 meters uphill onto solid granite terraces. Do not cross wooden footbridges."
-                : `🟢 Monitored reach appears normal (~${formatDistanceDisplay(
+                : `🟢 Monitored reach appears normal (~${formatDistance(
                     distanceToHazard
                   )} from river channel). Continue monitoring conditions and identify high ground near ${
-                    nearestRefuge?.asset?.name || "your location"
+                    nearestRefuge?.name || "your location"
                   }.`,
               time: "Just now",
             },
@@ -261,10 +292,10 @@ export function CivilianDashboard({
           {
             sender: "ai",
             text: isDanger
-              ? "⚠️ Warning: Active flash surge or debris threat. Climb uphill at least 30m away from the canyon gorge floor!"
-              : `🟢 Local corridor status is at baseline (~${formatDistanceDisplay(
+              ? "⚠️ Warning: River surge risk detected upstream. Climb uphill at least 30m away from canyon gorge!"
+              : `🟢 Current position is clear of hazard channels (~${formatDistance(
                   distanceToHazard
-                )} clear). Keep your radio and phone in battery-saving mode.`,
+                )} buffer). Keep your phone charged.`,
             time: "Just now",
           },
         ]);
@@ -282,462 +313,376 @@ export function CivilianDashboard({
       activeScenario,
       isDanger,
       nearestRefuge,
-      sheetPosition,
     ]
   );
 
+  // Text to Speech
+  const handleSpeak = (text: string) => {
+    if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
+    window.speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.rate = 1.0;
+    window.speechSynthesis.speak(u);
+  };
+
+  // Copy text
+  const handleCopy = (text: string, idx: number) => {
+    navigator.clipboard.writeText(text);
+    setCopiedIdx(idx);
+    setTimeout(() => setCopiedIdx(null), 2000);
+  };
+
+  if (civilianView === "chat") {
+    return (
+      <GeminiWebChatWindow
+        corridor={corridor}
+        userPosition={userPosition}
+        distanceToHazard={distanceToHazard}
+        geofenceStatus={geofenceStatus}
+        isDanger={isDanger}
+        waterSurge={waterSurge}
+        activeScenario={activeScenario}
+        language={language}
+        onBackToMap={() => setCivilianView("map")}
+        onTriggerSOS={onTriggerSOS}
+      />
+    );
+  }
+
   return (
-    <div className="w-full h-full flex flex-col lg:flex-row min-h-0 bg-[#080E19] text-[#F8FAFC] overflow-hidden relative">
-      {/* 1. INTERACTIVE DRAGGABLE BOTTOM SHEET (Mobile) / SIDEBAR (Desktop) */}
-      <MobileBottomSheet
-        position={sheetPosition}
-        onChangePosition={setSheetPosition}
-        title={language === "ne" ? "सुरक्षा ककपाइलट" : "Civilian Safety Copilot"}
-        badge={
-          <span
-            className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase ${
-              isDanger
-                ? "bg-rose-500/20 text-rose-300 border border-rose-500/40 animate-pulse"
-                : "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40"
-            }`}
+    <div className="w-full h-full flex flex-col min-h-0 bg-zinc-950 text-zinc-100 overflow-hidden font-sans">
+      {/* Civilian Top Mode Bar: Clean Segmented Mode Switcher */}
+      <div className="px-4 py-2 border-b border-zinc-800 bg-zinc-950 flex items-center justify-between shrink-0 z-20">
+        <div className="flex items-center gap-1 bg-zinc-900 p-1 rounded-lg border border-zinc-800">
+          <button
+            onClick={() => setCivilianView("map")}
+            className="flex items-center gap-2 px-3 py-1.5 rounded-md text-xs transition-colors cursor-pointer bg-zinc-800 text-zinc-100 font-medium shadow-sm"
           >
-            {isDanger ? "⚠️ Active Hazard Zone" : "🟢 Monitored Baseline"}
-          </span>
-        }
-        peekContent={
-          <div className="flex items-center justify-between text-xs text-[#A7B4C8] pt-1">
-            <span>
-              Nearest Shelter: <strong className="text-[#F8FAFC]">{nearestRefuge?.asset.name || "High Ground"}</strong>
-            </span>
-            <span className="text-emerald-400 font-bold">
-              ~{formatDistanceDisplay(nearestRefuge?.distance)}
-            </span>
-          </div>
-        }
-      >
-        <div className="flex-1 flex flex-col min-h-0 bg-[#101A2A] overflow-hidden">
-          {/* COMPACT UNIFIED SAFETY & SOS COMMAND BAR */}
-          <div className="p-3 bg-[#080E19] border-b border-[#27364B] flex flex-col gap-2.5 shrink-0">
-            {/* 1. Primary Emergency SOS Action (Most Prominent Interactive Element) */}
-            <div className="flex items-center gap-2">
-              {sosSuccess ? (
-                <div className="flex-1 py-3 px-4 rounded-xl bg-emerald-950/80 border border-emerald-500/60 text-emerald-200 text-xs font-bold flex items-center justify-between shadow-lg">
-                  <div className="flex items-center gap-2">
-                    <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
-                    <span>Distress active. APF rescue squad dispatched.</span>
-                  </div>
-                  <span className="text-[10px] font-mono text-emerald-300 font-semibold px-2 py-0.5 rounded bg-emerald-900/60">Active</span>
-                </div>
-              ) : sosCountdown !== null ? (
-                /* Active 3-Second Countdown Valve */
-                <div className="flex-1 py-2 px-3 rounded-xl bg-rose-950/90 border-2 border-[#DC2626] flex items-center justify-between gap-2 shadow-2xl">
-                  <div className="flex items-center gap-2.5 text-xs font-bold text-rose-200">
-                    <span className="w-7 h-7 rounded-full bg-[#DC2626] text-white flex items-center justify-center font-mono font-black text-xs animate-ping">
-                      {sosCountdown}
-                    </span>
-                    <span>Broadcasting SOS in {sosCountdown}s...</span>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <button
-                      onClick={cancelSosCountdown}
-                      className="px-3 py-1.5 rounded-lg bg-[#152238] hover:bg-[#1E2D48] text-[#F8FAFC] border border-[#27364B] text-xs font-bold cursor-pointer transition-colors"
-                      title="Abort SOS alert"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      onClick={() => {
-                        if (countdownTimerRef.current) clearTimeout(countdownTimerRef.current);
-                        setSosCountdown(null);
-                        handleConfirmSOS();
-                      }}
-                      className="px-3 py-1.5 rounded-lg bg-[#DC2626] hover:bg-rose-500 text-white text-xs font-extrabold cursor-pointer transition-colors shadow-md"
-                      title="Bypass countdown and transmit immediately"
-                    >
-                      Send now
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                /* Primary Emergency SOS Button (Generous Touch Target, Maximum Contrast) */
-                <button
-                  onClick={startSosCountdown}
-                  className="flex-1 py-3.5 px-4 rounded-xl bg-[#DC2626] hover:bg-[#B91C1C] active:scale-[0.98] text-white font-extrabold text-sm shadow-xl shadow-red-950/60 flex items-center justify-center gap-2.5 cursor-pointer transition-all border border-red-400/50 focus-visible:ring-2 focus-visible:ring-red-400 focus:outline-none"
-                  title="Send emergency SOS alert (with 3-second safeguard countdown)"
-                >
-                  <Radio className="w-4 h-4 text-white animate-pulse" />
-                  <span>Send SOS alert</span>
-                </button>
-              )}
+            <Map className="w-3.5 h-3.5" />
+            <span>Interactive Map & Shelters</span>
+          </button>
 
-              {/* Voice Note Modal Trigger (Secondary) */}
-              <button
-                onClick={() => setIsVoiceModalOpen(true)}
-                className="py-3.5 px-3 rounded-xl bg-[#101A2A] hover:bg-[#152238] text-[#A7B4C8] hover:text-[#F8FAFC] border border-[#27364B] text-xs font-semibold flex items-center gap-1.5 cursor-pointer transition-colors shadow-sm focus-visible:ring-2 focus-visible:ring-cyan-400 focus:outline-none"
-                title="Record ground voice note"
-              >
-                <Mic className="w-4 h-4 text-cyan-400" />
-                <span className="hidden sm:inline">Voice note</span>
-              </button>
-            </div>
-
-            {/* Cancelled Notice Feedback */}
-            {sosCancelledNotice && (
-              <div className="text-[11px] text-amber-300 bg-amber-950/40 border border-amber-500/30 px-2.5 py-1 rounded-lg flex items-center gap-1.5">
-                <AlertCircle className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-                <span>SOS transmission cancelled. No alert was sent.</span>
-              </div>
-            )}
-
-            {/* 2. Transparent Status & Refuge Disclosure Row */}
-            <div className="flex items-center justify-between gap-2 text-xs">
-              {/* Status Badge */}
-              <div
-                className={`flex-1 flex items-center gap-2 px-3 py-1.5 rounded-xl border text-[11px] font-medium ${
-                  isDanger
-                    ? "bg-[#DC2626]/20 border-[#DC2626]/50 text-rose-200 animate-pulse"
-                    : "bg-[#22C55E]/15 border-[#22C55E]/40 text-emerald-200"
-                }`}
-              >
-                {isDanger ? (
-                  <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0" />
-                ) : (
-                  <Shield className="w-4 h-4 text-emerald-400 shrink-0" />
-                )}
-                <div>
-                  <div className="font-bold tracking-wide text-[10px]">
-                    {isDanger ? "Threat zone: move uphill" : "Monitored baseline"}
-                  </div>
-                  <div className="text-[9px] text-[#A7B4C8]">
-                    {isDanger
-                      ? `~${formatDistanceDisplay(distanceToHazard)} from river surge channel`
-                      : `No active surge anomalies detected (~${formatDistanceDisplay(distanceToHazard)} buffer). Baseline does not guarantee zero risk.`}
-                  </div>
-                </div>
-              </div>
-
-              {/* Nearest Shelter Tag */}
-              {nearestRefuge && (
-                <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-[#152238] border border-[#27364B] text-[11px] text-[#A7B4C8] truncate max-w-[190px]">
-                  <MapPin className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
-                  <div className="truncate">
-                    <span className="truncate block font-semibold text-[#F8FAFC]">{nearestRefuge.asset.name}</span>
-                    <span className="text-emerald-400 font-mono text-[10px] block">
-                      ~{formatDistanceDisplay(nearestRefuge.distance)}
-                    </span>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* VIEW SUB-TABS: AI Safety Copilot vs Refuge Directory */}
-          <div className="px-3 py-1.5 bg-[#080E19] border-b border-[#27364B] flex items-center justify-between shrink-0 text-xs">
-            <div className="flex items-center gap-1 bg-[#101A2A] p-0.5 rounded-lg border border-[#27364B]">
-              <button
-                onClick={() => setActiveTab("chat")}
-                className={`px-3 py-1 rounded-md font-bold flex items-center gap-1.5 transition-colors cursor-pointer ${
-                  activeTab === "chat"
-                    ? "bg-[#152238] text-cyan-400 border border-cyan-500/40 shadow-sm"
-                    : "text-[#A7B4C8] hover:text-[#F8FAFC]"
-                }`}
-              >
-                <MessageSquare className="w-3 h-3" />
-                <span>AI Safety Copilot</span>
-              </button>
-              <button
-                onClick={() => setActiveTab("refuges")}
-                className={`px-3 py-1 rounded-md font-bold flex items-center gap-1.5 transition-colors cursor-pointer ${
-                  activeTab === "refuges"
-                    ? "bg-[#152238] text-cyan-400 border border-cyan-500/40 shadow-sm"
-                    : "text-[#A7B4C8] hover:text-[#F8FAFC]"
-                }`}
-              >
-                <BookOpen className="w-3 h-3" />
-                <span>Refuge Directory</span>
-              </button>
-            </div>
-
-            {/* Maximize to Full Reading Mode */}
-            {activeTab === "chat" && (
-              <button
-                onClick={() => setIsFullscreenChat(true)}
-                className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[#152238] hover:bg-[#1E2D48] text-cyan-300 border border-[#27364B] text-[10px] font-bold cursor-pointer transition-colors shadow-sm"
-                title="Expand to Full Reading View"
-              >
-                <Maximize2 className="w-3 h-3" />
-                <span className="hidden sm:inline">Expand View</span>
-              </button>
-            )}
-          </div>
-
-          {/* TAB 1: FULL-HEIGHT GEMINI AI CHAT & READING WORKSPACE */}
-          {activeTab === "chat" && (
-            <div className="flex-1 flex flex-col min-h-0 bg-[#101A2A] overflow-hidden">
-              {/* Scrollable Messages Container */}
-              <div className="flex-1 overflow-y-auto p-3.5 space-y-3 min-h-0 custom-scrollbar text-xs">
-                {chatMessages.map((msg, idx) => (
-                  <div
-                    key={idx}
-                    className={`flex flex-col ${
-                      msg.sender === "user" ? "items-end" : "items-start"
-                    }`}
-                  >
-                    <div
-                      className={`max-w-[90%] rounded-xl p-3 leading-relaxed text-xs shadow-md ${
-                        msg.sender === "user"
-                          ? "bg-gradient-to-r from-cyan-600 to-blue-600 text-white rounded-br-none"
-                          : "bg-[#152238] text-[#F8FAFC] border border-[#27364B] rounded-bl-none shadow-sm"
-                      }`}
-                    >
-                      <div className="whitespace-pre-line leading-relaxed">{msg.text}</div>
-
-                      {/* AI Response Action Tools (Audio Listen & Copy) */}
-                      {msg.sender === "ai" && (
-                        <div className="flex items-center gap-2 mt-2 pt-1.5 border-t border-[#27364B] text-[10px] text-[#A7B4C8]">
-                          <button
-                            onClick={() => handleSpeakMessage(msg.text)}
-                            className="flex items-center gap-1 text-cyan-300 hover:text-white cursor-pointer"
-                            title="Listen to response out loud"
-                          >
-                            <Volume2 className="w-3 h-3" />
-                            <span>Listen</span>
-                          </button>
-                          <span>•</span>
-                          <button
-                            onClick={() => handleCopy(msg.text, idx)}
-                            className="flex items-center gap-1 text-[#A7B4C8] hover:text-white cursor-pointer"
-                          >
-                            {copiedIdx === idx ? (
-                              <Check className="w-3 h-3 text-emerald-400" />
-                            ) : (
-                              <Copy className="w-3 h-3" />
-                            )}
-                            <span>{copiedIdx === idx ? "Copied" : "Copy"}</span>
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                    <span className="text-[9px] text-[#64748B] mt-1 px-1 font-mono">{msg.time}</span>
-                  </div>
-                ))}
-
-                {isAiThinking && (
-                  <div className="flex items-center gap-2 text-xs text-cyan-400 p-2.5 rounded-xl bg-[#152238] border border-cyan-500/30 w-fit">
-                    <Bot className="w-4 h-4 animate-spin text-cyan-400" />
-                    <span className="font-mono">Gemini evaluating terrain & telemetry...</span>
-                  </div>
-                )}
-                <div ref={messagesEndRef} />
-              </div>
-
-              {/* Suggested Quick Prompt Pills */}
-              <div className="p-2 bg-[#080E19] border-t border-[#27364B] flex items-center gap-1.5 overflow-x-auto text-[11px] custom-scrollbar shrink-0">
-                <button
-                  onClick={() => handleSendChat("Is it safe to walk forward right now?")}
-                  className="whitespace-nowrap px-2.5 py-1 rounded-lg bg-[#101A2A] hover:bg-[#152238] text-cyan-300 border border-[#27364B] cursor-pointer transition-colors shadow-sm font-semibold"
-                >
-                  🚶 Trail safe?
-                </button>
-                <button
-                  onClick={() => handleSendChat("Where is the highest ground near me?")}
-                  className="whitespace-nowrap px-2.5 py-1 rounded-lg bg-[#101A2A] hover:bg-[#152238] text-emerald-300 border border-[#27364B] cursor-pointer transition-colors shadow-sm font-semibold"
-                >
-                  🛡️ Nearest shelter?
-                </button>
-                <button
-                  onClick={() => handleSendChat("What is the cloudburst forecast?")}
-                  className="whitespace-nowrap px-2.5 py-1 rounded-lg bg-[#101A2A] hover:bg-[#152238] text-sky-300 border border-[#27364B] cursor-pointer transition-colors shadow-sm font-semibold"
-                >
-                  🌧️ Rainfall forecast?
-                </button>
-                <button
-                  onClick={() => handleSendChat("खोलामा बाढी आउँदा के गर्ने?")}
-                  className="whitespace-nowrap px-2.5 py-1 rounded-lg bg-[#101A2A] hover:bg-[#152238] text-amber-300 border border-[#27364B] cursor-pointer transition-colors shadow-sm font-semibold"
-                >
-                  🇳🇵 बाढी सुरक्षा?
-                </button>
-              </div>
-
-              {/* Chat Input Bar */}
-              <div className="p-2.5 bg-[#101A2A] border-t border-[#27364B] flex items-center gap-2 shrink-0">
-                <input
-                  type="text"
-                  value={chatInput}
-                  onChange={(e) => setChatInput(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && handleSendChat()}
-                  placeholder={
-                    language === "ne" ? "सुरक्षा प्रश्न सोध्नुहोस्..." : "Ask safety question..."
-                  }
-                  className="flex-1 bg-[#152238] text-xs text-[#F8FAFC] px-3.5 py-2.5 rounded-lg border border-[#27364B] focus:outline-none focus:border-cyan-500 placeholder:text-slate-500 shadow-inner"
-                />
-                <button
-                  onClick={() => handleSendChat()}
-                  disabled={!chatInput.trim() || isAiThinking}
-                  className="p-2.5 rounded-lg bg-cyan-600 hover:bg-cyan-500 disabled:opacity-40 text-white cursor-pointer transition-all shadow-md"
-                >
-                  <Send className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* TAB 2: REFUGE & TRAIL SAFETY DIRECTORY */}
-          {activeTab === "refuges" && (
-            <div className="flex-1 overflow-y-auto p-3.5 space-y-2.5 min-h-0 custom-scrollbar text-xs">
-              <div className="text-[10px] font-bold text-[#A7B4C8] uppercase tracking-wider font-mono">
-                Verified Safe Shelters in {corridor.name}
-              </div>
-
-              {assets
-                .filter((a) => a.type === "safeZone")
-                .map((refuge, idx) => (
-                  <div
-                    key={idx}
-                    className="p-3 rounded-xl bg-[#080E19] border border-[#27364B] space-y-1 hover:border-cyan-500/40 transition-colors"
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="font-bold text-[#F8FAFC] flex items-center gap-1.5">
-                        <Shield className="w-3.5 h-3.5 text-emerald-400" />
-                        <span>{refuge.name}</span>
-                      </span>
-                      <span className="text-[10px] font-mono text-cyan-300 font-bold">
-                        {refuge.elevation}m ASL
-                      </span>
-                    </div>
-                    <p className="text-[11px] text-[#A7B4C8]">{refuge.description || refuge.riskNote}</p>
-                    <div className="text-[10px] font-mono text-[#64748B] pt-1 flex justify-between">
-                      <span>GPS: {refuge.lat.toFixed(4)}°N, {refuge.lng.toFixed(4)}°E</span>
-                      <span className="text-emerald-400 font-bold">Verified Solid Terrain</span>
-                    </div>
-                  </div>
-                ))}
-            </div>
-          )}
+          <button
+            onClick={() => {
+              playConfirmationBeep();
+              setCivilianView("chat");
+            }}
+            className="flex items-center gap-2 px-3 py-1.5 rounded-md text-xs transition-colors cursor-pointer text-zinc-400 hover:text-zinc-200 font-normal"
+          >
+            <Sparkles className="w-3.5 h-3.5 text-zinc-400" />
+            <span>AI Safety Copilot</span>
+          </button>
         </div>
-      </MobileBottomSheet>
 
-      {/* 2. FULL-SCREEN GOOGLE MAP BASE (ALWAYS VISIBLE IN BACKGROUND) */}
-      <div className="flex-1 relative w-full h-full min-h-[350px]">
-        <FullScreenHazardMap
-          corridor={corridor}
-          assets={assets}
-          mode="civilian"
-          userPosition={userPosition}
-          onLocateMe={onLocateMe}
-          isLocating={isLocating}
-          distanceToHazard={distanceToHazard}
-          geofenceStatus={geofenceStatus}
-          simulatedWaterRise={waterSurge}
-          className="w-full h-full"
-        />
+        <div className="text-xs text-zinc-500 hidden sm:flex items-center gap-2">
+          <span>Corridor:</span>
+          <span className="text-zinc-300 font-medium">{corridor.name}</span>
+          <span>•</span>
+          <span>{safeShelters.length} Shelters Monitored</span>
+        </div>
       </div>
 
-      {/* 3. EXPANDED / FULLSCREEN CHAT READING MODAL (Spacious Studio View) */}
-      {isFullscreenChat && (
-        <div className="fixed inset-0 z-[100000] bg-black/85 backdrop-blur-xl flex items-center justify-center p-3 sm:p-6 animate-in fade-in">
-          <div className="w-full max-w-3xl h-[88vh] bg-[#101A2A] border border-[#27364B] rounded-2xl shadow-2xl flex flex-col overflow-hidden text-[#F8FAFC]">
-            {/* Header */}
-            <div className="p-4 bg-[#080E19] border-b border-[#27364B] flex items-center justify-between">
-              <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-xl bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 flex items-center justify-center">
-                  <Bot className="w-5 h-5 text-cyan-400" />
+      <div className="flex-1 flex flex-col lg:flex-row min-h-0 overflow-hidden">
+        {/* LEFT COLUMN: Clean, Focused Civilian Sidebar (~400px) */}
+        <aside className="w-full lg:w-[400px] xl:w-[420px] shrink-0 h-full flex flex-col bg-zinc-950 border-r border-zinc-800 overflow-hidden z-10">
+          {/* 1. COMPACT SAFETY STATUS BANNER */}
+          <div className="p-3.5 border-b border-zinc-800 shrink-0">
+            <div
+              className={`p-3.5 rounded-xl border transition-colors ${
+                isDanger
+                  ? "bg-red-950/20 border-red-900/40 text-red-200"
+                  : "bg-zinc-900/60 border-zinc-800 text-zinc-200"
+              }`}
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span
+                    className={`w-2 h-2 rounded-full ${
+                      isDanger ? "bg-red-500 animate-pulse" : "bg-emerald-500"
+                    }`}
+                  />
+                  <span className="font-medium text-xs sm:text-sm text-zinc-100">
+                    {isDanger
+                      ? language === "ne"
+                        ? "उच्च जोखिम: सुरक्षित उचाइमा जानुहोस्"
+                        : "Hazard Nearby — Move Uphill"
+                      : language === "ne"
+                      ? "तपाईं सुरक्षित क्षेत्रमा हुनुहुन्छ"
+                      : "Normal Valley Conditions"}
+                  </span>
                 </div>
-                <div>
-                  <h3 className="text-base font-black text-white flex items-center gap-2">
-                    <span>Gemini Safety Copilot • Full Reading Console</span>
-                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping inline-block" />
-                  </h3>
-                  <p className="text-xs text-[#A7B4C8] font-mono">
-                    {corridor.name} Trail Guidance • Google Cloud Vertex AI
-                  </p>
+                <span className="text-xs text-zinc-500">
+                  ~{formatDistance(distanceToHazard)} to river
+                </span>
+              </div>
+
+              <div className="mt-2.5 pt-2.5 border-t border-zinc-800/80 flex items-center justify-between text-xs">
+                <span className="text-zinc-500">Nearest High Ground:</span>
+                <span className="text-zinc-200 font-medium flex items-center gap-1.5 truncate max-w-[200px]">
+                  <MapPin className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
+                  <span className="truncate">{nearestRefuge?.name || "High Terrace"}</span>
+                  <span className="text-zinc-400 shrink-0">(~{formatDistance(nearestRefuge?.dist)})</span>
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* 2. EMERGENCY ACTION BUTTONS */}
+          <div className="px-3.5 py-3 border-b border-zinc-800 space-y-2 shrink-0">
+            {/* A. SOS Button with 3-Second Safeguard */}
+            {sosSuccess ? (
+              <div className="p-3 rounded-lg bg-zinc-900 border border-emerald-800/50 text-emerald-300 text-xs font-medium flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                  <span>SOS Broadcasted! Rescuers notified.</span>
                 </div>
               </div>
+            ) : sosCountdown !== null ? (
+              <div className="p-2.5 rounded-lg bg-zinc-900 border border-red-800 flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2 text-xs font-medium text-zinc-200">
+                  <span className="w-5 h-5 rounded-full bg-red-600 text-white flex items-center justify-center font-mono text-xs">
+                    {sosCountdown}
+                  </span>
+                  <span>Broadcasting SOS in {sosCountdown}s...</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <button
+                    onClick={cancelSosCountdown}
+                    className="px-2.5 py-1 rounded-md bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs font-medium cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={() => {
+                      cancelSosCountdown();
+                      handleConfirmSOS();
+                    }}
+                    className="px-2.5 py-1 rounded-md bg-red-600 hover:bg-red-700 text-white text-xs font-medium cursor-pointer"
+                  >
+                    Send Now
+                  </button>
+                </div>
+              </div>
+            ) : (
               <button
-                onClick={() => setIsFullscreenChat(false)}
-                className="p-2 rounded-lg text-[#A7B4C8] hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+                onClick={startSosCountdown}
+                className="w-full py-2.5 px-4 rounded-lg bg-red-600 hover:bg-red-700 active:scale-[0.99] text-white font-medium text-xs sm:text-sm flex items-center justify-center gap-2 cursor-pointer transition-colors shadow-sm"
               >
-                <X className="w-5 h-5" />
+                <Radio className="w-4 h-4" />
+                <span>
+                  {language === "ne" ? "आपतकालीन उद्धार (SOS) पठाउनुहोस्" : "Send Emergency SOS Alert"}
+                </span>
+              </button>
+            )}
+
+            {/* B. Secondary Action: Report Hazard & Voice Note */}
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                onClick={() => setIsReportModalOpen(true)}
+                className="py-2 px-3 rounded-lg bg-zinc-900 hover:bg-zinc-850 text-zinc-300 hover:text-zinc-100 border border-zinc-800 text-xs font-medium flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
+              >
+                <AlertTriangle className="w-3.5 h-3.5 text-zinc-400" />
+                <span>Report Hazard</span>
+              </button>
+
+              <button
+                onClick={() => setIsVoiceModalOpen(true)}
+                className="py-2 px-3 rounded-lg bg-zinc-900 hover:bg-zinc-850 text-zinc-300 hover:text-zinc-100 border border-zinc-800 text-xs font-medium flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
+              >
+                <Mic className="w-3.5 h-3.5 text-zinc-400" />
+                <span>Voice Note</span>
               </button>
             </div>
+          </div>
 
-            {/* Messages in Large, Readable Typography */}
-            <div className="flex-1 overflow-y-auto p-5 space-y-4 text-sm custom-scrollbar bg-[#080E19]">
-              {chatMessages.map((msg, idx) => (
+          {/* 4. SAFE SHELTERS DIRECTORY (Full Vertical Space Available!) */}
+          <div className="flex-1 overflow-y-auto p-3.5 space-y-2.5 custom-scrollbar min-h-0 bg-zinc-950">
+            <div className="flex items-center justify-between pb-1">
+              <div className="flex items-center gap-2">
+                <Shield className="w-4 h-4 text-zinc-400" />
+                <span className="text-xs font-medium text-zinc-300">Safe High-Ground Shelters</span>
+              </div>
+              <span className="text-[11px] font-mono text-zinc-400 px-2 py-0.5 rounded-md bg-zinc-900 border border-zinc-800">
+                {safeShelters.length} Available
+              </span>
+            </div>
+
+            {safeShelters.map((shelter) => {
+              const isSelected = selectedShelter?.id === shelter.id;
+
+              return (
                 <div
-                  key={idx}
-                  className={`flex flex-col ${
-                    msg.sender === "user" ? "items-end" : "items-start"
+                  key={shelter.id}
+                  onClick={() => setSelectedShelter(shelter)}
+                  className={`p-3.5 rounded-xl border transition-colors cursor-pointer ${
+                    isSelected
+                      ? "bg-zinc-800/90 border-zinc-600 shadow-sm"
+                      : "bg-zinc-900/50 hover:bg-zinc-900 border-zinc-800/80"
                   }`}
                 >
-                  <div
-                    className={`max-w-[85%] rounded-xl p-4 leading-relaxed ${
-                      msg.sender === "user"
-                        ? "bg-gradient-to-r from-cyan-600 to-blue-600 text-white rounded-br-none shadow-md text-sm"
-                        : "bg-[#152238] text-[#F8FAFC] border border-[#27364B] rounded-bl-none shadow-sm text-sm leading-relaxed"
-                    }`}
-                  >
-                    <div className="whitespace-pre-line">{msg.text}</div>
-
-                    {msg.sender === "ai" && (
-                      <div className="flex items-center gap-3 mt-3 pt-2 border-t border-[#27364B] text-xs text-[#A7B4C8]">
-                        <button
-                          onClick={() => handleSpeakMessage(msg.text)}
-                          className="flex items-center gap-1.5 text-cyan-300 hover:text-white cursor-pointer font-bold"
-                        >
-                          <Volume2 className="w-4 h-4" />
-                          <span>Listen Out Loud</span>
-                        </button>
-                        <span>•</span>
-                        <button
-                          onClick={() => handleCopy(msg.text, idx)}
-                          className="flex items-center gap-1.5 text-[#A7B4C8] hover:text-white cursor-pointer"
-                        >
-                          {copiedIdx === idx ? (
-                            <Check className="w-4 h-4 text-emerald-400" />
-                          ) : (
-                            <Copy className="w-4 h-4" />
-                          )}
-                          <span>{copiedIdx === idx ? "Copied" : "Copy Text"}</span>
-                        </button>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-7 h-7 rounded-lg bg-zinc-800 text-zinc-300 border border-zinc-700/60 flex items-center justify-center shrink-0">
+                        <Shield className="w-3.5 h-3.5" />
                       </div>
-                    )}
-                  </div>
-                  <span className="text-[10px] text-[#64748B] mt-1 px-1 font-mono">{msg.time}</span>
-                </div>
-              ))}
-              {isAiThinking && (
-                <div className="flex items-center gap-2 text-sm text-cyan-400 p-3 rounded-xl bg-[#152238] border border-cyan-500/30 w-fit">
-                  <Bot className="w-4 h-4 animate-spin" />
-                  <span>Gemini is synthesizing live trail recommendations...</span>
-                </div>
-              )}
-            </div>
+                      <div>
+                        <h4 className="text-xs font-medium text-zinc-200 leading-tight">
+                          {shelter.name}
+                        </h4>
+                        <span className="text-[11px] text-zinc-500">
+                          Elevation: {shelter.elevation}m ASL
+                        </span>
+                      </div>
+                    </div>
 
-            {/* Input Bar in Modal */}
-            <div className="p-3 bg-[#101A2A] border-t border-[#27364B] flex items-center gap-2">
-              <input
-                type="text"
-                value={chatInput}
-                onChange={(e) => setChatInput(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleSendChat()}
-                placeholder="Ask any question about safety, shelters, weather..."
-                className="flex-1 bg-[#152238] text-sm text-[#F8FAFC] px-4 py-3 rounded-xl border border-[#27364B] focus:outline-none focus:border-cyan-500 placeholder:text-slate-500"
-              />
+                    <div className="text-right shrink-0">
+                      <span className="text-xs font-mono font-medium text-zinc-300 block">
+                        ~{formatDistance(shelter.dist)}
+                      </span>
+                      <span className="text-[11px] text-zinc-500 block">Uphill</span>
+                    </div>
+                  </div>
+
+                  <p className="text-xs text-zinc-400 mt-2 leading-relaxed">
+                    {shelter.description || "Designated high ground evacuation terrace clear of flood surge channels."}
+                  </p>
+
+                  <div className="mt-2.5 pt-2 border-t border-zinc-800/80 flex items-center justify-between text-[11px] text-zinc-500">
+                    <span className="font-mono">
+                      {shelter.lat.toFixed(4)}°N, {shelter.lng.toFixed(4)}°E
+                    </span>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedShelter(shelter);
+                      }}
+                      className="px-2 py-1 rounded-md bg-zinc-800 hover:bg-zinc-700 text-zinc-300 flex items-center gap-1 cursor-pointer text-xs font-medium transition-colors"
+                    >
+                      <Crosshair className="w-3 h-3 text-zinc-400" />
+                      <span>Locate</span>
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </aside>
+
+        {/* RIGHT STAGE: Pure, Distraction-Free Modern Map */}
+        <main className="flex-1 h-full min-h-[350px] relative bg-zinc-950">
+          <ModernHazardMap
+            corridor={corridor}
+            assets={assets}
+            mode="civilian"
+            selectedShelter={selectedShelter}
+            userPosition={userPosition}
+            onLocateMe={onLocateMe}
+            isLocating={isLocating}
+            simulatedWaterRise={waterSurge}
+            className="w-full h-full"
+          />
+
+          {/* Minimal Floating Action Pill to Open AI Safety Copilot */}
+          <button
+            onClick={() => {
+              playConfirmationBeep();
+              setCivilianView("chat");
+            }}
+            className="absolute bottom-6 right-6 z-[1000] px-4 py-2.5 rounded-full bg-zinc-900/95 hover:bg-zinc-850 border border-zinc-700/80 text-zinc-100 font-medium text-xs shadow-lg flex items-center gap-2 cursor-pointer backdrop-blur-md transition-colors"
+          >
+            <Sparkles className="w-4 h-4 text-zinc-300" />
+            <span>AI Safety Copilot</span>
+          </button>
+        </main>
+      </div>
+
+      {/* CITIZEN HAZARD REPORT MODAL */}
+      {isReportModalOpen && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="w-full max-w-md bg-zinc-900 border border-zinc-800 rounded-xl shadow-2xl p-5 text-zinc-100">
+            <div className="flex items-center justify-between pb-3 border-b border-zinc-800">
+              <div className="flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4 text-zinc-400" />
+                <h3 className="font-semibold text-sm">Report Trail Hazard</h3>
+              </div>
               <button
-                onClick={() => handleSendChat()}
-                disabled={!chatInput.trim() || isAiThinking}
-                className="px-5 py-3 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-sm cursor-pointer transition-all shadow-md flex items-center gap-2"
+                onClick={() => setIsReportModalOpen(false)}
+                className="p-1 rounded-md text-zinc-400 hover:text-zinc-100"
               >
-                <span>Send</span>
-                <Send className="w-4 h-4" />
+                <X className="w-4 h-4" />
               </button>
             </div>
+
+            {reportSubmitted ? (
+              <div className="py-8 text-center space-y-2">
+                <CheckCircle2 className="w-10 h-10 text-emerald-400 mx-auto" />
+                <h4 className="font-semibold text-sm text-zinc-100">Report Submitted</h4>
+                <p className="text-xs text-zinc-400">
+                  Transmitted to APF Search & Rescue and NDRRMA operations center.
+                </p>
+              </div>
+            ) : (
+              <form onSubmit={handleSubmitReport} className="mt-4 space-y-4 text-xs">
+                <div>
+                  <label className="block text-zinc-300 mb-1.5 font-medium">Hazard Type</label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {[
+                      { id: "water", label: "River Surge / High Water" },
+                      { id: "crack", label: "Landslide / Ground Crack" },
+                      { id: "sound", label: "Rockfall / Rumbling Sound" },
+                      { id: "other", label: "Bridge / Trail Damage" },
+                    ].map((opt) => (
+                      <button
+                        type="button"
+                        key={opt.id}
+                        onClick={() => setReportType(opt.id as any)}
+                        className={`p-2.5 rounded-lg border text-left cursor-pointer transition-colors ${
+                          reportType === opt.id
+                            ? "bg-zinc-800 border-zinc-600 text-zinc-100 font-medium"
+                            : "bg-zinc-800/40 border-zinc-800 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200"
+                        }`}
+                      >
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-zinc-300 mb-1.5 font-medium">
+                    Description (Optional)
+                  </label>
+                  <textarea
+                    value={reportNote}
+                    onChange={(e) => setReportNote(e.target.value)}
+                    placeholder="Describe what you see (e.g. muddy water surging, bridge impassable)..."
+                    rows={3}
+                    className="w-full bg-zinc-950 border border-zinc-800 rounded-lg p-2.5 text-zinc-100 placeholder:text-zinc-500 focus:outline-none focus:border-zinc-600 text-xs"
+                  />
+                </div>
+
+                <div className="pt-2 flex justify-end gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setIsReportModalOpen(false)}
+                    className="px-3 py-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs font-medium cursor-pointer transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-3.5 py-1.5 rounded-lg bg-zinc-100 hover:bg-white text-zinc-900 font-medium text-xs cursor-pointer transition-colors shadow-sm"
+                  >
+                    Submit Report
+                  </button>
+                </div>
+              </form>
+            )}
           </div>
         </div>
       )}
 
-      {/* Voice Recorder Modal */}
+      {/* VOICE RECORDER MODAL */}
       {isVoiceModalOpen && (
         <VoiceRecorderModal
           isOpen={isVoiceModalOpen}
@@ -751,9 +696,7 @@ export function CivilianDashboard({
               lat: userPosition?.lat,
               lng: userPosition?.lng,
               hasVoice: true,
-              aiClassification: `Detected keywords: ${
-                report.hazardKeywords?.join(", ") || "water surge"
-              }`,
+              aiClassification: `Keywords: ${report.hazardKeywords?.join(", ") || "water surge"}`,
               corridorId: corridor.id,
             });
             setIsVoiceModalOpen(false);

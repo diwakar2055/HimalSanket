@@ -172,21 +172,21 @@ export function VoiceRecorderModal({
 
   return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-150">
-      <div className="w-full max-w-lg bg-[#16233f] border border-[#2a3b5e] rounded-2xl shadow-2xl overflow-hidden flex flex-col text-slate-200">
+      <div className="w-full max-w-lg bg-zinc-900 border border-zinc-800 rounded-xl shadow-2xl overflow-hidden flex flex-col text-zinc-100">
         {/* Header */}
-        <div className="px-5 py-4 bg-[#111c33] border-b border-[#2a3b5e] flex items-center justify-between">
+        <div className="px-5 py-3.5 bg-zinc-950 border-b border-zinc-800 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <div className="p-2 rounded-lg bg-red-500/20 text-red-400 border border-red-500/40">
-              <Mic className="w-5 h-5" />
+            <div className="p-2 rounded-lg bg-zinc-850 text-zinc-300 border border-zinc-750">
+              <Mic className="w-4 h-4" />
             </div>
             <div>
-              <h3 className="text-sm font-bold text-white">Record Audio Hazard Dispatch</h3>
-              <p className="text-xs text-slate-400">Porters, Guides &amp; Residents &bull; {corridorName}</p>
+              <h3 className="text-sm font-semibold text-zinc-100">Record Audio Hazard Dispatch</h3>
+              <p className="text-xs text-zinc-500">{corridorName}</p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition-colors"
+            className="p-1 rounded-md text-zinc-400 hover:text-zinc-100 transition-colors"
           >
             <X className="w-4 h-4" />
           </button>
@@ -195,30 +195,30 @@ export function VoiceRecorderModal({
         {/* Content */}
         <div className="p-5 flex flex-col gap-4">
           {/* Microphone Recording Center */}
-          <div className="flex flex-col items-center justify-center p-6 bg-[#0f172a] rounded-xl border border-white/10 text-center">
+          <div className="flex flex-col items-center justify-center p-6 bg-zinc-950 rounded-lg border border-zinc-800 text-center">
             <div className="relative mb-3">
               {isRecording && (
-                <div className="absolute inset-0 rounded-full bg-red-500/40 animate-ping" />
+                <div className="absolute inset-0 rounded-full bg-red-500/30 animate-ping" />
               )}
               <button
                 onClick={isRecording ? stopRecording : startRecording}
-                className={`relative w-16 h-16 rounded-full flex items-center justify-center shadow-2xl transition-all cursor-pointer ${
+                className={`relative w-14 h-14 rounded-full flex items-center justify-center shadow-lg transition-colors cursor-pointer ${
                   isRecording
-                    ? "bg-red-600 hover:bg-red-700 text-white animate-pulse"
-                    : "bg-teal-600 hover:bg-teal-500 text-white"
+                    ? "bg-red-600 hover:bg-red-700 text-white"
+                    : "bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border border-zinc-700"
                 }`}
               >
-                {isRecording ? <Square className="w-6 h-6" /> : <Mic className="w-7 h-7" />}
+                {isRecording ? <Square className="w-5 h-5" /> : <Mic className="w-6 h-6" />}
               </button>
             </div>
 
-            <div className="text-sm font-semibold text-white">
-              {isRecording ? `Recording Audio... ${recordingTime}s` : audioUrl ? `Recorded (${recordingTime}s)` : "Click to Speak in Nepali or English"}
+            <div className="text-sm font-medium text-zinc-200">
+              {isRecording ? `Recording... ${recordingTime}s` : audioUrl ? `Recorded (${recordingTime}s)` : "Click to Record in Nepali or English"}
             </div>
-            <p className="text-xs text-slate-400 mt-1 max-w-xs">
+            <p className="text-xs text-zinc-500 mt-1 max-w-xs">
               {isRecording
-                ? "Speak clearly into your microphone about water rise, trail cracks, or unusual rockfall."
-                : "Captures instant voice report with speech-to-text keyword extraction."}
+                ? "Speak clearly about water rise, trail cracks, or unusual rockfall."
+                : "Captures voice report with speech-to-text keyword extraction."}
             </p>
 
             {audioUrl && (
@@ -230,28 +230,28 @@ export function VoiceRecorderModal({
 
           {/* Real-Time Live Transcript */}
           <div>
-            <label className="text-xs font-semibold text-slate-300 block mb-1">
+            <label className="text-xs font-medium text-zinc-300 block mb-1">
               Live Speech Transcript (Nepali / English):
             </label>
             <textarea
               value={transcript}
               onChange={(e) => setTranscript(e.target.value)}
-              placeholder="e.g. खोला धमिलो भएर एकदमै तीव्र गतिमा बढ्दै छ, माथिबाट पहिरोको गडगडाएको आवाज आयो... (The river is rising fast with dark mud...)"
-              className="w-full bg-[#0b131e] border border-white/10 rounded-lg p-2.5 text-xs text-white focus:outline-none focus:ring-1 focus:ring-teal-400 min-h-[70px] resize-none"
+              placeholder="e.g. खोला धमिलो भएर एकदमै तीव्र गतिमा बढ्दै छ... (The river is rising fast with dark mud...)"
+              className="w-full bg-zinc-950 border border-zinc-800 rounded-lg p-2.5 text-xs text-zinc-100 placeholder:text-zinc-500 focus:outline-none focus:border-zinc-600 min-h-[64px] resize-none"
             />
           </div>
 
           {/* Detected Hazard Keywords */}
           {detectedKeywords.length > 0 && (
-            <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-lg">
-              <div className="text-xs font-bold text-red-400 flex items-center gap-1.5 mb-1.5">
-                <AlertTriangle className="w-3.5 h-3.5" /> Detected Acute Danger Indicators:
+            <div className="p-3 bg-red-950/20 border border-red-900/40 rounded-lg">
+              <div className="text-xs font-medium text-red-300 flex items-center gap-1.5 mb-1.5">
+                <AlertTriangle className="w-3.5 h-3.5 text-red-400" /> Detected Danger Indicators:
               </div>
               <div className="flex flex-wrap gap-1.5">
                 {detectedKeywords.map((k, i) => (
                   <span
                     key={i}
-                    className="text-[11px] px-2 py-0.5 rounded bg-red-500/20 text-red-300 border border-red-500/40 font-semibold"
+                    className="text-xs px-2 py-0.5 rounded-md bg-red-950/50 text-red-200 border border-red-800/60 font-medium"
                   >
                     ✓ {k}
                   </span>
@@ -262,50 +262,50 @@ export function VoiceRecorderModal({
 
           {/* Category Selector */}
           <div>
-            <label className="text-xs font-semibold text-slate-300 block mb-1.5">Observation Category:</label>
+            <label className="text-xs font-medium text-zinc-300 block mb-1.5">Observation Category:</label>
             <div className="grid grid-cols-4 gap-2 text-xs">
               {(["water", "crack", "sound", "other"] as const).map((cat) => (
                 <button
                   key={cat}
                   type="button"
                   onClick={() => setSelectedCategory(cat)}
-                  className={`py-2 px-1 rounded-lg border text-center font-medium capitalize transition-all cursor-pointer ${
+                  className={`py-2 px-1 rounded-lg border text-center font-medium capitalize transition-colors cursor-pointer ${
                     selectedCategory === cat
-                      ? "bg-teal-600 border-teal-400 text-white font-semibold"
-                      : "bg-[#0f172a] border-white/10 text-slate-400 hover:text-white"
+                      ? "bg-zinc-800 border-zinc-600 text-zinc-100"
+                      : "bg-zinc-950 border-zinc-800 text-zinc-400 hover:bg-zinc-850 hover:text-zinc-200"
                   }`}
                 >
-                  {cat === "water" ? "🌊 Water" : cat === "crack" ? "⚠️ Landslide" : cat === "sound" ? "🔊 Acoustic" : "📝 Other"}
+                  {cat === "water" ? "Water" : cat === "crack" ? "Landslide" : cat === "sound" ? "Acoustic" : "Other"}
                 </button>
               ))}
             </div>
           </div>
 
           {/* Score Impact Preview */}
-          <div className="flex items-center justify-between p-2.5 bg-[#0b131e] rounded-lg border border-white/5 text-xs">
-            <span className="text-slate-400">Risk Engine Signal Contribution:</span>
-            <span className="font-bold text-emerald-400 font-mono">+{calculatedBoost} Points Boost</span>
+          <div className="flex items-center justify-between p-2.5 bg-zinc-950 rounded-lg border border-zinc-800 text-xs">
+            <span className="text-zinc-500">Risk Engine Signal Contribution:</span>
+            <span className="font-mono text-zinc-300">+{calculatedBoost} Points Boost</span>
           </div>
         </div>
 
         {/* Footer */}
-        <div className="px-5 py-3 bg-[#111c33] border-t border-[#2a3b5e] flex items-center justify-end gap-2">
+        <div className="px-5 py-3 bg-zinc-950 border-t border-zinc-800 flex items-center justify-end gap-2">
           <button
             onClick={onClose}
-            className="px-4 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-white/5 transition-colors cursor-pointer"
+            className="px-3.5 py-1.5 rounded-lg text-xs font-medium text-zinc-400 hover:text-zinc-200 transition-colors cursor-pointer"
           >
             Cancel
           </button>
           <button
             onClick={handleSubmit}
             disabled={!transcript && !audioUrl}
-            className={`px-5 py-2 rounded-lg text-xs font-bold text-white shadow-lg transition-all cursor-pointer flex items-center gap-1.5 ${
+            className={`px-4 py-2 rounded-lg text-xs font-medium shadow-sm transition-colors cursor-pointer flex items-center gap-1.5 ${
               transcript || audioUrl
-                ? "bg-teal-600 hover:bg-teal-500"
-                : "bg-slate-700 opacity-50 cursor-not-allowed"
+                ? "bg-zinc-100 hover:bg-white text-zinc-900"
+                : "bg-zinc-800 text-zinc-500 cursor-not-allowed"
             }`}
           >
-            <CheckCircle2 className="w-4 h-4" /> Submit Verified Voice Dispatch
+            <CheckCircle2 className="w-4 h-4" /> Submit Voice Dispatch
           </button>
         </div>
       </div>

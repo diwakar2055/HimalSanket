@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { playHazardVoiceBroadcast } from "../utils/speechSynthesizer";
 import { MAP_ASSETS } from "../data/hazardMapData";
+import { MarkdownMessage } from "./common/MarkdownMessage";
 
 interface ChatMessage {
   id: string;
@@ -128,80 +129,7 @@ function renderInlineText(line: string) {
 
 // Rich Markdown Formatter Component for Chat Responses
 function FormattedMessageContent({ text }: { text: string }) {
-  const lines = useMemo(() => text.split("\n"), [text]);
-
-  const isNepali = /[\u0900-\u097F]/.test(text);
-
-  return (
-    <div className={`space-y-2 text-xs text-[#F8FAFC] ${isNepali ? "leading-relaxed" : "leading-normal"}`}>
-      {lines.map((line, idx) => {
-        const trimmed = line.trim();
-        if (!trimmed) {
-          return <div key={idx} className="h-1.5" />;
-        }
-
-        // 1. High-priority Warning Banner Line
-        if (trimmed.startsWith("🚨") || trimmed.includes("URGENT GEOFENCE WARNING")) {
-          return (
-            <div
-              key={idx}
-              className="p-2.5 rounded-xl bg-gradient-to-r from-rose-950/80 to-red-950/60 border border-rose-500/70 shadow-lg text-rose-100 flex items-start gap-2 animate-in fade-in duration-200"
-            >
-              <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5 animate-pulse" />
-              <div className="font-bold text-xs leading-snug">{renderInlineText(trimmed)}</div>
-            </div>
-          );
-        }
-
-        // 2. Section Heading Line (e.g. ### or **HEADING:** or lines ending with :)
-        if (trimmed.startsWith("###") || (/^\*\*[A-Z\s]{4,}\*\*:?$/.test(trimmed))) {
-          const headingText = trimmed.replace(/^###\s*/, "");
-          return (
-            <div
-              key={idx}
-              className="text-[11px] font-black uppercase tracking-wider text-cyan-300 pt-2 pb-1 border-b border-[#2A3B5E]/60 flex items-center gap-1.5"
-            >
-              <span className="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
-              <span>{renderInlineText(headingText)}</span>
-            </div>
-          );
-        }
-
-        // 3. Numbered Action Steps (e.g. 1. Move Uphill, 2. Proceed...)
-        const numberedMatch = trimmed.match(/^(\d+)\.\s+(.*)/);
-        if (numberedMatch) {
-          const num = numberedMatch[1];
-          const content = numberedMatch[2];
-          return (
-            <div key={idx} className="flex items-start gap-2 my-1 pl-1">
-              <span className="w-4 h-4 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 text-[10px] font-bold font-mono flex items-center justify-center shrink-0 mt-0.5">
-                {num}
-              </span>
-              <div className="flex-1 leading-relaxed text-slate-200">{renderInlineText(content)}</div>
-            </div>
-          );
-        }
-
-        // 4. Bullet Points (e.g. • or -)
-        if (trimmed.startsWith("•") || trimmed.startsWith("- ") || trimmed.startsWith("* ")) {
-          const content = trimmed.replace(/^[•\-\*]\s*/, "");
-          return (
-            <div key={idx} className="flex items-start gap-2 my-1 pl-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 shrink-0 mt-1.5" />
-              <div className="flex-1 leading-relaxed text-slate-200">{renderInlineText(content)}</div>
-            </div>
-          );
-        }
-
-        // 5. Standard paragraph line
-        return (
-          <div key={idx} className="leading-relaxed">
-            {renderInlineText(trimmed)}
-          </div>
-        );
-      })}
-    </div>
-  );
+  return <MarkdownMessage content={text} isAi={true} />;
 }
 
 // Progressive Typewriter Text Component

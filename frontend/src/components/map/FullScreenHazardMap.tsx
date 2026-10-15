@@ -37,9 +37,14 @@ import {
   Crosshair,
   Volume2,
   Globe2,
+  Search,
+  Plus,
+  Minus,
+  Plane,
 } from "lucide-react";
 import { ErrorBoundary } from "../ErrorBoundary";
 import { LeafletHazardMap } from "../LeafletHazardMap";
+import { TraefikNodeCard, TraefikNodeData } from "./TraefikNodeCard";
 
 export interface FullScreenHazardMapProps {
   corridor: CorridorConfig;
@@ -233,9 +238,8 @@ export function FullScreenHazardMap({
       !authErrorNotice
   );
 
-  const [engine, setEngine] = useState<"google" | "leaflet">(() => {
-    return hasValidGoogleKey ? "google" : "leaflet";
-  });
+  // Default to Leaflet for 100% reliable satellite and terrain tiles without Google key popups
+  const [engine, setEngine] = useState<"google" | "leaflet">("leaflet");
 
   useEffect(() => {
     if (!hasValidGoogleKey) {
@@ -407,10 +411,81 @@ export function FullScreenHazardMap({
     [onSelectAsset]
   );
 
+  // Transcope Map Search & Filtering
+  const [mapSearch, setMapSearch] = useState("");
+  const [filterCategory, setFilterCategory] = useState<"all" | "safe" | "sos" | "bases">("all");
+
+  const activeNodeData = useMemo<TraefikNodeData | null>(() => {
+    if (activeBeacon) {
+      return {
+        title: activeBeacon.name,
+        subtitle: `Distress Incident #${String(activeBeacon.id).slice(-4)} • ${safeCorridor.name}`,
+        statusText: activeBeacon.status === "rescued" ? "Safely Extracted" : `${activeBeacon.priority}% Triage SOS`,
+        statusVariant: activeBeacon.status === "rescued" ? "safe" : activeBeacon.priority >= 90 ? "danger" : "warning",
+        metrics: [
+          { label: "GPS Coordinates", value: `${activeBeacon.lat.toFixed(3)}°, ${activeBeacon.lng.toFixed(3)}°` },
+          { label: "Altitude", value: `${Math.round(activeBeacon.altitude || 2780)}m ASL` },
+          { label: "Triage Urgency", value: `${activeBeacon.priority}% SOS`, highlight: true },
+          { label: "Assigned Squad", value: activeBeacon.assignedUnit || "Standby Squad" },
+        ],
+        primaryAction:
+          onDispatchBeacon && activeBeacon.status !== "rescued"
+            ? {
+                label: "Dispatch APF Squad",
+                onClick: () => onDispatchBeacon(activeBeacon),
+                icon: <Plane className="w-3.5 h-3.5" />,
+              }
+            : undefined,
+        secondaryAction:
+          onResolveBeacon && activeBeacon.status !== "rescued"
+            ? {
+                label: "Mark Extracted",
+                onClick: () => onResolveBeacon(activeBeacon),
+              }
+            : undefined,
+      };
+    }
+
+    if (activeAsset) {
+      return {
+        title: activeAsset.name,
+        subtitle:
+          activeAsset.type === "safeZone"
+            ? "High-Ground Evacuation Refuge"
+            : `Corridor Asset (${activeAsset.type})`,
+        statusText: activeAsset.status === "safe" ? "Nominal Safe" : "Advisory Watch",
+        statusVariant: activeAsset.status === "safe" ? "safe" : "warning",
+        metrics: [
+          { label: "Elevation", value: `${activeAsset.elevation}m ASL` },
+          { label: "Capacity", value: activeAsset.capacity ? `${activeAsset.capacity} Pax` : "Unrestricted" },
+          { label: "Safety Status", value: activeAsset.status.toUpperCase(), highlight: activeAsset.status !== "safe" },
+          { label: "Corridor Sector", value: safeCorridor.name.split(" ")[0] },
+        ],
+      };
+    }
+
+    if (activeBase) {
+      return {
+        title: activeBase.name,
+        subtitle: `SAR Forward Base • ${activeBase.agency}`,
+        statusText: "Operational",
+        statusVariant: "safe",
+        metrics: [
+          { label: "Flight Time", value: `~${activeBase.heliFlightMin} mins` },
+          { label: "Elevation", value: `${activeBase.elevation}m ASL` },
+          { label: "Aircraft Type", value: "AS350 B3e" },
+          { label: "Radio Frequency", value: activeBase.contact || "122.8 MHz" },
+        ],
+      };
+    }
+
+    return null;
+  }, [activeBeacon, activeAsset, activeBase, safeCorridor, onDispatchBeacon, onResolveBeacon]);
+
   // When engine is Leaflet or no valid Google Maps API Key is configured, seamlessly render Leaflet
   if (engine === "leaflet" || !hasValidGoogleKey) {
     return (
-      <div className={`relative w-full h-full overflow-hidden select-none bg-[#0c141d] ${className}`}>
+      <div className={`relative w-full h-full overflow-hidden select-none bg-[#090D16] ${className}`}>
         <LeafletHazardMap
           corridor={safeCorridor}
           assets={displayAssets}
@@ -444,6 +519,56 @@ export function FullScreenHazardMap({
           isLocating={isLocating}
           className="w-full h-full"
         />
+
+        {/* TRANSCOPE FLOATING MAP SEARCH & FILTER BAR */}
+        <div className="absolute top-3 left-1/2 -translate-x-1/2 z-30 hidden sm:flex items-center gap-2 pointer-events-auto">
+          <div className="flex items-center bg-[#090D16]/90 backdrop-blur-xl border border-white/[0.12] rounded-2xl px-3 py-1.5 shadow-2xl text-xs gap-2">
+            <Search className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+            <input
+              type="text"
+              placeholder="Search trail, refuge, SOS..."
+              value={mapSearch}
+              onChange={(e) => setMapSearch(e.target.value)}
+              className="bg-transparent text-white placeholder-slate-400 text-xs w-44 lg:w-56 focus:outline-none font-mono"
+            />
+            {mapSearch && (
+              <button
+                onClick={() => setMapSearch("")}
+                className="text-slate-400 hover:text-white text-xs cursor-pointer"
+              >
+                &times;
+              </button>
+            )}
+          </div>
+
+          <div className="flex items-center bg-[#090D16]/90 backdrop-blur-xl border border-white/[0.12] rounded-2xl px-3 py-1.5 shadow-2xl text-xs gap-1.5 text-slate-300 font-semibold">
+            <span className="text-slate-400 text-[10px]">Filter:</span>
+            <select
+              value={filterCategory}
+              onChange={(e) => setFilterCategory(e.target.value as any)}
+              className="bg-transparent text-white font-mono text-xs focus:outline-none cursor-pointer"
+            >
+              <option value="all" className="bg-[#0F172A] text-white">All Hazards</option>
+              <option value="sos" className="bg-[#0F172A] text-white">Urgent SOS</option>
+              <option value="safe" className="bg-[#0F172A] text-white">Safe Refuges</option>
+              <option value="bases" className="bg-[#0F172A] text-white">SAR Helipads</option>
+            </select>
+          </div>
+        </div>
+
+        {/* TRAEFIK HUB FLOATING NODE DETAIL CARD */}
+        {activeNodeData && (
+          <div className="absolute bottom-4 left-4 z-30 pointer-events-auto">
+            <TraefikNodeCard
+              data={activeNodeData}
+              onClose={() => {
+                setActiveBeacon(null);
+                setActiveAsset(null);
+                setActiveBase(null);
+              }}
+            />
+          </div>
+        )}
 
         {/* Floating Google Maps Switcher Pill (Top Right) */}
         <div className="absolute top-3 right-3 z-30 flex items-center gap-2 pointer-events-auto">
@@ -938,18 +1063,68 @@ export function FullScreenHazardMap({
         </APIProvider>
       </ErrorBoundary>
 
+      {/* TRANSCOPE FLOATING MAP SEARCH & FILTER BAR */}
+      <div className="absolute top-3 left-1/2 -translate-x-1/2 z-20 hidden sm:flex items-center gap-2 pointer-events-auto">
+        <div className="flex items-center bg-[#18191E]/95 backdrop-blur-xl border border-white/[0.12] rounded-2xl px-3 py-1.5 shadow-2xl text-xs gap-2">
+          <Search className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+          <input
+            type="text"
+            placeholder="Search trail, refuge, SOS..."
+            value={mapSearch}
+            onChange={(e) => setMapSearch(e.target.value)}
+            className="bg-transparent text-white placeholder-slate-400 text-xs w-44 lg:w-56 focus:outline-none font-mono"
+          />
+          {mapSearch && (
+            <button
+              onClick={() => setMapSearch("")}
+              className="text-slate-400 hover:text-white text-xs cursor-pointer"
+            >
+              &times;
+            </button>
+          )}
+        </div>
+
+        <div className="flex items-center bg-[#18191E]/95 backdrop-blur-xl border border-white/[0.12] rounded-2xl px-3 py-1.5 shadow-2xl text-xs gap-1.5 text-slate-300 font-semibold">
+          <span className="text-slate-400 text-[10px]">Filter:</span>
+          <select
+            value={filterCategory}
+            onChange={(e) => setFilterCategory(e.target.value as any)}
+            className="bg-transparent text-white font-mono text-xs focus:outline-none cursor-pointer"
+          >
+            <option value="all" className="bg-[#18191E] text-white">All Hazards</option>
+            <option value="sos" className="bg-[#18191E] text-white">Urgent SOS</option>
+            <option value="safe" className="bg-[#18191E] text-white">Safe Refuges</option>
+            <option value="bases" className="bg-[#18191E] text-white">SAR Helipads</option>
+          </select>
+        </div>
+      </div>
+
+      {/* TRAEFIK HUB FLOATING NODE DETAIL CARD */}
+      {activeNodeData && (
+        <div className="absolute bottom-4 left-4 z-30 pointer-events-auto">
+          <TraefikNodeCard
+            data={activeNodeData}
+            onClose={() => {
+              setActiveBeacon(null);
+              setActiveAsset(null);
+              setActiveBase(null);
+            }}
+          />
+        </div>
+      )}
+
       {/* FLOATING HUD CONTROLS (TOP LEFT: CORRIDOR & GEOFENCE STATUS) */}
       <div className="absolute top-3 left-3 z-10 flex flex-col gap-1.5 pointer-events-auto">
-        <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#101A2A]/90 backdrop-blur-md border border-[#27364B] shadow-xl text-xs text-[#F8FAFC]">
-          <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
+        <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#18191E]/95 backdrop-blur-md border border-white/[0.1] shadow-xl text-xs text-white">
+          <span className="w-2 h-2 rounded-full bg-emerald-400" />
           <span className="font-extrabold tracking-wide">{safeCorridor.name}</span>
-          <span className="text-[#A7B4C8] text-[11px]">({safeCorridor.region})</span>
+          <span className="text-slate-400 text-[11px]">({safeCorridor.region})</span>
           {geofenceStatus && (
             <span
               className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
                 geofenceStatus === "DANGER"
-                  ? "bg-[#DC2626]/20 text-rose-300 border border-[#DC2626]/50 animate-pulse"
-                  : "bg-[#22C55E]/20 text-emerald-300 border border-[#22C55E]/50"
+                  ? "bg-rose-500/20 text-rose-300 border border-rose-500/40 animate-pulse"
+                  : "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40"
               }`}
             >
               {geofenceStatus === "DANGER" ? "Danger zone" : "Safe zone"}
@@ -959,10 +1134,10 @@ export function FullScreenHazardMap({
 
         {/* Hazard Distance Readout */}
         {distanceToHazard !== null && distanceToHazard !== undefined && (
-          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#101A2A]/85 backdrop-blur-md border border-[#27364B] text-[11px] text-[#A7B4C8] shadow-md">
-            <Compass className="w-3.5 h-3.5 text-cyan-400" />
+          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#18191E]/90 backdrop-blur-md border border-white/[0.08] text-[11px] text-slate-400 shadow-md">
+            <Compass className="w-3.5 h-3.5 text-slate-300" />
             <span>Hazard distance:</span>
-            <strong className="text-[#F8FAFC] font-mono">{distanceToHazard}m</strong>
+            <strong className="text-white font-mono">{distanceToHazard}m</strong>
           </div>
         )}
       </div>
@@ -970,13 +1145,13 @@ export function FullScreenHazardMap({
       {/* FLOATING HUD CONTROLS (TOP RIGHT DOCK: BASEMAP SWITCHER & GIS LAYERS & RECENTER) */}
       <div className="absolute top-3 right-3 z-10 flex items-center gap-2 pointer-events-auto">
         {/* Google Maps MapType Switcher */}
-        <div className="flex items-center bg-[#101A2A]/90 backdrop-blur-md border border-[#27364B] rounded-xl p-0.5 shadow-xl text-xs">
+        <div className="flex items-center bg-[#18191E]/95 backdrop-blur-md border border-white/[0.1] rounded-xl p-0.5 shadow-xl text-xs">
           <button
             onClick={() => setMapType("terrain")}
             className={`flex items-center gap-1 px-2.5 py-1 rounded-lg font-bold transition-colors cursor-pointer ${
               mapType === "terrain"
-                ? "bg-[#152238] text-cyan-400 border border-cyan-500/40 shadow-sm"
-                : "text-[#A7B4C8] hover:text-[#F8FAFC]"
+                ? "bg-white/[0.12] text-white border border-white/20 shadow-sm"
+                : "text-slate-400 hover:text-white"
             }`}
             title="Google 3D Elevation & Mountain Terrain"
           >
@@ -987,8 +1162,8 @@ export function FullScreenHazardMap({
             onClick={() => setMapType("hybrid")}
             className={`flex items-center gap-1 px-2.5 py-1 rounded-lg font-bold transition-colors cursor-pointer ${
               mapType === "hybrid"
-                ? "bg-[#152238] text-cyan-400 border border-cyan-500/40 shadow-sm"
-                : "text-[#A7B4C8] hover:text-[#F8FAFC]"
+                ? "bg-white/[0.12] text-white border border-white/20 shadow-sm"
+                : "text-slate-400 hover:text-white"
             }`}
             title="Satellite Imagery with Trails & Labels"
           >
@@ -999,8 +1174,8 @@ export function FullScreenHazardMap({
             onClick={() => setMapType("satellite")}
             className={`flex items-center gap-1 px-2.5 py-1 rounded-lg font-bold transition-colors cursor-pointer ${
               mapType === "satellite"
-                ? "bg-[#152238] text-cyan-400 border border-cyan-500/40 shadow-sm"
-                : "text-[#A7B4C8] hover:text-[#F8FAFC]"
+                ? "bg-white/[0.12] text-white border border-white/20 shadow-sm"
+                : "text-slate-400 hover:text-white"
             }`}
             title="Pure Photorealistic Satellite Imagery"
           >
@@ -1011,8 +1186,8 @@ export function FullScreenHazardMap({
             onClick={() => setMapType("roadmap")}
             className={`flex items-center gap-1 px-2.5 py-1 rounded-lg font-bold transition-colors cursor-pointer ${
               mapType === "roadmap"
-                ? "bg-[#152238] text-cyan-400 border border-cyan-500/40 shadow-sm"
-                : "text-[#A7B4C8] hover:text-[#F8FAFC]"
+                ? "bg-white/[0.12] text-white border border-white/20 shadow-sm"
+                : "text-slate-400 hover:text-white"
             }`}
             title="Dark Tactical Vector Map"
           >
@@ -1021,10 +1196,10 @@ export function FullScreenHazardMap({
           </button>
           <button
             onClick={() => setEngine("leaflet")}
-            className="flex items-center gap-1 px-2.5 py-1 rounded-lg font-bold transition-colors cursor-pointer text-[#A7B4C8] hover:text-[#F8FAFC]"
+            className="flex items-center gap-1 px-2.5 py-1 rounded-lg font-bold transition-colors cursor-pointer text-slate-400 hover:text-white"
             title="Switch to Tactical Satellite GIS (Leaflet)"
           >
-            <Globe2 className="w-3.5 h-3.5 text-teal-400" />
+            <Globe2 className="w-3.5 h-3.5 text-emerald-400" />
             <span className="hidden lg:inline">Satellite GIS</span>
           </button>
         </div>
@@ -1034,77 +1209,77 @@ export function FullScreenHazardMap({
           <div className="relative">
             <button
               onClick={() => setShowLayerMenu(!showLayerMenu)}
-              className="p-2 rounded-xl bg-[#101A2A]/90 backdrop-blur-md border border-[#27364B] text-[#F8FAFC] hover:bg-[#152238] shadow-xl transition-colors cursor-pointer"
+              className="p-2 rounded-xl bg-[#18191E]/95 backdrop-blur-md border border-white/[0.1] text-white hover:bg-white/[0.08] shadow-xl transition-colors cursor-pointer"
               title="Toggle GIS Overlays"
             >
-              <Layers className="w-4 h-4 text-cyan-400" />
+              <Layers className="w-4 h-4 text-slate-300" />
             </button>
 
             {showLayerMenu && (
-              <div className="absolute right-0 top-11 w-52 rounded-xl bg-[#101A2A] border border-[#27364B] shadow-2xl p-3 text-xs text-[#F8FAFC] space-y-2 z-30">
-                <div className="text-[10px] font-bold uppercase tracking-wider text-[#A7B4C8] pb-1 border-b border-[#27364B]">
-                  Google Maps Layers
+              <div className="absolute right-0 top-11 w-52 rounded-xl bg-[#18191E] border border-white/[0.12] shadow-2xl p-3 text-xs text-white space-y-2 z-30">
+                <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 pb-1 border-b border-white/[0.08]">
+                  GIS Map Layers
                 </div>
-                <label className="flex items-center gap-2 cursor-pointer hover:text-cyan-300">
+                <label className="flex items-center gap-2 cursor-pointer hover:text-slate-200">
                   <input
                     type="checkbox"
                     checked={layers.river}
                     onChange={(e) => setLayers((p) => ({ ...p, river: e.target.checked }))}
-                    className="accent-cyan-500 rounded"
+                    className="accent-emerald-500 rounded"
                   />
                   <span>River Flow Centerline</span>
                 </label>
-                <label className="flex items-center gap-2 cursor-pointer hover:text-cyan-300">
+                <label className="flex items-center gap-2 cursor-pointer hover:text-slate-200">
                   <input
                     type="checkbox"
                     checked={layers.inundation}
                     onChange={(e) => setLayers((p) => ({ ...p, inundation: e.target.checked }))}
-                    className="accent-cyan-500 rounded"
+                    className="accent-emerald-500 rounded"
                   />
                   <span>Surge Flood Inundation</span>
                 </label>
-                <label className="flex items-center gap-2 cursor-pointer hover:text-cyan-300">
+                <label className="flex items-center gap-2 cursor-pointer hover:text-slate-200">
                   <input
                     type="checkbox"
                     checked={layers.glacialLake}
                     onChange={(e) => setLayers((p) => ({ ...p, glacialLake: e.target.checked }))}
-                    className="accent-cyan-500 rounded"
+                    className="accent-emerald-500 rounded"
                   />
                   <span>Sentinel-2 Glacial Lakes</span>
                 </label>
-                <label className="flex items-center gap-2 cursor-pointer hover:text-cyan-300">
+                <label className="flex items-center gap-2 cursor-pointer hover:text-slate-200">
                   <input
                     type="checkbox"
                     checked={layers.landslides}
                     onChange={(e) => setLayers((p) => ({ ...p, landslides: e.target.checked }))}
-                    className="accent-cyan-500 rounded"
+                    className="accent-emerald-500 rounded"
                   />
                   <span>Landslide Hazard Zones</span>
                 </label>
-                <label className="flex items-center gap-2 cursor-pointer hover:text-cyan-300">
+                <label className="flex items-center gap-2 cursor-pointer hover:text-slate-200">
                   <input
                     type="checkbox"
                     checked={layers.distressBeacons}
                     onChange={(e) => setLayers((p) => ({ ...p, distressBeacons: e.target.checked }))}
-                    className="accent-cyan-500 rounded"
+                    className="accent-emerald-500 rounded"
                   />
                   <span>Distress Beacons (SOS)</span>
                 </label>
-                <label className="flex items-center gap-2 cursor-pointer hover:text-cyan-300">
+                <label className="flex items-center gap-2 cursor-pointer hover:text-slate-200">
                   <input
                     type="checkbox"
                     checked={layers.rescueBases}
                     onChange={(e) => setLayers((p) => ({ ...p, rescueBases: e.target.checked }))}
-                    className="accent-cyan-500 rounded"
+                    className="accent-emerald-500 rounded"
                   />
                   <span>SAR Helipads & Bases</span>
                 </label>
-                <label className="flex items-center gap-2 cursor-pointer hover:text-cyan-300">
+                <label className="flex items-center gap-2 cursor-pointer hover:text-slate-200">
                   <input
                     type="checkbox"
                     checked={layers.infrastructure}
                     onChange={(e) => setLayers((p) => ({ ...p, infrastructure: e.target.checked }))}
-                    className="accent-cyan-500 rounded"
+                    className="accent-emerald-500 rounded"
                   />
                   <span>Refuge & Infrastructure</span>
                 </label>
@@ -1116,10 +1291,10 @@ export function FullScreenHazardMap({
         {/* Re-center Button */}
         <button
           onClick={() => setRecenterTrigger((p) => p + 1)}
-          className="p-2 rounded-xl bg-[#101A2A]/90 backdrop-blur-md border border-[#27364B] text-[#F8FAFC] hover:bg-[#152238] shadow-xl transition-colors cursor-pointer"
+          className="p-2 rounded-xl bg-[#18191E]/95 backdrop-blur-md border border-white/[0.1] text-white hover:bg-white/[0.08] shadow-xl transition-colors cursor-pointer"
           title="Fit Corridor Bounds"
         >
-          <Compass className="w-4 h-4 text-cyan-400" />
+          <Compass className="w-4 h-4 text-slate-300" />
         </button>
       </div>
 
@@ -1132,15 +1307,15 @@ export function FullScreenHazardMap({
               onLocateMe();
               setLocateTrigger((p) => p + 1);
             }}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#101A2A]/90 backdrop-blur-md border border-[#27364B] text-xs font-semibold text-[#F8FAFC] hover:bg-[#152238] shadow-xl transition-colors cursor-pointer ${
-              isLocating ? "animate-pulse text-cyan-400" : ""
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#18191E]/95 backdrop-blur-md border border-white/[0.1] text-xs font-semibold text-white hover:bg-white/[0.08] shadow-xl transition-colors cursor-pointer ${
+              isLocating ? "animate-pulse text-emerald-400" : ""
             }`}
             title="Locate GPS position"
           >
             <MapPin className="w-3.5 h-3.5 text-emerald-400" />
             <span className="hidden sm:inline">GPS</span>
             {userPosition?.altitude && (
-              <span className="text-[10px] font-mono text-cyan-300 hidden md:inline">
+              <span className="text-[10px] font-mono text-slate-300 hidden md:inline">
                 {Math.round(userPosition.altitude)}m
               </span>
             )}
@@ -1153,7 +1328,7 @@ export function FullScreenHazardMap({
           className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-bold backdrop-blur-md border transition-colors cursor-pointer shadow-xl ${
             hasValidGoogleKey
               ? "bg-emerald-950/60 border-emerald-500/50 text-emerald-300 hover:bg-emerald-900/60"
-              : "bg-amber-950/60 border-amber-500/40 text-amber-300 hover:bg-amber-900/60"
+              : "bg-[#18191E] border-white/10 text-slate-400 hover:text-white"
           }`}
           title="Configure Google Maps API Key"
         >
@@ -1164,9 +1339,9 @@ export function FullScreenHazardMap({
 
       {/* FLOATING BOTTOM CENTER: WATER SURGE SLIDER (ADMIN MODE ONLY) */}
       {showSurgeControls && onSurgeChange && (
-        <div className="absolute bottom-16 sm:bottom-4 left-1/2 -translate-x-1/2 z-10 flex items-center gap-3 px-4 py-2 rounded-xl bg-[#101A2A]/95 backdrop-blur-xl border border-[#27364B] shadow-2xl text-xs text-[#F8FAFC] pointer-events-auto">
-          <SlidersHorizontal className="w-4 h-4 text-cyan-400" />
-          <span className="font-semibold text-[#A7B4C8]">Water Surge:</span>
+        <div className="absolute bottom-16 sm:bottom-4 left-1/2 -translate-x-1/2 z-10 flex items-center gap-3 px-4 py-2 rounded-xl bg-[#18191E]/95 backdrop-blur-xl border border-white/[0.1] shadow-2xl text-xs text-white pointer-events-auto">
+          <SlidersHorizontal className="w-4 h-4 text-slate-300" />
+          <span className="font-semibold text-slate-400">Water Surge:</span>
           <input
             type="range"
             min="0"
@@ -1174,10 +1349,10 @@ export function FullScreenHazardMap({
             step="0.5"
             value={simulatedWaterRise}
             onChange={(e) => onSurgeChange(parseFloat(e.target.value))}
-            className="w-28 sm:w-44 accent-cyan-400 cursor-pointer"
+            className="w-28 sm:w-44 accent-white cursor-pointer"
           />
-          <span className="font-mono font-bold text-cyan-300">+{simulatedWaterRise.toFixed(1)}m</span>
-          <span className="text-[10px] text-[#A7B4C8] font-mono">(&plusmn;{lateralSurgeMeters}m spread)</span>
+          <span className="font-mono font-bold text-white">+{simulatedWaterRise.toFixed(1)}m</span>
+          <span className="text-[10px] text-slate-400 font-mono">(&plusmn;{lateralSurgeMeters}m spread)</span>
         </div>
       )}
 

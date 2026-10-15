@@ -65,6 +65,7 @@ interface UserRoleContextType {
   submitFieldDispatch: (dispatch: Omit<FieldDispatch, "id" | "time">) => FieldDispatch;
   broadcastAdvisory: (advisory: Omit<SystemAdvisory, "id" | "issuedAt">) => SystemAdvisory;
   clearResolvedBeacons: () => void;
+  resetBeaconsToDefault: () => void;
 }
 
 const PRESET_PROFILES: Record<UserRole, UserProfile> = {
@@ -101,29 +102,42 @@ const PRESET_PROFILES: Record<UserRole, UserProfile> = {
 const INITIAL_DISTRESS_BEACONS: DistressBeacon[] = [
   {
     id: "sos-101",
-    name: "Trekker Group (4 Pax) — Lama Hotel",
+    name: "Trekker Group (4 Pax) — Lama Hotel Gorge",
     lat: 28.1670,
     lng: 85.4520,
     altitude: 2470,
-    detail: "Bridge swept by early flash surge. Trapped on north gravel bank, rain heavy.",
+    detail: "Suspension bridge swept away by sudden river surge. Group isolated on north gravel terrace; heavy rain continuing.",
     priority: 96,
-    time: "10 mins ago",
+    time: "12 mins ago",
     status: "dispatched",
-    assignedUnit: "APF Dhunche Squad 2",
-    contact: "+977 9801-445522",
+    assignedUnit: "APF Mountain Rescue Squad 2",
+    contact: "+977 9801-445522 (Guide Lakpa)",
     corridorId: "langtang",
   },
   {
     id: "sos-102",
-    name: "Pemba Tenzing (Porter) — Ghodatabela",
+    name: "Pemba Tenzing (Porter) — Ghodatabela Bluff",
     lat: 28.1920,
     lng: 85.4850,
     altitude: 3020,
-    detail: "Sprained ankle during rockfall, sheltering in stone hut. Cannot cross trail crack.",
+    detail: "Sprained ankle during rockfall. Sheltered in traditional stone lodge. Unable to navigate steep muddy descent.",
     priority: 84,
-    time: "24 mins ago",
+    time: "28 mins ago",
     status: "pending",
     contact: "+977 9813-909012",
+    corridorId: "langtang",
+  },
+  {
+    id: "sos-103",
+    name: "Solo Trekker — Rimche Ridge Trail",
+    lat: 28.1565,
+    lng: 85.4010,
+    altitude: 2150,
+    detail: "Lost main trail in heavy canyon mist. Whistle signaling active; battery at 18%.",
+    priority: 72,
+    time: "45 mins ago",
+    status: "pending",
+    contact: "Garmin InReach: #8821-LGT",
     corridorId: "langtang",
   },
 ];
@@ -160,16 +174,26 @@ const UserRoleContext = createContext<UserRoleContextType | undefined>(undefined
 export function UserRoleProvider({ children }: { children: React.ReactNode }) {
   const [currentRole, setCurrentRoleState] = useState<UserRole>(() => {
     try {
-      return (localStorage.getItem("himalsanket_user_role") as UserRole) || "civilian";
+      return (localStorage.getItem("himalsanket_user_role") as UserRole) || "admin";
     } catch (_) {
-      return "civilian";
+      return "admin";
     }
   });
 
   const [distressBeacons, setDistressBeacons] = useState<DistressBeacon[]>(() => {
     try {
       const stored = localStorage.getItem("himalsanket_distress_beacons");
-      return stored ? JSON.parse(stored) : INITIAL_DISTRESS_BEACONS;
+      if (stored) {
+        const parsed: DistressBeacon[] = JSON.parse(stored);
+        // If parsed contains messy spammed items (> 6 items or repeated identical coordinates), reset cleanly
+        const duplicateSpam = parsed.filter(b => b.name?.includes("Trekker SOS") || !b.id).length;
+        if (duplicateSpam > 2 || parsed.length > 8) {
+          localStorage.setItem("himalsanket_distress_beacons", JSON.stringify(INITIAL_DISTRESS_BEACONS));
+          return INITIAL_DISTRESS_BEACONS;
+        }
+        return parsed;
+      }
+      return INITIAL_DISTRESS_BEACONS;
     } catch (_) {
       return INITIAL_DISTRESS_BEACONS;
     }
@@ -230,7 +254,17 @@ export function UserRoleProvider({ children }: { children: React.ReactNode }) {
         time: "Just now",
         status: "pending",
       };
-      setDistressBeacons((prev) => [newBeacon, ...prev]);
+      setDistressBeacons((prev) => {
+        // Prevent duplicate spam within close vicinity
+        if (
+          prev.length > 0 &&
+          Math.abs(prev[0].lat - newBeacon.lat) < 0.0001 &&
+          Math.abs(prev[0].lng - newBeacon.lng) < 0.0001
+        ) {
+          return [newBeacon, ...prev.slice(1)];
+        }
+        return [newBeacon, ...prev];
+      });
       return newBeacon;
     },
     []
@@ -275,6 +309,13 @@ export function UserRoleProvider({ children }: { children: React.ReactNode }) {
     setDistressBeacons((prev) => prev.filter((b) => b.status !== "rescued"));
   }, []);
 
+  const resetBeaconsToDefault = useCallback(() => {
+    setDistressBeacons(INITIAL_DISTRESS_BEACONS);
+    try {
+      localStorage.setItem("himalsanket_distress_beacons", JSON.stringify(INITIAL_DISTRESS_BEACONS));
+    } catch (_) {}
+  }, []);
+
   const userProfile = PRESET_PROFILES[currentRole];
 
   return (
@@ -291,6 +332,7 @@ export function UserRoleProvider({ children }: { children: React.ReactNode }) {
         submitFieldDispatch,
         broadcastAdvisory,
         clearResolvedBeacons,
+        resetBeaconsToDefault,
       }}
     >
       {children}

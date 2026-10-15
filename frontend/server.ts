@@ -68,30 +68,28 @@ async function startServer() {
     const hazardDist = corridorContext?.distanceToHazard;
     const activeScenario = corridorContext?.activeScenario;
 
-    // 0. User Trekker Location & Geofence Emergency Inquiries
-    if (lower.includes("where am i") || lower.includes("my location") || lower.includes("am i safe") || lower.includes("rescue") || lower.includes("उद्धार") || lower.includes("म कहाँ छु") || (lower.includes("safe") && userPos)) {
-      if (geofence === "DANGER" || (hazardDist !== undefined && hazardDist < 150)) {
-        return `🚨 **URGENT GEOFENCE WARNING FOR YOUR POSITION**:
-You are currently located at **${userPos?.lat?.toFixed(4) || "28.2140"}° N, ${userPos?.lng?.toFixed(4) || "85.4950"}° E** (Altitude: ~${Math.round(userPos?.altitude || 2780)}m ASL).
+    // 0. Emergency Rescue Inquiries
+    if (lower.includes("rescue") || lower.includes("उद्धार") || lower.includes("sos") || geofence === "DANGER") {
+      return `🚨 **URGENT GEOFENCE SAFETY ADVICE**:
+You are currently in ${corridorName}${userPos ? ` near ${userPos.lat.toFixed(4)}°N, ${userPos.lng.toFixed(4)}°E` : ""}.
+${hazardDist !== undefined && hazardDist < 150 ? `⚠️ You are approximately ${hazardDist} meters from an active surge channel.` : ""}
 
-⚠️ **Immediate Hazard Proximity**: You are only **${hazardDist ?? 85} meters** from the active river surge channel / Chhona landslide debris chute!
-• Active Scenario: **${activeScenario || "Severe Cloudburst / Surge"}**
-• Sensed Catchment Rainfall: **${rainfall} mm** | Local Seismicity: **${seismic} M**
+**Immediate Actions:**
+1. **Move Uphill**: Climb at least 30 meters above the valley floor onto solid granite bedrock. Never shelter on river gravel banks.
+2. **Head for Safe Haven**: Proceed uphill toward **Kyanjin Gompa high ridge** or the nearest verified shelter.
+3. **Emergency SOS**: Tap the red **Send SOS** button above to transmit your coordinates directly to Armed Police Force Search & Rescue base.`;
+    }
 
-**IMMEDIATE RESCUE & ESCAPE ACTIONS:**
-1. **Move Uphill Immediately**: Climb at least 30 meters above the canyon floor onto solid granite bedrock. Never stay on river gravel bars.
-2. **Nearest Safe Haven**: Proceed uphill toward **Kyanjin Gompa high terrace** or **Syabrubesi Secondary School (1,460m)**.
-3. **Emergency Rescue**: If immobilized, use the red **1-Click SOS Beacon** button in HimalSanket to transmit your exact GPS coordinates to APF Search & Rescue Base (Dhunche) and Nepal Army Ranger post.`;
-      } else {
-        return `📍 **Your Current Trekker Geolocation Status:**
-• Coordinates: **${userPos?.lat?.toFixed(4) || "28.2096"}° N, ${userPos?.lng?.toFixed(4) || "85.5089"}° E**
-• Elevation: **~${Math.round(userPos?.altitude || 2450)}m ASL**
+    // 0.1 Explicit GPS Location Inquiries
+    if (lower.includes("where am i") || lower.includes("my location") || lower.includes("my coordinates") || lower.includes("म कहाँ छु")) {
+      return `📍 **Your Current Trekker Location:**
+• Coordinates: **${userPos?.lat?.toFixed(4) || "28.2140"}° N, ${userPos?.lng?.toFixed(4) || "85.4950"}° E**
+• Elevation: **~${Math.round(userPos?.altitude || 2780)}m ASL**
 • Corridor: **${corridorName}**
-• Distance to Inundation / Landslide Zone: **${hazardDist ? hazardDist + "m (Safe Buffer)" : "Over 350m (Safe)"}**
-• Status: **🟢 SAFE HAVEN ZONE — Clear of active debris paths.**
+• Proximity to River: **~${hazardDist ? hazardDist + "m" : "350m"} (Safe Buffer)**
+• Status: **🟢 SAFE HAVEN ZONE** — Clear of active debris chutes.
 
-Environmental Telemetry: Sensed rainfall is ${rainfall}mm/24h, seismic tremor is ${seismic}M, and lake expansion is +${lakeChange}%. Continue monitoring the live map for any upstream surge changes.`;
-      }
+You are safely above the river channel. Keep your phone battery charged and monitor local weather.`;
     }
 
     // 1. Nepali inquiries
@@ -134,20 +132,15 @@ You can ask me about:
     }
 
     // 3. Safety & Corridor Trekking Inquiries
-    if (lower.includes("safe") || lower.includes("trek") || lower.includes("status") || lower.includes("condition") || lower.includes("langtang") || lower.includes("khumbu") || lower.includes("annapurna") || lower.includes("manaslu")) {
+    if (lower.includes("safe") || lower.includes("trail") || lower.includes("trek") || lower.includes("status") || lower.includes("condition") || lower.includes("ahead") || lower.includes("path")) {
       const isElevated = rainfall > 70 || lakeChange > 10 || seismic > 3.0;
-      return `### Hazard Assessment for ${corridorName}
+      return `The trail through **${corridorName}** is currently **${isElevated ? "under elevated caution due to active weather" : "open under normal baseline conditions"}**.
 
-• **Current Operational Status**: ${isElevated ? "⚠️ ELEVATED CAUTION (High Multi-Hazard Risk)" : "🟡 MODERATE STABILITY (Baseline Monitoring)"}
-• **Precipitation**: ${rainfall} mm (Threshold: 144 mm — ${Math.round((rainfall / 144) * 100)}% saturated)
-• **Seismicity**: ${seismic} M shallow crustal activity detected
-• **Glacial Lake Expansion**: +${lakeChange}% over past 20 days (Sentinel-2 MSI)
+• **Catchment Rainfall**: Sensed at ${rainfall} mm (well below the 144 mm threshold).
+• **Trail Guidance**: The primary valley route is clear. When moving through narrow river gorges, maintain a steady pace and avoid lingering directly on low gravel banks.
+• **High Ground Refuge**: Verified safe terraces are located uphill near Kyanjin Gompa and Syabrubesi.
 
-**Actionable Trekking Guidance:**
-1. **Narrow River Canyons**: Minimize stopovers between Kyanjin Gompa and Lama Hotel gorge.
-2. **Debris Flow Watch**: Water runoff carrying dark silt indicates active moraine slumping upstream.
-3. **Emergency Radio**: Keep VHF radio / satellite messagers tuned to DHM Stn 1004 & Langtang National Park frequency.
-4. **Recommendation**: Postpone non-essential high-pass crossings until catchment saturation recedes below 40%.`;
+Always verify with local teahouses along the trail for real-time ground updates!`;
     }
 
     // 4. GLOF & Glacial Lake Questions
@@ -212,15 +205,15 @@ Let me know if you would like specific details regarding trekking route safety, 
         currentApiKey.includes("YourGeneratedKey") ||
         currentApiKey.length < 25;
 
-      // If valid key present, attempt live Google Gemini call
+      // If valid key present, execute live Google Gemini call
       if (!isPlaceholder) {
         try {
           const liveAi = new GoogleGenAI({
             apiKey: currentApiKey,
-            httpOptions: { headers: { "User-Agent": "aistudio-build" }, timeout: 1800 },
+            httpOptions: { timeout: 25000 },
           });
 
-          const activeCtx = corridorContext || {
+          const activeCtx = {
             name: "Langtang Valley",
             region: "Rasuwa, Nepal",
             rainfall: 38,
@@ -229,47 +222,51 @@ Let me know if you would like specific details regarding trekking route safety, 
             lakeChange: 4.0,
             susceptibility: 0.71,
             riskTier: "Moderate",
-            monitoredCorridors: [
-              { name: "Langtang Valley", region: "Rasuwa", rainfall: 38, threshold: 144, seismic: 1.8, lakeExpansion: "+4.0%", riskTier: "Moderate" },
-              { name: "Everest / Khumbu", region: "Solukhumbu", rainfall: 22, threshold: 144, seismic: 0.6, lakeExpansion: "+1.0%", riskTier: "Low" },
-              { name: "Annapurna Circuit", region: "Manang", rainfall: 51, threshold: 144, seismic: 1.1, lakeExpansion: "+2.0%", riskTier: "Moderate" },
-              { name: "Manaslu Circuit", region: "Gorkha", rainfall: 17, threshold: 144, seismic: 0.4, lakeExpansion: "0.0%", riskTier: "Low" },
-              { name: "Rolwaling Valley", region: "Dolakha", rainfall: 28, threshold: 144, seismic: 0.8, lakeExpansion: "+1.5%", riskTier: "Low" }
-            ]
+            ...(corridorContext || {}),
+            ...(req.body.isDanger !== undefined ? { isDanger: req.body.isDanger } : {}),
+            ...(req.body.geofenceStatus ? { geofenceStatus: req.body.geofenceStatus } : {}),
+            ...(req.body.waterSurge !== undefined ? { waterSurge: req.body.waterSurge } : {}),
+            ...(req.body.activeScenario ? { activeScenario: req.body.activeScenario } : {}),
+            ...(req.body.distanceToHazard !== undefined ? { distanceToHazard: req.body.distanceToHazard } : {}),
           };
 
+          const isDangerActive = Boolean(
+            activeCtx.isDanger ||
+            activeCtx.geofenceStatus === "DANGER" ||
+            (activeCtx.waterSurge && activeCtx.waterSurge > 1.0) ||
+            activeCtx.activeScenario === "critical_cascade" ||
+            activeCtx.activeScenario === "cloudburst_spike" ||
+            activeCtx.activeScenario === "glof_lake_expansion"
+          );
+
           const systemInstruction = `
-You are the HimalSanket AI Hazard Intelligence Assistant, an integrated real-time multi-hazard risk intelligence system for Nepal's mountainous valleys and trekking corridors.
+You are the HimalSanket AI Hazard Intelligence Assistant, an AI safety intelligence system for Nepal's mountainous valleys and trekking corridors (Hack2Skill AI Builder Cup).
 
-REAL-TIME SENSOR NETWORK GROUNDING:
-You are directly fed live, continuous telemetry by HimalSanket's automated environmental observation network:
-1. Automated Weather Stations (AWS) & Nepal Department of Hydrology and Meteorology (DHM) 24h precipitation gauges.
-2. European Space Agency Sentinel-2 MSI satellite glacial lake surface area expansion analysis (NDWI index).
-3. National Seismological Centre (NSC) Nepal & USGS micro-seismic sensors.
-4. Verified ground-truth dispatches from local ward offices and national park rangers.
+CRITICAL SAFETY DIRECTIVE (ABSOLUTE PRIORITY — DO NOT CONTRADICT):
+- Active Hazard Threat Status: ${isDangerActive ? "⚠️ HAZARD NEARBY / DANGER ZONE (MOVE UPHILL)" : "🟢 SAFE BASELINE ZONE"}
+- Active Flood Surge: +${activeCtx.waterSurge || 0}m
+- Active Scenario: ${activeCtx.activeScenario || "Baseline Normal"}
 
-CURRENT LIVE OBSERVED TELEMETRY FEEDS:
+RULES ON SAFETY STATUS:
+1. IF Active Hazard Threat Status is "⚠️ HAZARD NEARBY / DANGER ZONE":
+   - The user's screen is currently displaying a flashing RED alert: "HAZARD NEARBY: Move Uphill".
+   - You MUST NEVER tell the trekker that they are in "SAFE" status! Doing so puts lives at risk!
+   - You MUST warn them that flood surge / hazard conditions are elevated in this reach (river surge of +${activeCtx.waterSurge || 0}m, distance to channel: ~${activeCtx.distanceToHazard || 264}m).
+   - Instruct them to move uphill immediately onto solid granite bedrock terraces, at least 30 meters above the river gorge, and avoid lingering near gravel banks or crossing wooden footbridges.
+   - Point them toward the nearest high-ground safe refuge (e.g. Kyanjin Gompa high ridge or Syabrubesi evacuation terrace).
+2. IF Active Hazard Threat Status is "🟢 SAFE BASELINE ZONE":
+   - Confirm that conditions are currently at a normal baseline (~${activeCtx.distanceToHazard || 264}m safe buffer from riverbed).
+   - Remind them to remain observant of changing Himalayan weather.
+
+LIVE SENSOR NETWORK GROUNDING:
 ${JSON.stringify(activeCtx, null, 2)}
+${activeCtx.userPosition ? `• Trekker Live GPS: ${activeCtx.userPosition.lat}° N, ${activeCtx.userPosition.lng}° E (Altitude: ${activeCtx.userPosition.altitude || 2780}m ASL)
+• Proximity to River Surge Channel: ${activeCtx.distanceToHazard !== undefined ? activeCtx.distanceToHazard + ' meters' : '264 meters'}` : ""}
 
-TREKKER GEOLOCATION & RESCUE CONTEXT:
-${activeCtx.userPosition ? `• Trekker Live GPS Coordinates: ${activeCtx.userPosition.lat}° N, ${activeCtx.userPosition.lng}° E (Altitude: ${activeCtx.userPosition.altitude || 2780}m ASL, Accuracy: ±${activeCtx.userPosition.accuracy || 10}m)
-• Geofence Proximity Status: ${activeCtx.geofenceStatus || "Monitored"}
-• Distance to Inundation Surge / Landslide Chute: ${activeCtx.distanceToHazard !== undefined ? activeCtx.distanceToHazard + ' meters' : 'Monitored'}
-• Active Simulated Presentation Scenario: ${activeCtx.activeScenario || 'Baseline Normal'}
-• Simulated River Surge: +${activeCtx.waterSurge || 0}m` : `• Trekker Position: Monitored along the trekking corridor.`}
-
-OPERATIONAL RULES FOR ANSWERING:
-1. STRICT RULE: NEVER say "I do not have access to real-time weather feeds", "I lack live data", or "as an AI I cannot check current conditions." You ARE the real-time AI intelligence system for HimalSanket and you HAVE the active live telemetry provided above.
-2. When the user asks "Is this place safe?", "Am I safe?", "Is it safe right now?", or asks about trekking/weather conditions:
-   - Identify the corridor in question (default to "${activeCtx.name || "Langtang Valley"}" if they say "this place", "here", or do not name one).
-   - If trekker coordinates and proximity are provided, reference their location (${activeCtx.userPosition ? `${activeCtx.userPosition.lat.toFixed(4)}° N, ${activeCtx.userPosition.lng.toFixed(4)}° E` : "current corridor"}) and state whether they are in proximity to danger zones (e.g., within ${activeCtx.distanceToHazard || 100}m of river surge path or landslide chutes).
-   - Explicitly cite current live observations (e.g., sensed rainfall in mm vs the regional threshold, seismic tremor magnitude, glacial lake expansion %, and risk status).
-   - Provide a clear, definitive safety assessment: state whether conditions are currently Safe (Low Risk), Moderate Stability (Advisory), High Caution, or Critical Hazard.
-   - Deliver concrete, actionable mountain safety advice for that terrain (e.g. crossing steep scree slopes, canyon flash-flood travel times, night stopovers, nearest safe haven, trail pass closures).
-3. If the user asks for emergency help or SOS:
-   - Provide emergency guidance: climb uphill away from the river gorge or debris chutes immediately.
-   - Point to the nearest safe haven (Syabrubesi School 1,460m or Kyanjin Gompa high ridge) and note that APF Dhunche / Nepal Army Ranger search & rescue dispatch is on alert.
-4. Support both English and Nepali (नेपाली). If asked in Nepali, respond in clear, respectful, natural Nepali. If asked in English, respond in English.
+INSTRUCTIONS FOR RESPONDING:
+- Act as an experienced, empathetic, knowledgeable Himalayan mountain guide and safety expert.
+- Always provide actionable, life-saving advice aligned with the active hazard status above.
+- If asked in Nepali, reply in natural Nepali. If asked in English, reply in natural English.
 `;
 
           const contents = [];
@@ -286,50 +283,47 @@ OPERATIONAL RULES FOR ANSWERING:
             parts: [{ text: message }],
           });
 
-          // Fast attempt on live Gemini with an absolute 2.2-second timeout cap
-          const geminiCallPromise = (async () => {
-            const CANDIDATE_MODELS = [
-              "gemini-2.0-flash",
-              "gemini-1.5-flash",
-            ];
+          // Candidates verified on Google AI API
+          const CANDIDATE_MODELS = [
+            "gemini-3.1-flash-lite",
+            "gemini-3.5-flash",
+            "gemini-3.8-flash",
+            "gemini-3.5-flash-lite",
+            "gemini-flash-lite-latest",
+          ];
 
-            for (const modelName of CANDIDATE_MODELS) {
-              try {
-                const response = await liveAi.models.generateContent({
+          for (const modelName of CANDIDATE_MODELS) {
+            try {
+              const response = await liveAi.models.generateContent({
+                model: modelName,
+                contents,
+                config: {
+                  systemInstruction,
+                },
+              });
+
+              if (response.text && response.text.trim().length > 0) {
+                console.log(`[Google Gemini AI] Live response served via ${modelName}`);
+                return res.json({
+                  reply: response.text.trim(),
+                  source: "google-gemini",
                   model: modelName,
-                  contents,
-                  config: {
-                    systemInstruction,
-                  },
+                  is_live_gemini: true,
                 });
-
-                if (response.text && response.text.trim().length > 0) {
-                  return { reply: response.text.trim(), model: modelName };
-                }
-              } catch (mErr: any) {
-                console.warn(`[Gemini API] Quick check: Model "${modelName}" unavailable (${mErr?.status || mErr?.message || "busy"}).`);
-                // If the upstream model is busy (503) or not found (404), do not retry or hang
-                break;
               }
+            } catch (mErr: any) {
+              console.warn(`[Google Gemini AI] Model ${modelName} notice: ${mErr?.status || mErr?.message || "trying next candidate"}`);
+              continue;
             }
-            return null;
-          })();
-
-          // 2.2s strict ceiling so the user UI never hangs
-          const timeoutPromise = new Promise<{ reply: string; model: string } | null>((resolve) =>
-            setTimeout(() => {
-              console.warn("[Gemini API] Upstream latency exceeded 2200ms limit; triggering instant situational synthesizer.");
-              resolve(null);
-            }, 2200)
-          );
-
-          const liveResult = await Promise.race([geminiCallPromise, timeoutPromise]);
-          if (liveResult && liveResult.reply) {
-            console.log(`[Gemini API] Live response served (${liveResult.model})`);
-            return res.json({ reply: liveResult.reply, source: "gemini-live", model: liveResult.model });
           }
+
+          throw new Error("All active Google Gemini models were temporarily busy. Please retry.");
         } catch (liveErr: any) {
-          console.warn("Live Gemini API call bypassed, falling back to instant Himalayan Synthesizer:", liveErr.message || liveErr);
+          console.error("[Google Gemini AI] Live API execution error:", liveErr);
+          return res.status(500).json({
+            error: "Google Gemini API error",
+            message: liveErr.message || "Failed to reach Google Gemini model",
+          });
         }
       }
 
@@ -375,7 +369,8 @@ OPERATIONAL RULES FOR ANSWERING:
           `;
 
           const CANDIDATE_MODELS = [
-            "gemini-2.0-flash",
+            "gemini-3.8-flash",
+            "gemini-2.5-flash",
             "gemini-1.5-flash",
           ];
 

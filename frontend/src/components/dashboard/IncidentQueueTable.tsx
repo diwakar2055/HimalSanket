@@ -12,6 +12,9 @@ import {
   Users,
   ChevronRight,
   ShieldAlert,
+  Calendar,
+  SlidersHorizontal,
+  ArrowRight,
 } from "lucide-react";
 
 interface IncidentQueueTableProps {
@@ -30,7 +33,7 @@ export function IncidentQueueTable({
   onSelectBeacon,
   onDispatchBeacon,
   onResolveBeacon,
-  corridorName,
+  corridorName = "Langtang",
   className = "",
 }: IncidentQueueTableProps) {
   const [activeTab, setActiveTab] = useState<"all" | "pending" | "dispatched" | "rescued">("all");
@@ -68,84 +71,94 @@ export function IncidentQueueTable({
 
   return (
     <div
-      className={`flex flex-col bg-[#080E19] border-t lg:border-t-0 border-[#27364B] overflow-hidden select-none ${className}`}
+      className={`flex flex-col bg-[#111215] border-t lg:border-t-0 border-white/[0.08] overflow-hidden select-none ${className}`}
     >
-      {/* 1. Header Toolbar with Filter Tabs and Search Bar */}
-      <div className="p-3 border-b border-[#27364B] bg-[#101A2A] flex flex-col sm:flex-row sm:items-center justify-between gap-3 shrink-0">
-        <div className="flex items-center gap-2.5">
-          <div className="w-7 h-7 rounded-lg bg-rose-500/15 border border-[#DC2626]/40 flex items-center justify-center text-rose-400 font-bold shadow-inner">
-            <ShieldAlert className="w-4 h-4 text-rose-400" />
-          </div>
-          <div>
-            <h3 className="text-xs font-bold text-[#F8FAFC] tracking-wide flex items-center gap-2">
-              <span>Distress incident queue</span>
-              {counts.pending > 0 && (
-                <span className="px-2 py-0.5 rounded-full text-[9px] font-mono font-bold bg-[#DC2626]/20 text-rose-300 border border-[#DC2626]/40 animate-pulse">
-                  {counts.pending} urgent SOS
-                </span>
-              )}
-            </h3>
-            <p className="text-[10px] text-[#A7B4C8] font-mono">
-              High-precision mountain distress coordinates & APF evacuation status
-            </p>
-          </div>
+      {/* 1. Header Toolbar (Transcope Orders Table Style) */}
+      <div className="p-3 sm:px-4 border-b border-white/[0.08] bg-[#18191E] flex flex-col sm:flex-row sm:items-center justify-between gap-3 shrink-0">
+        {/* Title + Subtitle */}
+        <div className="flex items-center gap-3">
+          <h3 className="text-sm font-bold text-white tracking-wide font-sans flex items-center gap-2">
+            <span>Incident Queue & Dispatches</span>
+            {counts.pending > 0 && (
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-rose-500/20 text-rose-300 border border-rose-500/30">
+                {counts.pending} Urgent SOS
+              </span>
+            )}
+          </h3>
         </div>
 
-        {/* Tab Filters */}
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0">
-          <div className="flex items-center bg-[#080E19] p-0.5 rounded-lg border border-[#27364B] text-[11px]">
+        {/* Tab Filters + Search + Control Icons */}
+        <div className="flex items-center gap-2 flex-wrap">
+          {/* Transcope Pill Segmented Tabs */}
+          <div className="flex items-center bg-[#111215] p-0.5 rounded-xl border border-white/[0.08] text-xs">
             <button
               onClick={() => setActiveTab("all")}
-              className={`px-2.5 py-1 rounded-md font-bold transition-colors cursor-pointer ${
+              className={`px-3 py-1 rounded-lg font-semibold transition-all cursor-pointer ${
                 activeTab === "all"
-                  ? "bg-[#152238] text-[#F8FAFC] border border-[#27364B] shadow-sm"
-                  : "text-[#A7B4C8] hover:text-[#F8FAFC]"
+                  ? "bg-white/[0.12] text-white shadow-sm font-bold"
+                  : "text-slate-400 hover:text-white"
               }`}
             >
-              All ({counts.all})
+              All
             </button>
             <button
               onClick={() => setActiveTab("pending")}
-              className={`px-2.5 py-1 rounded-md font-bold transition-colors cursor-pointer ${
+              className={`px-3 py-1 rounded-lg font-semibold transition-all cursor-pointer ${
                 activeTab === "pending"
-                  ? "bg-[#DC2626] text-white shadow-sm"
-                  : "text-[#A7B4C8] hover:text-[#F8FAFC]"
+                  ? "bg-rose-500/20 text-rose-300 border border-rose-500/30 shadow-sm font-bold"
+                  : "text-slate-400 hover:text-white"
               }`}
             >
-              Pending ({counts.pending})
+              Pending
             </button>
             <button
               onClick={() => setActiveTab("dispatched")}
-              className={`px-2.5 py-1 rounded-md font-bold transition-colors cursor-pointer ${
+              className={`px-3 py-1 rounded-lg font-semibold transition-all cursor-pointer ${
                 activeTab === "dispatched"
-                  ? "bg-[#EAB308] text-slate-900 shadow-sm"
-                  : "text-[#A7B4C8] hover:text-[#F8FAFC]"
+                  ? "bg-amber-500/20 text-amber-300 border border-amber-500/30 shadow-sm font-bold"
+                  : "text-slate-400 hover:text-white"
               }`}
             >
-              Dispatched ({counts.dispatched})
+              Dispatched
             </button>
             <button
               onClick={() => setActiveTab("rescued")}
-              className={`px-2.5 py-1 rounded-md font-bold transition-colors cursor-pointer ${
+              className={`px-3 py-1 rounded-lg font-semibold transition-all cursor-pointer ${
                 activeTab === "rescued"
-                  ? "bg-[#22C55E] text-white shadow-sm"
-                  : "text-[#A7B4C8] hover:text-[#F8FAFC]"
+                  ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 shadow-sm font-bold"
+                  : "text-slate-400 hover:text-white"
               }`}
             >
-              Extracted ({counts.rescued})
+              Rescued
             </button>
           </div>
 
-          {/* Search Box */}
+          {/* Search Input */}
           <div className="relative">
-            <Search className="w-3.5 h-3.5 text-[#64748B] absolute left-2.5 top-2.5 pointer-events-none" />
+            <Search className="w-3.5 h-3.5 text-slate-500 absolute left-2.5 top-2.5 pointer-events-none" />
             <input
               type="text"
-              placeholder="Search trekker, ID..."
+              placeholder="Search party, ID..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-8 pr-3 py-1 bg-[#152238] border border-[#27364B] rounded-lg text-xs text-[#F8FAFC] placeholder-[#64748B] w-36 sm:w-44 focus:outline-none focus:border-cyan-500 transition-colors font-mono"
+              className="pl-8 pr-3 py-1 bg-[#111215] border border-white/[0.08] rounded-xl text-xs text-white placeholder-slate-500 w-36 sm:w-44 focus:outline-none focus:border-white/30 transition-colors font-mono"
             />
+          </div>
+
+          {/* Transcope Calendar / Filter Action Icons */}
+          <div className="hidden sm:flex items-center gap-1">
+            <button
+              className="p-1.5 rounded-lg bg-white/[0.05] hover:bg-white/[0.1] text-slate-400 hover:text-white border border-white/[0.08] transition-colors cursor-pointer"
+              title="Filter by Timestamp"
+            >
+              <Calendar className="w-3.5 h-3.5" />
+            </button>
+            <button
+              className="p-1.5 rounded-lg bg-white/[0.05] hover:bg-white/[0.1] text-slate-400 hover:text-white border border-white/[0.08] transition-colors cursor-pointer"
+              title="Advanced Filter Options"
+            >
+              <SlidersHorizontal className="w-3.5 h-3.5" />
+            </button>
           </div>
         </div>
       </div>
@@ -153,21 +166,22 @@ export function IncidentQueueTable({
       {/* 2. Structured Transcope High-Density Table */}
       <div className="flex-1 overflow-x-auto overflow-y-auto min-h-0 custom-scrollbar">
         <table className="w-full text-left border-collapse text-xs">
-          <thead className="bg-[#101A2A] text-[#A7B4C8] font-mono text-[9px] uppercase tracking-widest sticky top-0 z-10 border-b border-[#27364B]">
+          <thead className="bg-[#18191E] text-slate-400 font-mono text-[10px] uppercase tracking-wider sticky top-0 z-10 border-b border-white/[0.06]">
             <tr>
-              <th className="py-2.5 px-3">Incident ID</th>
-              <th className="py-2.5 px-3">Distress Party</th>
-              <th className="py-2.5 px-3">Coordinates & Elevation</th>
-              <th className="py-2.5 px-3">Urgency Score</th>
-              <th className="py-2.5 px-3">Evac Status</th>
-              <th className="py-2.5 px-3 text-right">Actions</th>
+              <th className="py-2.5 px-3.5">Incident ID</th>
+              <th className="py-2.5 px-3.5">Distress Party</th>
+              <th className="py-2.5 px-3.5">Evacuation Route</th>
+              <th className="py-2.5 px-3.5">Elevation & GPS</th>
+              <th className="py-2.5 px-3.5">Elapsed / ETA</th>
+              <th className="py-2.5 px-3.5">Status</th>
+              <th className="py-2.5 px-3.5 text-right">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-[#27364B]/60">
+          <tbody className="divide-y divide-white/[0.05]">
             {filteredBeacons.length === 0 ? (
               <tr>
-                <td colSpan={6} className="py-12 text-center text-[#64748B] font-mono text-xs">
-                  No distress incidents in this category. All monitored trail sectors report nominal status.
+                <td colSpan={7} className="py-12 text-center text-slate-500 font-mono text-xs">
+                  No distress incidents matching this filter. Monitored trail sectors report nominal safety.
                 </td>
               </tr>
             ) : (
@@ -183,103 +197,114 @@ export function IncidentQueueTable({
                     onClick={() => onSelectBeacon(beacon)}
                     className={`transition-colors cursor-pointer group ${
                       isSelected
-                        ? "bg-[#152238] border-l-4 border-l-cyan-400 shadow-inner"
-                        : "hover:bg-[#101A2A]"
+                        ? "bg-[#22242D] border-l-4 border-l-white"
+                        : "hover:bg-white/[0.03]"
                     }`}
                   >
-                    {/* 1. Incident ID */}
-                    <td className="py-3 px-3 whitespace-nowrap font-mono">
-                      <span className="px-2 py-0.5 rounded-md bg-[#080E19] border border-[#27364B] text-cyan-300 font-bold text-[11px] tabular-nums">
-                        #SOS-{String(beacon.id).slice(-4)}
-                      </span>
+                    {/* 1. Incident ID with Vehicle / Alert Icon */}
+                    <td className="py-3 px-3.5 whitespace-nowrap font-mono">
+                      <div className="flex items-center gap-2">
+                        <span className="text-slate-400 text-xs">🚨</span>
+                        <span className="px-2 py-0.5 rounded-md bg-[#111215] border border-white/[0.08] text-white font-bold text-[11px] tabular-nums">
+                          #HS-{String(beacon.id).slice(-4)}
+                        </span>
+                      </div>
                     </td>
 
                     {/* 2. Distress Party Details */}
-                    <td className="py-3 px-3">
-                      <div className="font-bold text-[#F8FAFC] text-xs group-hover:text-cyan-300 transition-colors">
+                    <td className="py-3 px-3.5">
+                      <div className="font-bold text-white text-xs group-hover:text-slate-200 transition-colors font-sans">
                         {beacon.name}
                       </div>
-                      <div className="text-[10px] text-[#A7B4C8] line-clamp-1 max-w-[200px] sm:max-w-[320px]">
+                      <div className="text-[10px] text-slate-400 line-clamp-1 max-w-[180px] sm:max-w-[240px] font-sans">
                         {beacon.detail}
                       </div>
                     </td>
 
-                    {/* 3. Coordinates & Elevation */}
-                    <td className="py-3 px-3 whitespace-nowrap font-mono text-[11px] tabular-nums">
-                      <div className="text-[#F8FAFC] flex items-center gap-1">
-                        <MapPin className="w-3 h-3 text-cyan-400 shrink-0" />
+                    {/* 3. Transcope Visual Route Connector */}
+                    <td className="py-3 px-3.5 whitespace-nowrap">
+                      <div className="flex items-center gap-2 text-[11px] font-mono text-slate-300">
+                        <div className="flex items-center gap-1 text-slate-400">
+                          <span className="w-1.5 h-1.5 rounded-full border border-slate-400" />
+                          <span className="text-[10px]">{corridorName.split(" ")[0]} Trail</span>
+                        </div>
+                        <div className="flex items-center text-slate-600">
+                          <span className="h-[1px] w-6 bg-slate-600 inline-block" />
+                          <span className="w-1.5 h-1.5 rounded-full bg-slate-300 inline-block" />
+                        </div>
+                        <div className="flex items-center gap-1 text-white font-semibold">
+                          <span className="text-[10px]">Helipad Alpha</span>
+                        </div>
+                      </div>
+                    </td>
+
+                    {/* 4. Elevation & GPS */}
+                    <td className="py-3 px-3.5 whitespace-nowrap font-mono text-[11px] tabular-nums">
+                      <div className="text-white flex items-center gap-1">
+                        <MapPin className="w-3 h-3 text-slate-400 shrink-0" />
                         <span>
-                          {beacon.lat.toFixed(4)}°N, {beacon.lng.toFixed(4)}°E
+                          {beacon.lat.toFixed(4)}°, {beacon.lng.toFixed(4)}°
                         </span>
                       </div>
                       <div className="text-[10px] text-amber-400 pl-4 font-bold">
-                        {beacon.altitude ? `${beacon.altitude}m ASL` : "2,780m ASL"}
+                        {beacon.altitude ? `${Math.round(beacon.altitude)}m ASL` : "2,780m ASL"}
                       </div>
                     </td>
 
-                    {/* 4. Urgency Score */}
-                    <td className="py-3 px-3 whitespace-nowrap">
-                      <div className="flex items-center gap-2">
-                        <span
-                          className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold font-mono border tabular-nums ${
-                            beacon.priority >= 90
-                              ? "bg-[#DC2626]/20 text-rose-300 border-[#DC2626]/50"
-                              : beacon.priority >= 70
-                              ? "bg-[#F97316]/20 text-orange-300 border-[#F97316]/50"
-                              : "bg-[#EAB308]/20 text-amber-300 border-[#EAB308]/50"
-                          }`}
-                        >
-                          {beacon.priority}% SOS
-                        </span>
+                    {/* 5. Elapsed / ETA */}
+                    <td className="py-3 px-3.5 whitespace-nowrap font-mono text-[11px]">
+                      <div className="text-slate-300">
+                        {isDispatched ? "ETA ~18 mins" : "14 mins ago"}
+                      </div>
+                      <div className="text-[10px] text-slate-500">
+                        {isDispatched ? "Helicopter in-flight" : "Initial distress"}
                       </div>
                     </td>
 
-                    {/* 5. Evac Status */}
-                    <td className="py-3 px-3 whitespace-nowrap">
+                    {/* 6. Status Badge Pill */}
+                    <td className="py-3 px-3.5 whitespace-nowrap">
                       {isPending && (
-                        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#DC2626]/20 text-rose-300 border border-[#DC2626]/40 animate-pulse">
-                          <span className="w-1.5 h-1.5 rounded-full bg-[#DC2626]" />
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-500/20 text-rose-300 border border-rose-500/30 font-mono">
+                          <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
                           Pending evac
                         </span>
                       )}
                       {isDispatched && (
-                        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#EAB308]/20 text-amber-300 border border-[#EAB308]/40">
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30 font-mono">
                           <Plane className="w-3 h-3 text-amber-400" />
-                          {beacon.assignedUnit || "SAR team en-route"}
+                          {beacon.assignedUnit || "SAR en route"}
                         </span>
                       )}
                       {isRescued && (
-                        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#22C55E]/20 text-emerald-300 border border-[#22C55E]/40">
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-mono">
                           <CheckCircle2 className="w-3 h-3 text-emerald-400" />
                           Extracted
                         </span>
                       )}
                     </td>
 
-                    {/* 6. Actions */}
-                    <td className="py-3 px-3 whitespace-nowrap text-right">
+                    {/* 7. Quick Actions */}
+                    <td className="py-3 px-3.5 whitespace-nowrap text-right">
                       <div className="flex items-center justify-end gap-1.5">
-                        {/* Focus Map Button */}
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
                             onSelectBeacon(beacon);
                           }}
-                          className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[#152238] hover:bg-cyan-600 hover:text-white text-cyan-300 border border-[#27364B] text-[11px] font-semibold transition-colors cursor-pointer shadow-sm"
-                          title="Focus Google Map on victim location"
+                          className="flex items-center gap-1 px-2.5 py-1 rounded-xl bg-white/[0.05] hover:bg-white/[0.12] text-slate-300 hover:text-white border border-white/[0.08] text-[11px] font-semibold transition-colors cursor-pointer"
+                          title="Focus map on incident"
                         >
-                          <Crosshair className="w-3 h-3 text-cyan-400 group-hover:text-white" />
-                          <span>Focus Map</span>
+                          <Crosshair className="w-3 h-3 text-slate-400" />
+                          <span>Focus</span>
                         </button>
 
-                        {/* Quick Dispatch / Resolve */}
                         {isPending && onDispatchBeacon && (
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
                               onDispatchBeacon(beacon);
                             }}
-                            className="px-2.5 py-1 rounded-lg bg-amber-600 hover:bg-amber-500 text-white font-bold text-[11px] transition-colors cursor-pointer shadow-sm"
+                            className="px-2.5 py-1 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-bold text-[11px] transition-colors cursor-pointer shadow-sm"
                             title="Dispatch APF Mountain Rescue Squad"
                           >
                             Dispatch
@@ -292,10 +317,10 @@ export function IncidentQueueTable({
                               e.stopPropagation();
                               onResolveBeacon(beacon);
                             }}
-                            className="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-[11px] transition-colors cursor-pointer shadow-sm"
+                            className="px-2.5 py-1 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-[11px] transition-colors cursor-pointer shadow-sm"
                             title="Mark as Safely Extracted"
                           >
-                            Mark Extracted
+                            Mark Rescued
                           </button>
                         )}
                       </div>

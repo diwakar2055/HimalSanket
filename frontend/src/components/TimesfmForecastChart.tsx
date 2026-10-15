@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { fetchTimesfmForecast } from "../services/riskEngineApi";
-import { CloudRain, TrendingUp, AlertTriangle, Sparkles, RefreshCw } from "lucide-react";
+import { TrendingUp, AlertTriangle, Sparkles } from "lucide-react";
 
 interface TimesfmForecastChartProps {
   corridorId: string;
@@ -66,7 +66,6 @@ export function TimesfmForecastChart({
           });
         }
       } catch (err) {
-        // High-fidelity fallback modeling
         const isSpike = activeScenario.includes("cloudburst") || currentRainfall > 80;
         const projected = isSpike ? Math.min(currentRainfall + 65, 230) : currentRainfall * 1.15;
         const hourlyProj = Array.from({ length: 24 }, (_, i) => {
@@ -117,7 +116,7 @@ export function TimesfmForecastChart({
   const futurePoints = chartData.slice(pastCount - 1).map((d, i) => `${getX(pastCount - 1 + i)},${getY(d.value)}`);
   const futurePathD = `M ${futurePoints.join(" L ")}`;
 
-  // Build 90% Confidence Interval envelope polygon (widening uncertainty cone)
+  // Build 90% Confidence Interval envelope polygon
   const ciUpperPoints = chartData.slice(pastCount - 1).map((d, i) => {
     const spread = (i * 0.45);
     const upperVal = d.value + spread;
@@ -134,23 +133,23 @@ export function TimesfmForecastChart({
   const isCriticalSurge = forecast.exceedanceProb >= 0.75 || forecast.projectedTotal >= rainThreshold;
 
   return (
-    <div className="w-full bg-[#0A1224] rounded-2xl border border-white/10 p-4 shadow-2xl text-slate-200 select-none">
+    <div className="w-full bg-[#18191E] rounded-2xl border border-white/[0.08] p-4 text-slate-200 select-none font-sans">
       {/* Header */}
-      <div className="flex items-center justify-between flex-wrap gap-2 pb-3 border-b border-white/10">
+      <div className="flex items-center justify-between flex-wrap gap-2 pb-3 border-b border-white/[0.08]">
         <div className="flex items-center gap-2.5">
-          <div className="p-2 rounded-xl bg-cyan-500/15 text-cyan-400 border border-cyan-500/30 glow-cyan">
-            <TrendingUp className="w-4 h-4" />
+          <div className="p-2 rounded-xl bg-white/[0.05] text-slate-200 border border-white/[0.08]">
+            <TrendingUp className="w-4 h-4 text-slate-300" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h4 className="text-xs font-black text-white tracking-wide uppercase font-mono">
+              <h4 className="text-xs font-bold text-white tracking-wide uppercase font-mono">
                 Google TimesFM Hydrological Forecast
               </h4>
-              <span className="text-[10px] px-2 py-0.5 rounded-full bg-cyan-500/20 border border-cyan-500/40 text-cyan-300 flex items-center gap-1 font-mono font-bold glow-cyan">
-                <Sparkles className="w-2.5 h-2.5" /> 24h Horizon
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/[0.06] border border-white/10 text-slate-300 flex items-center gap-1 font-mono font-semibold">
+                <Sparkles className="w-2.5 h-2.5 text-slate-400" /> 24h Horizon
               </span>
             </div>
-            <p className="text-[11px] text-[#8CA0BE] font-mono">
+            <p className="text-[11px] text-slate-400 font-mono">
               Zero-Shot 200M Parameter Foundation Model • Temporal Sequence Length 512
             </p>
           </div>
@@ -159,11 +158,11 @@ export function TimesfmForecastChart({
         {/* Status Pill */}
         <div className="flex items-center gap-2">
           {forecast.isSpikeDetected ? (
-            <span className="text-[11px] px-2.5 py-1 rounded-xl bg-rose-500/20 text-rose-300 border border-rose-500/40 font-bold flex items-center gap-1.5 animate-pulse glow-rose">
-              <AlertTriangle className="w-3.5 h-3.5" /> Atmospheric Cloudburst Spike Detected
+            <span className="text-[11px] px-2.5 py-1 rounded-xl bg-rose-500/15 text-rose-300 border border-rose-500/30 font-bold flex items-center gap-1.5 font-mono">
+              <AlertTriangle className="w-3.5 h-3.5 text-rose-400" /> Cloudburst Surge Detected
             </span>
           ) : (
-            <span className="text-[11px] px-2.5 py-1 rounded-xl bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 font-semibold font-mono glow-emerald">
+            <span className="text-[11px] px-2.5 py-1 rounded-xl bg-emerald-500/10 text-emerald-300 border border-emerald-500/20 font-medium font-mono">
               Monsoon Infiltration Nominal
             </span>
           )}
@@ -172,43 +171,42 @@ export function TimesfmForecastChart({
 
       {/* Metrics Bar with Tabular Numbers */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 my-3.5 text-xs">
-        <div className="bg-[#050B14] p-2.5 rounded-xl border border-white/5">
-          <div className="text-[9px] font-mono text-[#8CA0BE] uppercase tracking-wider">Sensed 24h Rain</div>
-          <div className="text-base font-black text-cyan-400 font-mono tabular-nums">{forecast.pastTotal.toFixed(1)} mm</div>
+        <div className="bg-[#111215] p-2.5 rounded-xl border border-white/[0.06]">
+          <div className="text-[9px] font-mono text-slate-400 uppercase tracking-wider">Sensed 24h Rain</div>
+          <div className="text-base font-bold text-white font-mono tabular-nums">{forecast.pastTotal.toFixed(1)} mm</div>
         </div>
-        <div className="bg-[#050B14] p-2.5 rounded-xl border border-white/5">
-          <div className="text-[9px] font-mono text-[#8CA0BE] uppercase tracking-wider">Projected 24h Horizon</div>
-          <div className={`text-base font-black font-mono tabular-nums ${isCriticalSurge ? "text-rose-400" : "text-amber-400"}`}>
+        <div className="bg-[#111215] p-2.5 rounded-xl border border-white/[0.06]">
+          <div className="text-[9px] font-mono text-slate-400 uppercase tracking-wider">Projected 24h Horizon</div>
+          <div className={`text-base font-bold font-mono tabular-nums ${isCriticalSurge ? "text-rose-400" : "text-amber-400"}`}>
             {forecast.projectedTotal.toFixed(1)} mm
           </div>
         </div>
-        <div className="bg-[#050B14] p-2.5 rounded-xl border border-white/5">
-          <div className="text-[9px] font-mono text-[#8CA0BE] uppercase tracking-wider">DHM Threshold</div>
-          <div className="text-base font-black text-slate-300 font-mono tabular-nums">{rainThreshold} mm</div>
+        <div className="bg-[#111215] p-2.5 rounded-xl border border-white/[0.06]">
+          <div className="text-[9px] font-mono text-slate-400 uppercase tracking-wider">DHM Threshold</div>
+          <div className="text-base font-bold text-slate-300 font-mono tabular-nums">{rainThreshold} mm</div>
         </div>
-        <div className="bg-[#050B14] p-2.5 rounded-xl border border-white/5">
-          <div className="text-[9px] font-mono text-[#8CA0BE] uppercase tracking-wider">Surge Probability</div>
-          <div className={`text-base font-black font-mono tabular-nums ${forecast.exceedanceProb > 0.6 ? "text-rose-400" : "text-emerald-400"}`}>
+        <div className="bg-[#111215] p-2.5 rounded-xl border border-white/[0.06]">
+          <div className="text-[9px] font-mono text-slate-400 uppercase tracking-wider">Surge Probability</div>
+          <div className={`text-base font-bold font-mono tabular-nums ${forecast.exceedanceProb > 0.6 ? "text-rose-400" : "text-emerald-400"}`}>
             {Math.round(forecast.exceedanceProb * 100)}% Surge Risk
           </div>
         </div>
       </div>
 
       {/* Interactive SVG Chart with 90% Confidence Interval Shading */}
-      <div className="relative w-full overflow-x-auto bg-[#070D18] rounded-xl p-2 border border-white/5 custom-scrollbar">
+      <div className="relative w-full overflow-x-auto bg-[#111215] rounded-xl p-2 border border-white/[0.06] custom-scrollbar">
         <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-40 font-mono select-none">
           <defs>
-            {/* Confidence Interval Gradient */}
             <linearGradient id="ciGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#06B6D4" stopOpacity="0.25" />
-              <stop offset="100%" stopColor="#06B6D4" stopOpacity="0.05" />
+              <stop offset="0%" stopColor="#94A3B8" stopOpacity="0.2" />
+              <stop offset="100%" stopColor="#94A3B8" stopOpacity="0.03" />
             </linearGradient>
           </defs>
 
           {/* Grid lines */}
-          <line x1={padding.left} y1={padding.top} x2={width - padding.right} y2={padding.top} stroke="#1E293B" strokeDasharray="3 3" opacity={0.6} />
-          <line x1={padding.left} y1={height / 2} x2={width - padding.right} y2={height / 2} stroke="#1E293B" strokeDasharray="3 3" opacity={0.6} />
-          <line x1={padding.left} y1={height - padding.bottom} x2={width - padding.right} y2={height - padding.bottom} stroke="#334155" strokeWidth={1} />
+          <line x1={padding.left} y1={padding.top} x2={width - padding.right} y2={padding.top} stroke="rgba(255,255,255,0.08)" strokeDasharray="3 3" />
+          <line x1={padding.left} y1={height / 2} x2={width - padding.right} y2={height / 2} stroke="rgba(255,255,255,0.08)" strokeDasharray="3 3" />
+          <line x1={padding.left} y1={height - padding.bottom} x2={width - padding.right} y2={height - padding.bottom} stroke="rgba(255,255,255,0.15)" strokeWidth={1} />
 
           {/* 90% Confidence Interval Envelope */}
           <path d={ciEnvelopeD} fill="url(#ciGradient)" />
@@ -219,16 +217,16 @@ export function TimesfmForecastChart({
             y1={padding.top}
             x2={getX(pastCount - 1)}
             y2={height - padding.bottom}
-            stroke="#38bdf8"
+            stroke="#94A3B8"
             strokeDasharray="4 2"
             strokeWidth={1.5}
             opacity={0.8}
           />
-          <text x={getX(pastCount - 1) + 4} y={padding.top + 8} fill="#38bdf8" fontSize={8} fontWeight="bold">
+          <text x={getX(pastCount - 1) + 4} y={padding.top + 8} fill="#E2E8F0" fontSize={8} fontWeight="bold">
             NOW
           </text>
 
-          {/* Past Observed Bars (Blue) */}
+          {/* Past Observed Bars */}
           {chartData.map((d, i) => {
             if (!d.isPast) return null;
             const barWidth = 7;
@@ -243,20 +241,20 @@ export function TimesfmForecastChart({
                   width={barWidth}
                   height={Math.max(2, barH)}
                   rx={2}
-                  fill={hoverIndex === i ? "#38bdf8" : "#0284c7"}
-                  opacity={0.85}
+                  fill={hoverIndex === i ? "#FFFFFF" : "#94A3B8"}
+                  opacity={hoverIndex === i ? 1 : 0.75}
                   className="transition-colors cursor-pointer"
                 />
               </g>
             );
           })}
 
-          {/* Future Projected Spline (Amber/Red dashed) */}
+          {/* Future Projected Spline */}
           <path
             d={futurePathD}
             fill="none"
-            stroke={isCriticalSurge ? "#f43f5e" : "#f59e0b"}
-            strokeWidth={2.5}
+            stroke={isCriticalSurge ? "#EF4444" : "#F59E0B"}
+            strokeWidth={2}
             strokeDasharray={forecast.isSpikeDetected ? "5 3" : "none"}
           />
 
@@ -271,10 +269,10 @@ export function TimesfmForecastChart({
                 cx={cx}
                 cy={cy}
                 r={hoverIndex === i ? 4.5 : 3}
-                fill={isCriticalSurge ? "#f43f5e" : "#f59e0b"}
-                stroke="#ffffff"
+                fill={isCriticalSurge ? "#EF4444" : "#F59E0B"}
+                stroke="#18191E"
                 strokeWidth={1.5}
-                className="transition-all cursor-pointer shadow-md"
+                className="transition-all cursor-pointer"
                 onMouseEnter={() => setHoverIndex(i)}
                 onMouseLeave={() => setHoverIndex(null)}
               />
@@ -294,26 +292,26 @@ export function TimesfmForecastChart({
 
         {/* Hover Tooltip */}
         {hoverIndex !== null && chartData[hoverIndex] && (
-          <div className="absolute top-2 right-2 bg-[#0A1224] border border-cyan-500/40 text-white text-[10px] px-2.5 py-1 rounded-xl shadow-2xl pointer-events-none font-mono glow-cyan">
+          <div className="absolute top-2 right-2 bg-[#18191E] border border-white/20 text-white text-[10px] px-2.5 py-1 rounded-xl shadow-2xl pointer-events-none font-mono">
             <b>{chartData[hoverIndex].isPast ? "Observed Gauge" : "TimesFM Projected"}</b>: {chartData[hoverIndex].value} mm/h ({chartData[hoverIndex].hour})
           </div>
         )}
       </div>
 
       {/* Legend & Advice */}
-      <div className="mt-3 pt-2.5 border-t border-white/10 flex items-center justify-between text-[11px] text-[#8CA0BE] flex-wrap gap-2 font-mono">
+      <div className="mt-3 pt-2.5 border-t border-white/[0.08] flex items-center justify-between text-[11px] text-slate-400 flex-wrap gap-2 font-mono">
         <div className="flex items-center gap-3">
           <span className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded bg-sky-600 inline-block" /> Past 12h Rain Rate
+            <span className="w-2.5 h-2.5 rounded bg-slate-400 inline-block" /> Past 12h Rain Rate
           </span>
           <span className="flex items-center gap-1.5">
             <span className={`w-3 h-0.5 ${isCriticalSurge ? "bg-rose-500" : "bg-amber-400"} inline-block`} /> TimesFM 24h Prediction
           </span>
           <span className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded bg-cyan-500/20 border border-cyan-500/40 inline-block" /> 90% CI Envelope
+            <span className="w-2.5 h-2.5 rounded bg-white/[0.1] border border-white/20 inline-block" /> 90% CI Envelope
           </span>
         </div>
-        <div className="text-[10px] text-cyan-400 font-mono">
+        <div className="text-[10px] text-slate-400 font-mono">
           Google Cloud Vertex AI • {forecast.engine}
         </div>
       </div>

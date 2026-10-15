@@ -1,14 +1,8 @@
 import React, { useState, useMemo, useCallback, useEffect } from "react";
-import { CommandHeader } from "./components/CommandHeader";
+import { AdminCommandDashboard } from "./components/admin/AdminCommandDashboard";
 import { CivilianDashboard } from "./components/civilian/CivilianDashboard";
 import { RescuerDashboard } from "./components/rescuer/RescuerDashboard";
-import { AdminCommandDashboard } from "./components/admin/AdminCommandDashboard";
-import { SystemTourModal } from "./components/SystemTourModal";
-import { CorridorStoriesBar } from "./components/mobile/CorridorStoriesBar";
-import { MobileBottomNav } from "./components/mobile/MobileBottomNav";
-import { EmergencySosModal } from "./components/mobile/EmergencySosModal";
-import { PersonaSwitcherModal } from "./components/mobile/PersonaSwitcherModal";
-import { UserRoleProvider, useUserRole } from "./context/UserRoleContext";
+import { UserRoleProvider, useUserRole, UserRole } from "./context/UserRoleContext";
 import { playEmergencyChime, playConfirmationBeep } from "./utils/audioAlert";
 import { Language } from "./data/localization";
 import {
@@ -21,6 +15,20 @@ import {
   triggerPresentationScenario,
   LiveTelemetryResponse,
 } from "./services/riskEngineApi";
+import {
+  Compass,
+  Radio,
+  Shield,
+  Activity,
+  CheckCircle2,
+  ChevronDown,
+  Mountain,
+  AlertTriangle,
+  Volume2,
+  VolumeX,
+  Languages,
+  Users,
+} from "lucide-react";
 
 function getDistanceMeters(lat1: number, lon1: number, lat2: number, lon2: number): number {
   const R = 6371e3;
@@ -56,26 +64,52 @@ function computeRisk(c: any) {
   return { score, tier, rainScore, seismicScore, lakeScore, reportScore };
 }
 
-function MainApp() {
-  const { currentRole, setCurrentRole, broadcastSOS, distressBeacons } = useUserRole();
+const TIER_CONFIG = {
+  Low: {
+    border: "border-zinc-800",
+    text: "text-zinc-300",
+    bg: "bg-zinc-900/60",
+    dot: "bg-emerald-500",
+    labelEn: "Safe baseline",
+    labelNe: "सामान्य अवस्था",
+    icon: CheckCircle2,
+  },
+  Moderate: {
+    border: "border-zinc-800",
+    text: "text-zinc-300",
+    bg: "bg-zinc-900/60",
+    dot: "bg-amber-500",
+    labelEn: "Moderate watch",
+    labelNe: "सतर्कता आवश्यक",
+    icon: Activity,
+  },
+  High: {
+    border: "border-zinc-800",
+    text: "text-zinc-300",
+    bg: "bg-zinc-900/60",
+    dot: "bg-orange-500",
+    labelEn: "Elevated risk",
+    labelNe: "उच्च जोखिम",
+    icon: AlertTriangle,
+  },
+  Critical: {
+    border: "border-red-900/40",
+    text: "text-red-300",
+    bg: "bg-red-950/20",
+    dot: "bg-red-500 animate-pulse",
+    labelEn: "Critical emergency",
+    labelNe: "आपतकालीन संकट",
+    icon: AlertTriangle,
+  },
+};
 
+function MainApp() {
+  const { currentRole, setCurrentRole, userProfile, broadcastSOS, distressBeacons } = useUserRole();
+
+  // App settings
   const [language, setLanguage] = useState<Language>("en");
   const [audioMuted, setAudioMuted] = useState(false);
-  const [isTourOpen, setIsTourOpen] = useState(false);
-  const [isSosModalOpen, setIsSosModalOpen] = useState(false);
-  const [isPersonaModalOpen, setIsPersonaModalOpen] = useState(false);
-
-  // Mobile Bottom Nav Tab State
-  const [mobileNavTab, setMobileNavTab] = useState<"safety" | "map" | "rescue" | "admin">(
-    currentRole === "rescuer" ? "rescue" : currentRole === "admin" ? "admin" : "safety"
-  );
-
-  // Sync mobile nav tab when currentRole changes externally
-  useEffect(() => {
-    if (currentRole === "civilian") setMobileNavTab("safety");
-    else if (currentRole === "rescuer") setMobileNavTab("rescue");
-    else if (currentRole === "admin") setMobileNavTab("admin");
-  }, [currentRole]);
+  const [isCorridorDropdownOpen, setIsCorridorDropdownOpen] = useState(false);
 
   // Corridors & Telemetry
   const [corridors, setCorridors] = useState<any[]>(INITIAL_CORRIDORS);
@@ -108,14 +142,6 @@ function MainApp() {
     return map;
   }, [corridors]);
 
-  // Corridors with live risk tiers for Instagram Stories bar
-  const corridorsWithTiers = useMemo(() => {
-    return corridors.map((c) => ({
-      ...c,
-      tier: risks[c.id]?.tier || "Low",
-    }));
-  }, [corridors, risks]);
-
   const selectedCorridor = useMemo(() => {
     const config = CORRIDOR_CONFIGS[selectedId] || CORRIDOR_CONFIGS.langtang;
     const telemetry = corridors.find((c) => c.id === selectedId) || corridors[0];
@@ -133,7 +159,6 @@ function MainApp() {
     return risks[selectedId] || computeRisk(selectedCorridor);
   }, [risks, selectedId, selectedCorridor]);
 
-  // Assets in selected corridor
   const corridorAssets = useMemo(() => {
     return MAP_ASSETS.filter((a) => a.corridorId === selectedId);
   }, [selectedId]);
@@ -144,13 +169,11 @@ function MainApp() {
     const config = CORRIDOR_CONFIGS[selectedId] || CORRIDOR_CONFIGS.langtang;
     let minD = Infinity;
 
-    // Check river
     for (const pt of config.riverPath || []) {
       const d = getDistanceMeters(userPosition.lat, userPosition.lng, pt.lat, pt.lng);
       if (d < minD) minD = d;
     }
 
-    // Check landslide zones
     for (const lz of CORRIDOR_LANDSLIDE_ZONES[selectedId] || []) {
       for (const pt of lz.polygon) {
         const d = getDistanceMeters(userPosition.lat, userPosition.lng, pt[0], pt[1]);
@@ -161,14 +184,21 @@ function MainApp() {
     return Math.round(minD);
   }, [userPosition, selectedId]);
 
-  const geofenceStatus = distanceToHazard !== null && distanceToHazard < 150 ? "DANGER" : "SAFE";
+  const isHazardActive =
+    (distanceToHazard !== null && distanceToHazard < (150 + waterSurge * 40)) ||
+    waterSurge > 1.5 ||
+    activeScenario === "critical_cascade" ||
+    activeScenario === "cloudburst_spike" ||
+    activeScenario === "glof_lake_expansion";
+
+  const geofenceStatus = isHazardActive ? "DANGER" : "SAFE";
 
   // Audio alert on danger
   useEffect(() => {
-    if (!audioMuted && (geofenceStatus === "DANGER" || activeScenario === "critical_cascade")) {
+    if (!audioMuted && geofenceStatus === "DANGER") {
       playEmergencyChime();
     }
-  }, [geofenceStatus, activeScenario, audioMuted]);
+  }, [geofenceStatus, audioMuted]);
 
   // Sync Telemetry
   const syncLiveTelemetry = useCallback(async (corridorId: string) => {
@@ -192,7 +222,7 @@ function MainApp() {
         )
       );
     } catch (err) {
-      console.warn("Offline telemetry fallback active:", err);
+      // Offline fallback
     } finally {
       setIsSensingSyncing(false);
     }
@@ -210,7 +240,7 @@ function MainApp() {
         await triggerPresentationScenario(scenarioId, selectedId);
         await syncLiveTelemetry(selectedId);
       } catch (err) {
-        console.warn("Trigger scenario fallback:", err);
+        // Fallback
       }
 
       if (scenarioId === "cloudburst_spike") setWaterSurge(2.5);
@@ -270,55 +300,162 @@ function MainApp() {
     [audioMuted, userPosition, broadcastSOS, selectedId]
   );
 
-  const pendingSosCount = distressBeacons.filter((b) => b.status === "pending").length;
+  const tierConfig = TIER_CONFIG[selectedRisk.tier] || TIER_CONFIG.Low;
+  const TierIcon = tierConfig.icon;
+
+  const handleSwitchRole = (role: UserRole) => {
+    playConfirmationBeep();
+    setCurrentRole(role);
+  };
 
   return (
-    <div className="w-full h-screen flex flex-col bg-[#080E19] text-[#F8FAFC] antialiased overflow-hidden selection:bg-cyan-500 selection:text-black">
-      {/* 1. Big Tech Streamlined Command Header with 1-Click Persona Switcher */}
-      <CommandHeader
-        activeTier={selectedRisk.tier}
-        activeCorridor={selectedCorridor}
-        allCorridors={corridors}
-        onSelectCorridor={(id) => {
-          playConfirmationBeep();
-          setSelectedId(id);
-          syncLiveTelemetry(id);
-        }}
-        language={language}
-        onToggleLanguage={() => {
-          playConfirmationBeep();
-          setLanguage((prev) => (prev === "en" ? "ne" : "en"));
-        }}
-        onOpenGuide={() => {
-          playConfirmationBeep();
-          setIsTourOpen(true);
-        }}
-        audioMuted={audioMuted}
-        onToggleAudioMute={() => {
-          playConfirmationBeep();
-          setAudioMuted((prev) => !prev);
-        }}
-        onOpenPersonaSwitcher={() => {
-          playConfirmationBeep();
-          setIsPersonaModalOpen(true);
-        }}
-        isSyncing={isSensingSyncing}
-      />
+    <div className="w-full h-screen flex flex-col bg-zinc-950 text-zinc-100 antialiased overflow-hidden font-sans select-none">
+      {/* 1. SIMPLE, MINIMAL & MODERN TOP NAVIGATION HEADER */}
+      <header className="px-4 py-2 bg-zinc-950 border-b border-zinc-800 flex items-center justify-between gap-3 shrink-0 z-30">
+        {/* Left: Brand + Corridor Dropdown */}
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2.5">
+            <div className="w-7 h-7 rounded-lg bg-zinc-900 border border-zinc-800 text-zinc-300 flex items-center justify-center font-medium">
+              <Mountain className="w-4 h-4" />
+            </div>
+            <div className="hidden sm:block">
+              <span className="font-semibold text-zinc-100 text-sm tracking-tight block leading-tight">
+                HimalSanket
+              </span>
+              <span className="text-[11px] text-zinc-500 block leading-none">
+                हिमाल संकेत
+              </span>
+            </div>
+          </div>
 
-      {/* 2. Instagram Stories Style Corridor Status Carousel */}
-      <CorridorStoriesBar
-        corridors={corridorsWithTiers}
-        selectedId={selectedId}
-        onSelectCorridor={(id) => {
-          playConfirmationBeep();
-          setSelectedId(id);
-          syncLiveTelemetry(id);
-        }}
-        language={language}
-      />
+          <div className="h-4 w-[1px] bg-zinc-800 hidden sm:block" />
 
-      {/* 3. Main Viewport Stage (Desktop Split / Mobile Bottom Sheet) */}
-      <main className="flex-1 flex flex-col min-h-0 relative overflow-hidden pb-14 lg:pb-0">
+          {/* Himalayan Corridor Selector */}
+          <div className="relative">
+            <button
+              onClick={() => setIsCorridorDropdownOpen((p) => !p)}
+              className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-zinc-900 hover:bg-zinc-850 border border-zinc-800 text-xs font-medium text-zinc-200 cursor-pointer transition-colors shadow-sm"
+            >
+              <Compass className="w-3.5 h-3.5 text-zinc-400" />
+              <span>{selectedCorridor.name}</span>
+              <ChevronDown className="w-3 h-3 text-zinc-500" />
+            </button>
+
+            {isCorridorDropdownOpen && (
+              <>
+                <div
+                  className="fixed inset-0 z-[9998]"
+                  onClick={() => setIsCorridorDropdownOpen(false)}
+                />
+                <div className="absolute left-0 top-10 w-60 rounded-xl bg-zinc-900 border border-zinc-800 shadow-xl p-1.5 z-[9999] text-xs space-y-0.5">
+                  <div className="text-[10px] font-mono text-zinc-500 uppercase tracking-wider px-2 py-1">
+                    Select Himalayan Corridor
+                  </div>
+                  {corridors.map((c) => {
+                    const isCur = c.id === selectedId;
+                    return (
+                      <button
+                        key={c.id}
+                        onClick={() => {
+                          playConfirmationBeep();
+                          setSelectedId(c.id);
+                          syncLiveTelemetry(c.id);
+                          setIsCorridorDropdownOpen(false);
+                        }}
+                        className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-left cursor-pointer transition-colors ${
+                          isCur
+                            ? "bg-zinc-800 text-zinc-100 font-medium"
+                            : "text-zinc-400 hover:bg-zinc-800/60 hover:text-zinc-200"
+                        }`}
+                      >
+                        <div className="truncate">
+                          <div className="text-xs font-medium">{c.name}</div>
+                          <div className="text-[11px] text-zinc-500">{c.region}</div>
+                        </div>
+                        <span className="text-[11px] font-mono text-zinc-500">{c.rainfall}mm</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+
+        {/* Center: CLEAN SEGMENTED ROLE CONTROL */}
+        <div className="flex items-center bg-zinc-900 p-1 rounded-lg border border-zinc-800">
+          <button
+            onClick={() => handleSwitchRole("civilian")}
+            className={`px-3 py-1.5 rounded-md text-xs transition-colors cursor-pointer ${
+              currentRole === "civilian"
+                ? "bg-zinc-800 text-zinc-100 font-medium shadow-sm"
+                : "text-zinc-400 hover:text-zinc-200 font-normal"
+            }`}
+          >
+            Civilian / Trekker
+          </button>
+
+          <button
+            onClick={() => handleSwitchRole("rescuer")}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs transition-colors cursor-pointer ${
+              currentRole === "rescuer"
+                ? "bg-zinc-800 text-zinc-100 font-medium shadow-sm"
+                : "text-zinc-400 hover:text-zinc-200 font-normal"
+            }`}
+          >
+            <span>Search & Rescue</span>
+            {distressBeacons.filter((b) => b.status === "pending").length > 0 && (
+              <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+            )}
+          </button>
+
+          <button
+            onClick={() => handleSwitchRole("admin")}
+            className={`px-3 py-1.5 rounded-md text-xs transition-colors cursor-pointer ${
+              currentRole === "admin"
+                ? "bg-zinc-800 text-zinc-100 font-medium shadow-sm"
+                : "text-zinc-400 hover:text-zinc-200 font-normal"
+            }`}
+          >
+            Command Admin
+          </button>
+        </div>
+
+        {/* Right: Hazard Status Badge + Controls */}
+        <div className="flex items-center gap-2">
+          {/* Corridor Risk Badge */}
+          <div
+            className={`hidden md:flex items-center gap-2 px-2.5 py-1.5 rounded-lg border text-xs ${tierConfig.bg} ${tierConfig.border}`}
+          >
+            <span className={`w-1.5 h-1.5 rounded-full ${tierConfig.dot}`} />
+            <span className={`font-medium ${tierConfig.text}`}>
+              {language === "ne" ? tierConfig.labelNe : tierConfig.labelEn}
+            </span>
+          </div>
+
+          {/* Language Toggle */}
+          <button
+            onClick={() => setLanguage((p) => (p === "en" ? "ne" : "en"))}
+            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-zinc-900 hover:bg-zinc-850 text-xs text-zinc-400 hover:text-zinc-200 border border-zinc-800 cursor-pointer transition-colors"
+            title="Toggle Nepali / English"
+          >
+            <Languages className="w-3.5 h-3.5 text-zinc-400" />
+            <span>{language === "en" ? "नेपाली" : "EN"}</span>
+          </button>
+
+          {/* Sound Mute Toggle */}
+          <button
+            onClick={() => setAudioMuted((p) => !p)}
+            className="p-2 rounded-lg bg-zinc-900 hover:bg-zinc-850 text-zinc-400 hover:text-zinc-200 border border-zinc-800 cursor-pointer transition-colors"
+            title={audioMuted ? "Unmute chimes" : "Mute chimes"}
+          >
+            {audioMuted ? <VolumeX className="w-3.5 h-3.5 text-zinc-500" /> : <Volume2 className="w-3.5 h-3.5 text-zinc-400" />}
+          </button>
+        </div>
+      </header>
+
+      {/* 2. MAIN PURPOSEFUL ROLE VIEWPORT (100% Focused, Zero Extraneous Clutter) */}
+      <main className="flex-1 flex flex-col min-h-0 relative overflow-hidden bg-zinc-950">
         {currentRole === "civilian" && (
           <CivilianDashboard
             corridor={selectedCorridor}
@@ -366,44 +503,6 @@ function MainApp() {
           />
         )}
       </main>
-
-      {/* 4. Mobile Bottom Navigation Bar (Thumb-Zone Optimized) */}
-      <div className="lg:hidden">
-        <MobileBottomNav
-          activeTab={mobileNavTab}
-          onChangeTab={(tab) => {
-            setMobileNavTab(tab);
-          }}
-          onOpenSos={() => {
-            setIsSosModalOpen(true);
-          }}
-          pendingSosCount={pendingSosCount}
-        />
-      </div>
-
-      {/* 5. Apple Emergency SOS Modal */}
-      <EmergencySosModal
-        isOpen={isSosModalOpen}
-        onClose={() => setIsSosModalOpen(false)}
-        onConfirmSOS={(note) => {
-          handleTriggerSOS(note);
-        }}
-        userPosition={userPosition}
-        corridorName={selectedCorridor.name}
-      />
-
-      {/* 6. Instagram/Meta Persona Switcher Modal */}
-      <PersonaSwitcherModal
-        isOpen={isPersonaModalOpen}
-        onClose={() => setIsPersonaModalOpen(false)}
-      />
-
-      {/* 7. System Architecture Tour Modal */}
-      <SystemTourModal
-        isOpen={isTourOpen}
-        onClose={() => setIsTourOpen(false)}
-        language={language}
-      />
     </div>
   );
 }

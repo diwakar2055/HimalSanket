@@ -83,11 +83,11 @@ export function CorridorStoriesBar({
   return (
     <nav
       aria-label="Himalayan Corridor Selection"
-      className="w-full bg-[#080E19] border-b border-[#27364B] px-3 sm:px-4 py-2 overflow-x-auto custom-scrollbar select-none z-20 shrink-0"
+      className="w-full bg-[#090D16] border-b border-white/[0.06] px-3.5 sm:px-6 py-2 overflow-x-auto custom-scrollbar select-none z-20 shrink-0 font-sans"
     >
       <div className="flex items-center gap-2 sm:gap-2.5 min-w-max">
-        <span className="text-[10px] font-mono text-[#A7B4C8] uppercase tracking-wider pl-1 pr-2 hidden md:inline">
-          Corridors:
+        <span className="text-[10px] font-mono text-slate-400 uppercase tracking-wider pl-1 pr-2 hidden md:inline">
+          Corridor Focus:
         </span>
         {corridors.map((c) => {
           const isSelected = c.id === selectedId;
@@ -108,10 +108,10 @@ export function CorridorStoriesBar({
               }}
               tabIndex={0}
               aria-pressed={isSelected}
-              className={`flex items-center gap-2.5 px-3 py-1.5 rounded-xl border transition-all cursor-pointer focus-visible:ring-2 focus-visible:ring-cyan-400 focus:outline-none ${
+              className={`flex items-center gap-2.5 px-3 py-1.5 rounded-xl border transition-all cursor-pointer focus:outline-none ${
                 isSelected
-                  ? "bg-[#152238] border-cyan-500/60 shadow-lg shadow-cyan-500/10 ring-1 ring-cyan-500/30"
-                  : "bg-[#101A2A] border-[#27364B] hover:bg-[#152238] hover:border-[#3D506E]"
+                  ? "bg-white/[0.1] border-cyan-400/50 shadow-lg shadow-cyan-500/10 ring-1 ring-cyan-500/30"
+                  : "bg-[#0F172A]/70 border-white/[0.06] hover:bg-white/[0.06] hover:border-white/[0.12]"
               }`}
             >
               {/* Corridor Icon with Severity Ring */}
