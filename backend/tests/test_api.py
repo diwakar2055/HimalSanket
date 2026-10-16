@@ -94,13 +94,16 @@ def test_get_all_regions():
     response = client.get("/regions")
     assert response.status_code == 200
     data = response.json()
-    assert len(data) >= 5
+    assert len(data) >= 8
     region_ids = [r["id"] for r in data]
     assert "langtang" in region_ids
     assert "khumbu" in region_ids
     assert "annapurna" in region_ids
     assert "manaslu" in region_ids
     assert "rolwaling" in region_ids
+    assert "mardi" in region_ids
+    assert "poonhill" in region_ids
+    assert "abc" in region_ids
 
 
 def test_get_region_by_id():
@@ -110,6 +113,14 @@ def test_get_region_by_id():
     assert data["id"] == "langtang"
     assert data["region"] == "Rasuwa"
     assert "baseline_risk" in data
+
+    resp_mardi = client.get("/regions/mardi")
+    assert resp_mardi.status_code == 200
+    assert resp_mardi.json()["name"] == "Mardi Himal Trek"
+
+    resp_abc = client.get("/regions/abc")
+    assert resp_abc.status_code == 200
+    assert resp_abc.json()["name"] == "Annapurna Base Camp (ABC)"
 
     resp_rol = client.get("/regions/rolwaling")
     assert resp_rol.status_code == 200

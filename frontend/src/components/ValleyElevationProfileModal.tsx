@@ -92,6 +92,52 @@ const CORRIDOR_PROFILES: Record<
       { name: "Gongar Hydro Intake", distanceKm: 52.0, elevationM: 1150, type: "dam", safeClearanceM: 15, riskNote: "456MW Upper Tamakoshi" },
     ],
   },
+  mardi: {
+    corridorName: "Mardi Himal Trek",
+    riverName: "Mardi Khola ➔ Seti River",
+    stations: [
+      { name: "Mardi Base Camp", distanceKm: 0, elevationM: 4500, type: "lake", safeClearanceM: 50, riskNote: "High glacial scree ridge beneath Machapuchare" },
+      { name: "Upper Viewpoint", distanceKm: 3.5, elevationM: 4200, type: "safeZone", safeClearanceM: 60, riskNote: "Narrow arête crest; high wind exposure" },
+      { name: "High Camp", distanceKm: 6.8, elevationM: 3580, type: "safeZone", safeClearanceM: 40, riskNote: "Highest teahouse haven on ridge" },
+      { name: "Badal Danda", distanceKm: 11.2, elevationM: 3250, type: "settlement", safeClearanceM: 35, riskNote: "Cloudburst & lightning alert point" },
+      { name: "Low Camp", distanceKm: 15.0, elevationM: 2970, type: "settlement", safeClearanceM: 30, riskNote: "Rhododendron canopy transition" },
+      { name: "Forest Camp", distanceKm: 19.5, elevationM: 2550, type: "settlement", safeClearanceM: 25, riskNote: "Gully runoff chokepoint" },
+      { name: "Siding Village Riverbank", distanceKm: 25.0, elevationM: 1750, type: "bridge", safeClearanceM: 12, riskNote: "Mardi Khola suspension bridge" },
+      { name: "Kalimati River Terrace", distanceKm: 29.5, elevationM: 1500, type: "settlement", safeClearanceM: 18, riskNote: "River terrace farming basin" },
+      { name: "Mardi Hydro Intake", distanceKm: 41.0, elevationM: 1020, type: "dam", safeClearanceM: 10, riskNote: "Seti River confluence headworks" },
+    ],
+  },
+  poonhill: {
+    corridorName: "Ghorepani Poon Hill",
+    riverName: "Bhurungdi Khola ➔ Kali Gandaki / Modi",
+    stations: [
+      { name: "Poon Hill Tower", distanceKm: 0, elevationM: 3210, type: "safeZone", safeClearanceM: 120, riskNote: "Highest panoramic ridge summit" },
+      { name: "Ghorepani Pass", distanceKm: 1.5, elevationM: 2874, type: "settlement", safeClearanceM: 65, riskNote: "Primary stone lodge mountain pass" },
+      { name: "Nangethanti Forest", distanceKm: 5.0, elevationM: 2430, type: "settlement", safeClearanceM: 30, riskNote: "Stream ravine lodge bench" },
+      { name: "Banthanti Stream Ravine", distanceKm: 7.8, elevationM: 2210, type: "settlement", safeClearanceM: 25, riskNote: "Deep rhododendron gorge bridge" },
+      { name: "Ulleri 3,300 Steps", distanceKm: 11.2, elevationM: 1960, type: "settlement", safeClearanceM: 25, riskNote: "Steep staircase cliff instability" },
+      { name: "Tikhedhunga River", distanceKm: 14.5, elevationM: 1540, type: "bridge", safeClearanceM: 14, riskNote: "Bhurungdi suspension bridge" },
+      { name: "Hile Riverside", distanceKm: 16.2, elevationM: 1480, type: "settlement", safeClearanceM: 18, riskNote: "Riverside lodge street" },
+      { name: "Birethanti Confluence", distanceKm: 21.0, elevationM: 1070, type: "bridge", safeClearanceM: 12, riskNote: "Modi Khola river crossing" },
+      { name: "Nayapul Trailhead", distanceKm: 23.5, elevationM: 1040, type: "dam", safeClearanceM: 10, riskNote: "Highway river bridge" },
+    ],
+  },
+  abc: {
+    corridorName: "Annapurna Base Camp (ABC)",
+    riverName: "Modi Khola Glacial Canyon",
+    stations: [
+      { name: "Annapurna Base Camp", distanceKm: 0, elevationM: 4130, type: "lake", safeClearanceM: 35, riskNote: "Glacial amphitheater cirque" },
+      { name: "Machapuchare Base Camp", distanceKm: 4.5, elevationM: 3700, type: "safeZone", safeClearanceM: 30, riskNote: "Sanctuary eastern gateway" },
+      { name: "Deurali Gateway", distanceKm: 9.0, elevationM: 3200, type: "settlement", safeClearanceM: 22, riskNote: "Narrow canyon entrance" },
+      { name: "Hinku Cave Chute", distanceKm: 12.0, elevationM: 3100, type: "bridge", safeClearanceM: 18, riskNote: "Historical avalanche trajectory" },
+      { name: "Himalaya Hotel", distanceKm: 15.5, elevationM: 2920, type: "settlement", safeClearanceM: 25, riskNote: "Cliff terrace lodges" },
+      { name: "Dovan Riverbank", distanceKm: 19.5, elevationM: 2600, type: "bridge", safeClearanceM: 15, riskNote: "Modi Khola gorge bottleneck" },
+      { name: "Bamboo Camp", distanceKm: 23.0, elevationM: 2310, type: "settlement", safeClearanceM: 18, riskNote: "Riverside forest settlement" },
+      { name: "Chhomrong Khola Bridge", distanceKm: 29.5, elevationM: 1900, type: "bridge", safeClearanceM: 15, riskNote: "Deep gorge suspension bridge" },
+      { name: "Jhinu Danda Hotsprings", distanceKm: 33.0, elevationM: 1750, type: "bridge", safeClearanceM: 12, riskNote: "Modi Khola suspension bridge" },
+      { name: "Birethanti Confluence", distanceKm: 42.0, elevationM: 1070, type: "bridge", safeClearanceM: 12, riskNote: "Modi and Bhurungdi confluence" },
+    ],
+  },
 };
 
 interface ValleyElevationProfileModalProps {

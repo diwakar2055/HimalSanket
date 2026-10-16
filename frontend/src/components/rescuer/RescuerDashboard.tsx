@@ -24,6 +24,7 @@ import {
   Home,
   ChevronRight,
 } from "lucide-react";
+import { HelicopterIcon } from "../common/HelicopterIcon";
 
 interface RescuerDashboardProps {
   corridor: any;
@@ -33,6 +34,18 @@ interface RescuerDashboardProps {
   assets: MapAsset[];
   activeScenario?: string;
   waterSurge?: number;
+}
+
+function formatEtaSeconds(seconds: number): string {
+  if (seconds <= 0) return "ON-SITE";
+  const mins = Math.floor(seconds / 60);
+  const secs = seconds % 60;
+  return `${mins < 10 ? "0" : ""}${mins}m ${secs < 10 ? "0" : ""}${secs}s`;
+}
+
+function formatMeters(meters: number): string {
+  if (meters >= 1000) return `${(meters / 1000).toFixed(1)} km`;
+  return `${Math.round(meters)}m`;
 }
 
 export function RescuerDashboard({
@@ -50,13 +63,21 @@ export function RescuerDashboard({
     fieldDispatches,
     userProfile,
     resetBeaconsToDefault,
+    dispatchedTeams,
+    dispatchRescueTeam,
+    cancelRescueTeam,
   } = useUserRole();
 
   const [selectedBeacon, setSelectedBeacon] = useState<DistressBeacon | null>(null);
   const [selectedAsset, setSelectedAsset] = useState<MapAsset | null>(null);
   const [filterStatus, setFilterStatus] = useState<"all" | "pending" | "dispatched" | "rescued">("all");
-  const [activeTab, setActiveTab] = useState<"incidents" | "facilities" | "reports">("incidents");
+  const [activeTab, setActiveTab] = useState<"incidents" | "units" | "facilities" | "reports">("incidents");
   const [facilityFilter, setFacilityFilter] = useState<"all" | "health" | "school" | "village" | "base">("all");
+
+  // Filter dispatched teams for this corridor
+  const corridorDispatchedTeams = useMemo(() => {
+    return dispatchedTeams.filter((t) => !t.corridorId || t.corridorId === corridor.id);
+  }, [dispatchedTeams, corridor.id]);
 
   // Filter beacons for this corridor or overall
   const corridorBeacons = useMemo(() => {
@@ -134,9 +155,9 @@ export function RescuerDashboard({
   const handleDispatch = useCallback(
     (beacon: DistressBeacon) => {
       playConfirmationBeep();
-      updateBeaconStatus(beacon.id, "dispatched", "APF Mountain Rescue Squad 1");
+      dispatchRescueTeam(beacon.id);
     },
-    [updateBeaconStatus]
+    [dispatchRescueTeam]
   );
 
   const handleMarkRescued = useCallback(
@@ -225,6 +246,20 @@ export function RescuerDashboard({
               Distress SOS ({corridorBeacons.length})
             </button>
             <button
+              onClick={() => setActiveTab("units")}
+              className={`flex-1 px-2.5 py-1.5 rounded-md font-medium transition-colors cursor-pointer text-xs text-center flex items-center justify-center gap-1.5 ${
+                activeTab === "units"
+                  ? "bg-amber-950/50 text-amber-300 border border-amber-800/60 shadow-sm font-semibold"
+                  : "text-zinc-400 hover:text-zinc-200"
+              }`}
+            >
+              <span>SAR Fleet</span>
+              {corridorDispatchedTeams.length > 0 && (
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping" />
+              )}
+              <span>({corridorDispatchedTeams.length})</span>
+            </button>
+            <button
               onClick={() => setActiveTab("facilities")}
               className={`flex-1 px-2.5 py-1.5 rounded-md font-medium transition-colors cursor-pointer text-xs text-center ${
                 activeTab === "facilities"
@@ -232,7 +267,7 @@ export function RescuerDashboard({
                   : "text-zinc-400 hover:text-zinc-200"
               }`}
             >
-              Facilities & Shelters ({assets.length})
+              Facilities ({assets.length})
             </button>
             <button
               onClick={() => setActiveTab("reports")}
@@ -398,11 +433,48 @@ export function RescuerDashboard({
                       )}
                     </div>
 
-                    {isDispatched && beacon.assignedUnit && (
-                      <div className="mt-2 px-2.5 py-1 rounded-md bg-zinc-950 border border-zinc-800 text-[11px] text-amber-300/90 flex items-center justify-between">
-                        <span>Squad: {beacon.assignedUnit}</span>
-                        <span className="text-[10px] text-zinc-500 font-mono">En Route</span>
-                      </div>
+                    {isDispatched && (
+                      (() => {
+                        const liveTeam = dispatchedTeams.find((t) => String(t.targetBeaconId) === String(beacon.id));
+                        if (liveTeam) {
+                          return (
+                            <div className="mt-2.5 p-2.5 rounded-xl bg-zinc-900/60 border border-zinc-800 space-y-1.5">
+                              <div className="flex items-center justify-between text-xs">
+                                <span className="font-mono text-[10px] text-zinc-300 font-medium uppercase flex items-center gap-1.5">
+                                  <span className="w-2 h-2 rounded-full bg-sky-400" />
+                                  {liveTeam.name} ({liveTeam.callSign})
+                                </span>
+                                <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-300 border border-zinc-750 font-medium capitalize">
+                                  {liveTeam.status.replace("_", " ")}
+                                </span>
+                              </div>
+                              <div className="flex items-center justify-between text-xs">
+                                <div className="text-[11px] font-mono text-zinc-400">
+                                  ETA: <strong className="text-zinc-100 font-semibold">{formatEtaSeconds(liveTeam.etaSeconds)}</strong>
+                                </div>
+                                <div className="text-[11px] font-mono text-zinc-400">
+                                  {formatMeters(liveTeam.distanceRemainingMeters)} • {liveTeam.speedKmH}km/h
+                                </div>
+                              </div>
+                              <div className="w-full h-1 rounded-full bg-zinc-800 overflow-hidden">
+                                <div
+                                  className="h-full bg-sky-400 rounded-full transition-all duration-700"
+                                  style={{ width: `${Math.min(100, Math.max(5, liveTeam.progress * 100))}%` }}
+                                />
+                              </div>
+                            </div>
+                          );
+                        }
+                        if (beacon.assignedUnit) {
+                          return (
+                            <div className="mt-2 px-2.5 py-1 rounded-md bg-zinc-950 border border-zinc-800 text-[11px] text-amber-300/90 flex items-center justify-between">
+                              <span>Squad: {beacon.assignedUnit}</span>
+                              <span className="text-[10px] text-zinc-500 font-mono">En Route</span>
+                            </div>
+                          );
+                        }
+                        return null;
+                      })()
                     )}
 
                     {/* Actions Row */}
@@ -457,7 +529,130 @@ export function RescuerDashboard({
             )
           )}
 
-          {/* TAB 2: FACILITIES & SHELTERS (Schools, Health Posts, Villages, Helipads) */}
+          {/* TAB 2: ACTIVE RESCUE UNITS (Live SAR Fleet Simulation) */}
+          {activeTab === "units" && (
+            corridorDispatchedTeams.length === 0 ? (
+              <div className="p-8 text-center text-zinc-500 text-xs space-y-2">
+                <HelicopterIcon className="w-8 h-8 mx-auto text-zinc-600 opacity-50" />
+                <p>No active airborne or ground rescue teams deployed in {corridor.name}.</p>
+                <p className="text-[11px] text-zinc-600">
+                  Select an SOS Distress beacon in the queue and click <strong>Dispatch Rescue Squad</strong> to launch a simulated live SAR helicopter with real-time ETA tracking.
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-2.5">
+                <div className="p-2.5 rounded-xl bg-zinc-900/60 border border-zinc-800 text-[11px] text-zinc-300 leading-snug flex items-center justify-between">
+                  <span>Tracking {corridorDispatchedTeams.length} Airborne / Ground Units</span>
+                  <span className="font-mono text-[10px] text-zinc-400">1-sec telemetry sync</span>
+                </div>
+
+                {corridorDispatchedTeams.map((team) => {
+                  const isArrived = team.status === "arrived" || team.status === "evacuating";
+
+                  return (
+                    <div
+                      key={team.id}
+                      className="p-3.5 rounded-xl border border-zinc-800 bg-zinc-900/60 shadow-sm space-y-2.5"
+                    >
+                      {/* Unit Header */}
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className="relative flex h-2 w-2">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-60"></span>
+                            <span className="relative inline-flex rounded-full h-2 w-2 bg-sky-400"></span>
+                          </span>
+                          <div>
+                            <span className="text-[10px] font-mono text-zinc-400 uppercase tracking-wide">
+                              {team.callSign} • {team.agency}
+                            </span>
+                            <h4 className="font-semibold text-zinc-100 text-sm leading-tight">
+                              {team.name}
+                            </h4>
+                          </div>
+                        </div>
+
+                        <span
+                          className={`px-2 py-0.5 rounded-full text-[10px] font-mono capitalize font-medium ${
+                            isArrived
+                              ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                              : "bg-sky-500/10 text-sky-400 border border-sky-500/20"
+                          }`}
+                        >
+                          {team.status.replace("_", " ")}
+                        </span>
+                      </div>
+
+                      {/* Target Info */}
+                      <div className="text-xs text-zinc-400 bg-zinc-950 p-2 rounded-lg border border-zinc-800/80">
+                        <span className="text-[10px] font-mono uppercase text-zinc-500 block">Mission Target</span>
+                        <strong className="text-zinc-200">{team.targetCivilianName}</strong>
+                      </div>
+
+                      {/* Dynamic Metrics Grid */}
+                      <div className="grid grid-cols-2 gap-2 p-2 rounded-lg bg-zinc-950/60 border border-zinc-850">
+                        <div>
+                          <span className="text-[9px] font-mono uppercase text-zinc-500 block">Countdown ETA</span>
+                          <span className="text-lg font-bold font-mono text-zinc-100">
+                            {formatEtaSeconds(team.etaSeconds)}
+                          </span>
+                        </div>
+                        <div>
+                          <span className="text-[9px] font-mono uppercase text-zinc-500 block">Remaining Distance</span>
+                          <span className="text-sm font-bold font-mono text-zinc-200">
+                            {formatMeters(team.distanceRemainingMeters)}
+                          </span>
+                        </div>
+                        <div>
+                          <span className="text-[9px] font-mono uppercase text-zinc-500 block">Ground Speed</span>
+                          <span className="text-xs font-mono text-zinc-300">
+                            {team.speedKmH} km/h
+                          </span>
+                        </div>
+                        <div>
+                          <span className="text-[9px] font-mono uppercase text-zinc-500 block">Forward Base</span>
+                          <span className="text-xs text-zinc-300 truncate block">
+                            {team.startBaseName}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Progress Bar */}
+                      <div className="space-y-1">
+                        <div className="flex justify-between text-[10px] font-mono text-zinc-400">
+                          <span>Departed</span>
+                          <span className="text-zinc-300 font-medium">{Math.round(team.progress * 100)}% Complete</span>
+                          <span>Target</span>
+                        </div>
+                        <div className="w-full h-1.5 rounded-full bg-zinc-800 overflow-hidden">
+                          <div
+                            className="h-full bg-sky-400 rounded-full transition-all duration-700"
+                            style={{ width: `${Math.min(100, Math.max(5, team.progress * 100))}%` }}
+                          />
+                        </div>
+                      </div>
+
+                      {/* Footer Actions */}
+                      <div className="pt-2 border-t border-zinc-800/80 flex items-center justify-between text-[11px]">
+                        <span className="font-mono text-zinc-500 text-[10px]">
+                          VHF: {team.contact}
+                        </span>
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => cancelRescueTeam(team.id)}
+                            className="px-2 py-1 rounded-md bg-zinc-800 hover:bg-zinc-700 text-[11px] text-zinc-400 hover:text-zinc-200 transition-colors cursor-pointer"
+                          >
+                            Recall Unit
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )
+          )}
+
+          {/* TAB 3: FACILITIES & SHELTERS (Schools, Health Posts, Villages, Helipads) */}
           {activeTab === "facilities" && (
             <div className="space-y-2.5">
               {/* Context Summary Banner */}
@@ -474,8 +669,8 @@ export function RescuerDashboard({
                     className="p-3.5 rounded-xl border border-zinc-800/80 bg-zinc-900/50 hover:bg-zinc-900 transition-colors cursor-pointer"
                   >
                     <div className="flex items-center justify-between text-xs">
-                      <span className="px-2 py-0.5 rounded-md text-[10px] font-mono uppercase bg-amber-950/40 text-amber-300 border border-amber-900/50 flex items-center gap-1">
-                        <Plane className="w-3 h-3 text-amber-400" />
+                      <span className="px-2 py-0.5 rounded-md text-[10px] font-mono uppercase bg-zinc-800 text-zinc-300 border border-zinc-700/60 flex items-center gap-1.5">
+                        <HelicopterIcon className="w-3 h-3 text-sky-400" />
                         <span>SAR Forward Base & Helipad</span>
                       </span>
                       <span className="text-[11px] font-mono text-zinc-400">
@@ -653,6 +848,7 @@ export function RescuerDashboard({
           assets={assets}
           mode="rescuer"
           distressBeacons={corridorBeacons}
+          dispatchedTeams={dispatchedTeams}
           selectedBeacon={selectedBeacon}
           selectedShelter={selectedAsset}
           onSelectBeacon={handleSelectVictim}

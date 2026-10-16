@@ -16,7 +16,9 @@ import {
   CheckCircle2,
   FileText,
   Volume2,
+  Plane,
 } from "lucide-react";
+import { HelicopterIcon } from "../common/HelicopterIcon";
 
 interface AdminCommandDashboardProps {
   corridors: any[];
@@ -51,7 +53,7 @@ export function AdminCommandDashboard({
   language,
   assets,
 }: AdminCommandDashboardProps) {
-  const { distressBeacons, broadcastAdvisory } = useUserRole();
+  const { distressBeacons, broadcastAdvisory, dispatchedTeams } = useUserRole();
 
   const [advisorySent, setAdvisorySent] = useState(false);
   const [advisoryText, setAdvisoryText] = useState("");
@@ -97,9 +99,9 @@ export function AdminCommandDashboard({
 
   return (
     <div className="w-full h-full flex flex-col min-h-0 bg-zinc-950 text-zinc-100 overflow-hidden font-sans">
-      {/* 1. TOP EXECUTIVE 4-METRIC HEALTH CARDS */}
+      {/* 1. TOP EXECUTIVE 5-METRIC HEALTH CARDS */}
       <div className="px-4 py-3 bg-zinc-950 border-b border-zinc-800 shrink-0">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5 sm:gap-3">
           {/* Metric 1: Fused Hazard Score */}
           <div className="p-3.5 rounded-xl bg-zinc-900/60 border border-zinc-800 flex items-center justify-between">
             <div>
@@ -181,6 +183,26 @@ export function AdminCommandDashboard({
             </div>
             <Radio className={`w-4 h-4 text-zinc-400 ${pendingSosCount > 0 ? "text-red-400 animate-pulse" : ""}`} />
           </div>
+
+          {/* Metric 5: Active SAR Fleet Sorties */}
+          <div className="p-3.5 rounded-xl bg-zinc-900/60 border border-zinc-800 flex items-center justify-between col-span-2 sm:col-span-1">
+            <div>
+              <span className="text-[11px] font-medium text-zinc-500 uppercase tracking-wider block">
+                Active SAR Fleet
+              </span>
+              <div className="flex items-baseline gap-1 mt-0.5">
+                <span
+                  className={`text-xl font-semibold font-mono ${
+                    dispatchedTeams.length > 0 ? "text-sky-400" : "text-zinc-100"
+                  }`}
+                >
+                  {dispatchedTeams.length}
+                </span>
+                <span className="text-xs text-zinc-500 font-normal">In Flight</span>
+              </div>
+            </div>
+            <HelicopterIcon className={`w-4 h-4 text-zinc-400 ${dispatchedTeams.length > 0 ? "text-sky-400" : ""}`} />
+          </div>
         </div>
       </div>
 
@@ -193,6 +215,7 @@ export function AdminCommandDashboard({
             assets={assets}
             mode="admin"
             distressBeacons={distressBeacons}
+            dispatchedTeams={dispatchedTeams}
             simulatedWaterRise={waterSurge}
             userPosition={userPosition}
             className="w-full h-full"
@@ -307,6 +330,30 @@ export function AdminCommandDashboard({
               <Send className="w-3.5 h-3.5" />
               <span>Broadcast Official Advisory</span>
             </button>
+
+            {/* Active SAR Fleet Live Telemetry */}
+            {dispatchedTeams.length > 0 && (
+              <div className="p-3 rounded-xl bg-zinc-900/60 border border-zinc-800 space-y-2 text-xs">
+                <div className="flex items-center justify-between">
+                  <span className="font-mono text-[10px] font-medium text-zinc-300 uppercase tracking-wide flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-sky-400" />
+                    Active SAR Fleet ({dispatchedTeams.length})
+                  </span>
+                  <span className="text-[10px] text-zinc-500 font-mono">Live Sync</span>
+                </div>
+                {dispatchedTeams.slice(0, 3).map((team) => (
+                  <div key={team.id} className="pt-1.5 border-t border-zinc-800/80 flex items-center justify-between text-[11px]">
+                    <div className="truncate max-w-[170px]">
+                      <span className="font-medium text-zinc-200">{team.callSign}</span>
+                      <span className="text-zinc-500 ml-1">({team.targetCivilianName})</span>
+                    </div>
+                    <span className="font-mono text-zinc-100 font-medium shrink-0">
+                      {team.etaSeconds > 0 ? `${Math.floor(team.etaSeconds / 60)}m ${team.etaSeconds % 60}s` : "On-Site"}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
 
             {/* Quick Summary Box */}
             <div className="mt-auto p-3 rounded-lg bg-zinc-900/40 border border-zinc-850 space-y-1 text-xs text-zinc-500">

@@ -7,7 +7,7 @@ import {
   CORRIDOR_RESCUE_BASES,
 } from "../../data/hazardMapData";
 import { generateGeodesicBufferPolygon, LatLng } from "../../utils/geoBuffer";
-import { DistressBeacon } from "../../context/UserRoleContext";
+import { DistressBeacon, DispatchedRescueTeam } from "../../context/UserRoleContext";
 import {
   Layers,
   MapPin,
@@ -17,6 +17,7 @@ import {
   Radio,
   Navigation,
 } from "lucide-react";
+import { HELICOPTER_SVG_PATH } from "../common/HelicopterIcon";
 
 export interface ModernHazardMapProps {
   corridor: CorridorConfig;
@@ -24,6 +25,9 @@ export interface ModernHazardMapProps {
   mode?: "civilian" | "rescuer" | "admin";
   userPosition?: { lat: number; lng: number; accuracy?: number; altitude?: number } | null;
   distressBeacons?: DistressBeacon[];
+  dispatchedTeams?: DispatchedRescueTeam[];
+  currentCivilianId?: string;
+  myBeaconId?: string | number;
   selectedBeacon?: DistressBeacon | null;
   selectedShelter?: MapAsset | null;
   onSelectBeacon?: (beacon: DistressBeacon) => void;
@@ -41,6 +45,9 @@ export function ModernHazardMap({
   mode = "admin",
   userPosition,
   distressBeacons = [],
+  dispatchedTeams = [],
+  currentCivilianId,
+  myBeaconId,
   selectedBeacon,
   selectedShelter,
   onSelectBeacon,
@@ -64,6 +71,7 @@ export function ModernHazardMap({
   const assetsLayerRef = useRef<L.LayerGroup | null>(null);
   const userGpsLayerRef = useRef<L.LayerGroup | null>(null);
   const hazardsLayerRef = useRef<L.LayerGroup | null>(null);
+  const rescueTeamsLayerRef = useRef<L.LayerGroup | null>(null);
 
   const [mapType, setMapType] = useState<"topo" | "satellite">("topo");
 
@@ -132,6 +140,7 @@ export function ModernHazardMap({
     assetsLayerRef.current = L.layerGroup().addTo(map);
     basesLayerRef.current = L.layerGroup().addTo(map);
     incidentsLayerRef.current = L.layerGroup().addTo(map);
+    rescueTeamsLayerRef.current = L.layerGroup().addTo(map);
     userGpsLayerRef.current = L.layerGroup().addTo(map);
 
     mapRef.current = map;
@@ -619,6 +628,200 @@ export function ModernHazardMap({
     }
   }, [userPosition]);
 
+  // Format helpers for SAR metrics
+  const formatEtaTime = (seconds: number): string => {
+    if (seconds <= 0) return "On-Site / Extraction";
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    if (m === 0) return `${s}s`;
+    return `${m}m ${s < 10 ? "0" : ""}${s}s`;
+  };
+
+  const formatDistanceMeters = (meters: number): string => {
+    if (meters >= 1000) return `${(meters / 1000).toFixed(1)} km`;
+    return `${Math.round(meters)}m`;
+  };
+
+  // Filter dispatched teams by role:
+  // Civilian: ONLY sees the team dispatched to rescue them (matches civilianId or targetBeaconId).
+  // Rescuer: sees all teams in current corridor.
+  // Admin: sees all teams nationwide across all corridors.
+  const visibleRescueTeams = useMemo(() => {
+    if (!dispatchedTeams || dispatchedTeams.length === 0) return [];
+    if (mode === "civilian") {
+      return dispatchedTeams.filter((t) => {
+        const matchesCivilian = Boolean(currentCivilianId && t.civilianId === currentCivilianId);
+        const matchesBeacon = Boolean(myBeaconId && String(t.targetBeaconId) === String(myBeaconId));
+        return matchesCivilian || matchesBeacon;
+      });
+    }
+    if (mode === "rescuer") {
+      return dispatchedTeams.filter((t) => !t.corridorId || t.corridorId === corridor.id);
+    }
+    return dispatchedTeams;
+  }, [dispatchedTeams, mode, currentCivilianId, myBeaconId, corridor.id]);
+
+  // 5. Render Dispatched Rescue Teams (Airborne Helicopters & Ground SAR Units)
+  useEffect(() => {
+    if (!rescueTeamsLayerRef.current) return;
+    rescueTeamsLayerRef.current.clearLayers();
+
+    if (visibleRescueTeams.length === 0) return;
+
+    visibleRescueTeams.forEach((team) => {
+      const isArrived = team.status === "arrived" || team.status === "evacuating";
+      const etaStr = formatEtaTime(team.etaSeconds);
+      const distStr = formatDistanceMeters(team.distanceRemainingMeters);
+
+      // A. Planned Direct Flight Vector (start to target)
+      const flightVector = L.polyline(
+        [
+          [team.startPosition.lat, team.startPosition.lng],
+          [team.targetPosition.lat, team.targetPosition.lng],
+        ],
+        {
+          color: "#64748b",
+          weight: 1.5,
+          opacity: 0.35,
+          dashArray: "4, 6",
+        }
+      );
+      rescueTeamsLayerRef.current?.addLayer(flightVector);
+
+      // B. Flown Trail Path
+      if (team.trail && team.trail.length > 1) {
+        const trailLine = L.polyline(
+          team.trail.map((pt) => [pt.lat, pt.lng]),
+          {
+            color: "#475569",
+            weight: 2,
+            opacity: 0.5,
+          }
+        );
+        rescueTeamsLayerRef.current?.addLayer(trailLine);
+      }
+
+      // C. Dynamic Inbound Lead Vector (current to target)
+      if (!isArrived) {
+        const leadVector = L.polyline(
+          [
+            [team.currentPosition.lat, team.currentPosition.lng],
+            [team.targetPosition.lat, team.targetPosition.lng],
+          ],
+          {
+            color: "#38bdf8",
+            weight: 2,
+            opacity: 0.8,
+            dashArray: "4, 5",
+          }
+        );
+        rescueTeamsLayerRef.current?.addLayer(leadVector);
+      }
+
+      // D. Extraction Rendezvous Zone (Civilian focus)
+      if (mode === "civilian") {
+        const targetRing = L.circle(
+          [team.targetPosition.lat, team.targetPosition.lng],
+          {
+            radius: 40,
+            color: "#10b981",
+            weight: 1.5,
+            fillColor: "#10b981",
+            fillOpacity: 0.1,
+            dashArray: "3, 3",
+          }
+        );
+        targetRing.bindTooltip("Extraction Rendezvous Zone", {
+          sticky: true,
+          className: "leaflet-tooltip-minimal",
+        });
+        rescueTeamsLayerRef.current?.addLayer(targetRing);
+      }
+
+      // E. Tactical Moving Helicopter / Vehicle Marker
+      const isHeli = team.vehicleType === "helicopter";
+      const iconHtml = `
+        <div class="relative flex items-center justify-center cursor-pointer group">
+          <!-- Subtle Radar Pulse -->
+          <span class="absolute -inset-2 rounded-full bg-sky-400/20 animate-ping"></span>
+
+          <!-- Unit Emblem Badge: Calm Dark Glass with Helicopter Silhouette -->
+          <div class="relative flex items-center justify-center w-8 h-8 rounded-full bg-zinc-900 text-sky-400 shadow-md border border-zinc-700 ring-2 ring-sky-500/30 transition-transform group-hover:scale-105">
+            ${
+              isHeli
+                ? `<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                     <path d="${HELICOPTER_SVG_PATH}"/>
+                   </svg>`
+                : `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                     <rect x="2" y="7" width="20" height="13" rx="2"/>
+                     <path d="M16 7V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v3"/>
+                   </svg>`
+            }
+          </div>
+
+          <!-- Mini Call Sign & Live ETA Tag -->
+          <div class="absolute -bottom-5 left-1/2 -translate-x-1/2 whitespace-nowrap px-1.5 py-0.5 rounded bg-zinc-900/90 text-zinc-300 font-mono text-[9px] font-medium border border-zinc-700/80 shadow">
+            ${team.callSign} • ${etaStr}
+          </div>
+        </div>
+      `;
+
+      const heliIcon = L.divIcon({
+        className: "custom-leaflet-icon",
+        html: iconHtml,
+        iconSize: [32, 32],
+        iconAnchor: [16, 16],
+      });
+
+      const marker = L.marker([team.currentPosition.lat, team.currentPosition.lng], {
+        icon: heliIcon,
+        zIndexOffset: 1200,
+      });
+
+      // Hover Tooltip
+      marker.bindTooltip(
+        `<strong>${team.name}</strong> (${team.callSign})<br>ETA: <strong>${etaStr}</strong> • ${distStr}`,
+        { direction: "top", offset: [0, -18], className: "leaflet-tooltip-minimal" }
+      );
+
+      // Detailed Interactive Popup
+      marker.bindPopup(`
+        <div class="p-2.5 font-sans min-w-[210px] bg-zinc-950 text-zinc-100 rounded-lg">
+          <div class="flex items-center justify-between pb-1.5 border-b border-zinc-800">
+            <span class="text-[10px] font-mono text-zinc-400 uppercase font-medium">
+              ${team.agency}
+            </span>
+            <span class="px-1.5 py-0.2 rounded bg-zinc-800 text-zinc-300 font-mono text-[9px]">
+              ${team.callSign}
+            </span>
+          </div>
+
+          <div class="font-semibold text-zinc-100 text-xs mt-1.5">${team.name}</div>
+          <div class="text-[11px] text-zinc-400 mt-0.5">Target: <strong>${team.targetCivilianName}</strong></div>
+
+          <!-- Live Metrics Grid -->
+          <div class="grid grid-cols-2 gap-1.5 my-2 p-2 rounded bg-zinc-900/80 border border-zinc-800">
+            <div>
+              <span class="text-[9px] text-zinc-500 font-mono uppercase block">Arrival</span>
+              <span class="text-xs font-mono font-bold text-zinc-100">${etaStr}</span>
+            </div>
+            <div>
+              <span class="text-[9px] text-zinc-500 font-mono uppercase block">Distance</span>
+              <span class="text-xs font-mono font-medium text-zinc-300">${distStr}</span>
+            </div>
+          </div>
+
+          <div class="text-[10px] text-zinc-500 space-y-0.5 font-mono">
+            <div>Base: <span class="text-zinc-400">${team.startBaseName}</span></div>
+            <div>Radio: <span class="text-zinc-400">${team.contact}</span></div>
+          </div>
+        </div>
+      `);
+
+      rescueTeamsLayerRef.current?.addLayer(marker);
+    });
+  }, [visibleRescueTeams, mode]);
+
   return (
     <div className={`relative w-full h-full overflow-hidden select-none bg-zinc-950 ${className}`}>
       {/* Map Container */}
@@ -724,6 +927,15 @@ export function ModernHazardMap({
           <span className="flex items-center gap-1.5 text-zinc-200 font-medium">
             <span className="w-2 h-2 rounded-full bg-amber-500" />
             <span>Surge +{simulatedWaterRise}m</span>
+          </span>
+        )}
+        {visibleRescueTeams.length > 0 && (
+          <span className="flex items-center gap-1.5 text-zinc-300 font-medium">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-sky-400"></span>
+            </span>
+            <span>Live SAR Inbound ({visibleRescueTeams.length})</span>
           </span>
         )}
       </div>

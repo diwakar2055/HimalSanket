@@ -49,7 +49,21 @@ const INITIAL_CORRIDORS = [
   { id: "annapurna", name: "Annapurna Circuit", region: "Manang", rainfall: 51, rainThreshold: 144, seismic: 1.1, lakeChange: 2, susceptibility: 0.63, reports: [], gps: "28.6667° N, 84.0167° E" },
   { id: "manaslu", name: "Manaslu Circuit", region: "Gorkha", rainfall: 17, rainThreshold: 144, seismic: 0.4, lakeChange: 0, susceptibility: 0.44, reports: [], gps: "28.5497° N, 84.5602° E" },
   { id: "rolwaling", name: "Rolwaling Valley", region: "Dolakha", rainfall: 28, rainThreshold: 144, seismic: 0.8, lakeChange: 1.5, susceptibility: 0.68, reports: [], gps: "27.8540° N, 86.4780° E" },
+  { id: "mardi", name: "Mardi Himal Trek", region: "Kaski", rainfall: 42, rainThreshold: 160, seismic: 0.9, lakeChange: 0.5, susceptibility: 0.65, reports: [], gps: "28.3840° N, 83.8920° E" },
+  { id: "poonhill", name: "Ghorepani Poon Hill", region: "Myagdi / Parbat", rainfall: 35, rainThreshold: 150, seismic: 0.7, lakeChange: 0.0, susceptibility: 0.58, reports: [], gps: "28.3750° N, 83.7380° E" },
+  { id: "abc", name: "Annapurna Base Camp (ABC)", region: "Kaski / Sanctuary", rainfall: 48, rainThreshold: 160, seismic: 1.2, lakeChange: 2.5, susceptibility: 0.74, reports: [], gps: "28.4750° N, 83.8570° E" },
 ];
+
+const DEFAULT_CORRIDOR_USER_POSITIONS: Record<string, { lat: number; lng: number; altitude: number }> = {
+  langtang: { lat: 28.2140, lng: 85.4950, altitude: 2780 },
+  khumbu: { lat: 27.8933, lng: 86.8294, altitude: 4410 },
+  annapurna: { lat: 28.6544, lng: 84.0216, altitude: 3519 },
+  manaslu: { lat: 28.5800, lng: 84.6700, altitude: 3530 },
+  rolwaling: { lat: 27.8540, lng: 86.4780, altitude: 3690 },
+  mardi: { lat: 28.41499, lng: 83.85454, altitude: 3250 },
+  poonhill: { lat: 28.35673, lng: 83.73538, altitude: 1960 },
+  abc: { lat: 28.45702, lng: 83.85693, altitude: 2310 },
+};
 
 function computeRisk(c: any) {
   const rainScore = Math.min((c.rainfall || 0) / (c.rainThreshold || 144), 1);
@@ -359,6 +373,10 @@ function MainApp() {
                         onClick={() => {
                           playConfirmationBeep();
                           setSelectedId(c.id);
+                          const defPos = DEFAULT_CORRIDOR_USER_POSITIONS[c.id];
+                          if (defPos) {
+                            setUserPosition({ ...defPos, accuracy: 15 });
+                          }
                           syncLiveTelemetry(c.id);
                           setIsCorridorDropdownOpen(false);
                         }}

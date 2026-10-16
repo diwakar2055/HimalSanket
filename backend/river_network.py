@@ -237,6 +237,113 @@ RIVER_NETWORKS_DATABASE: Dict[str, DownstreamRiverNetwork] = {
                 evacuation_safe_zone="Immediate sluice opening and evacuation to control building on hill"
             ),
         ]
+    ),
+    "mardi": DownstreamRiverNetwork(
+        corridor_id="mardi",
+        corridor_name="Mardi Himal Trek",
+        primary_river="Mardi Khola ➔ Seti Gandaki River",
+        drainage_basin="Seti Gandaki Basin (Narayani system)",
+        total_channel_monitored_km=41.0,
+        map_polyline_coordinates=[
+            [28.4650, 83.9400],  # Upper Mardi Glacial Cirque
+            [28.4320, 83.9335],  # Upper Mardi Gorge
+            [28.4020, 83.9305],  # Sub-alpine Gorge below Forest Camp
+            [28.3750, 83.9280],  # Siding Village Riverbank
+            [28.3550, 83.9310],  # Kalimati River Terrace
+            [28.3350, 83.9350],  # Lwang Khola Confluence
+            [28.3100, 83.9440],  # Mardi Hydro Weir
+            [28.2650, 83.9580],  # Mardi Dobhan (Seti Confluence)
+        ],
+        vulnerable_downstream_settlements=[
+            RiverSettlementAlert(
+                name="Siding Village Riverbank",
+                elevation_m=1750.0,
+                distance_km_downstream=14.0,
+                est_flood_arrival_minutes=44,
+                infrastructure_at_risk=["Suspension footbridge", "Riverside homestays", "Fish farming ponds"],
+                evacuation_safe_zone="Move min 30m uphill toward upper Gurung stone houses"
+            ),
+            RiverSettlementAlert(
+                name="Mardi Hydropower Weir",
+                elevation_m=1020.0,
+                distance_km_downstream=28.5,
+                est_flood_arrival_minutes=65,
+                infrastructure_at_risk=["Small hydro diversion weir", "Service access bridge"],
+                evacuation_safe_zone="Open radial sluice gates and sound valley siren"
+            )
+        ]
+    ),
+    "poonhill": DownstreamRiverNetwork(
+        corridor_id="poonhill",
+        corridor_name="Ghorepani Poon Hill",
+        primary_river="Bhurungdi Khola ➔ Modi Khola ➔ Kali Gandaki",
+        drainage_basin="Kali Gandaki Basin",
+        total_channel_monitored_km=38.5,
+        map_polyline_coordinates=[
+            [28.3950, 83.7120],  # Bhurungdi Headwaters below Ghorepani
+            [28.3810, 83.7220],  # Banthanti Stream Crossing
+            [28.3610, 83.7380],  # Ulleri Base Waterfalls
+            [28.3491, 83.7423],  # Tikhedhunga Riverside Settlement
+            [28.3380, 83.7520],  # Sudame Riverside
+            [28.3240, 83.7650],  # Matathanti River Terrace
+            [28.3150, 83.7720],  # Birethanti (Modi Confluence)
+            [28.3110, 83.7745],  # Nayapul Trailhead
+        ],
+        vulnerable_downstream_settlements=[
+            RiverSettlementAlert(
+                name="Tikhedhunga Riverside Lodges",
+                elevation_m=1540.0,
+                distance_km_downstream=12.5,
+                est_flood_arrival_minutes=38,
+                infrastructure_at_risk=["Bhurungdi suspension bridge", "Low-lying tourist lodges"],
+                evacuation_safe_zone="Evacuate up Ulleri stone staircase terraces immediately"
+            ),
+            RiverSettlementAlert(
+                name="Birethanti Confluence",
+                elevation_m=1070.0,
+                distance_km_downstream=22.0,
+                est_flood_arrival_minutes=52,
+                infrastructure_at_risk=["Major pedestrian steel bridge", "ACAP tourist entry station"],
+                evacuation_safe_zone="Climb to upper highway police station terrace"
+            )
+        ]
+    ),
+    "abc": DownstreamRiverNetwork(
+        corridor_id="abc",
+        corridor_name="Annapurna Base Camp (ABC)",
+        primary_river="Modi Khola Glacial Canyon",
+        drainage_basin="Gandaki River System",
+        total_channel_monitored_km=42.0,
+        map_polyline_coordinates=[
+            [28.5308, 83.8780],  # Annapurna Base Camp Glacial Outflow
+            [28.5040, 83.8918],  # Machhapuchhre Base Camp Gorge
+            [28.4680, 83.8760],  # Deurali Gorge
+            [28.4420, 83.8580],  # Dovan Riverside
+            [28.4320, 83.8500],  # Bamboo Riverside
+            [28.4140, 83.8235],  # Chhomrong Khola Bridge
+            [28.3980, 83.8260],  # Jhinu Danda Hot Springs
+            [28.3650, 83.8238],  # Landruk Bridge
+            [28.3380, 83.7980],  # Shauli Bazaar
+            [28.3150, 83.7720],  # Birethanti Confluence
+        ],
+        vulnerable_downstream_settlements=[
+            RiverSettlementAlert(
+                name="Dovan Canyon Gorge",
+                elevation_m=2600.0,
+                distance_km_downstream=15.0,
+                est_flood_arrival_minutes=39,
+                infrastructure_at_risk=["Narrow rock gorge teahouses", "Trail retaining timber walls"],
+                evacuation_safe_zone="Ascend marked staircase toward Upper Sinuwa"
+            ),
+            RiverSettlementAlert(
+                name="Chhomrong Khola Suspension Bridge",
+                elevation_m=1900.0,
+                distance_km_downstream=24.5,
+                est_flood_arrival_minutes=62,
+                infrastructure_at_risk=["Deep gorge cable bridge", "Essential Sanctuary access link"],
+                evacuation_safe_zone="Climb uphill to Chhomrong village plateau (2,170m)"
+            )
+        ]
     )
 }
 

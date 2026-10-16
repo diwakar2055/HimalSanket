@@ -77,7 +77,10 @@ interface LeafletHazardMapProps {
 }
 
 // Crisp Vector SVG Icon Generators for Infrastructure Types
-function getAssetSvg(type: string): string {
+function getAssetSvg(type: string, name?: string): string {
+  if (name && (name.toLowerCase().includes("helipad") || name.toLowerCase().includes("evacuation lz"))) {
+    return `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9" /><path d="M8 7v10M16 7v10M8 12h8" /></svg>`;
+  }
   switch (type) {
     case "bridge":
       return `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V7l8-4 8 4v12" /><path d="M4 14h16" /><path d="M9 14v5" /><path d="M15 14v5" /><path d="M2 19h20" /></svg>`;
@@ -625,16 +628,19 @@ export function LeafletHazardMap({
       const isSubmerged = isWithin && simulatedWaterRise > 0;
       const status = isSubmerged ? "critical" : dynamicStatus;
 
+      const isHelipad = asset.name.toLowerCase().includes("helipad") || asset.name.toLowerCase().includes("evacuation lz");
       const colorHex =
         status === "critical"
           ? "#ef4444"
           : status === "advisory"
           ? "#f59e0b"
+          : isHelipad
+          ? "#0284c7"
           : asset.type === "safeZone"
           ? "#10b981"
           : "#0284c7";
 
-      const svgIcon = getAssetSvg(asset.type);
+      const svgIcon = getAssetSvg(asset.type, asset.name);
 
       const iconHtml = `
         <div style="position: relative; width: 36px; height: 36px; cursor: pointer; display: flex; align-items: center; justify-content: center;">

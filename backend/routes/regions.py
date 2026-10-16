@@ -106,6 +106,63 @@ SAMPLE_REGIONS: Dict[str, Dict] = {
             terrain_susceptibility=0.68,
             reports=[]
         )
+    },
+    "mardi": {
+        "id": "mardi",
+        "name": "Mardi Himal Trek",
+        "region": "Kaski",
+        "gps": "28.3840° N, 83.8920° E",
+        "description": "High-altitude razor ridge trail rising above dense cloudburst forests to 4,500m beneath Machapuchare.",
+        "baseline_data": LocationRiskInput(
+            location_id="mardi",
+            location_name="Mardi Himal Trek",
+            region="Kaski",
+            gps="28.3840° N, 83.8920° E",
+            rainfall=42.0,
+            rain_threshold=160.0,
+            seismic_activity=0.9,
+            lake_area_change=0.5,
+            terrain_susceptibility=0.65,
+            reports=[]
+        )
+    },
+    "poonhill": {
+        "id": "poonhill",
+        "name": "Ghorepani Poon Hill",
+        "region": "Myagdi / Parbat",
+        "gps": "28.3750° N, 83.7380° E",
+        "description": "High-density mountain pass and 3,300-step Ulleri stone staircase route in heavy monsoon catchment.",
+        "baseline_data": LocationRiskInput(
+            location_id="poonhill",
+            location_name="Ghorepani Poon Hill",
+            region="Myagdi / Parbat",
+            gps="28.3750° N, 83.7380° E",
+            rainfall=35.0,
+            rain_threshold=150.0,
+            seismic_activity=0.7,
+            lake_area_change=0.0,
+            terrain_susceptibility=0.58,
+            reports=[]
+        )
+    },
+    "abc": {
+        "id": "abc",
+        "name": "Annapurna Base Camp (ABC)",
+        "region": "Kaski / Sanctuary",
+        "gps": "28.4750° N, 83.8570° E",
+        "description": "Enclosed glacial amphitheater cirque along the sheer Modi Khola canyon with historical avalanche trajectories.",
+        "baseline_data": LocationRiskInput(
+            location_id="abc",
+            location_name="Annapurna Base Camp (ABC)",
+            region="Kaski / Sanctuary",
+            gps="28.4750° N, 83.8570° E",
+            rainfall=48.0,
+            rain_threshold=160.0,
+            seismic_activity=1.2,
+            lake_area_change=2.5,
+            terrain_susceptibility=0.74,
+            reports=[]
+        )
     }
 }
 

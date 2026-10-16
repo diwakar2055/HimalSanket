@@ -28,7 +28,10 @@ import {
   Sparkles,
   ArrowRight,
   Map,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
+import { HelicopterIcon } from "../common/HelicopterIcon";
 
 interface CivilianDashboardProps {
   corridor: any;
@@ -50,6 +53,13 @@ function formatDistance(meters: number | null | undefined): string {
   return `${Math.round(meters)}m`;
 }
 
+function formatEtaSeconds(seconds: number): string {
+  if (seconds <= 0) return "ON-SITE";
+  const mins = Math.floor(seconds / 60);
+  const secs = seconds % 60;
+  return `${mins < 10 ? "0" : ""}${mins}m ${secs < 10 ? "0" : ""}${secs}s`;
+}
+
 export function CivilianDashboard({
   corridor,
   userPosition,
@@ -63,7 +73,13 @@ export function CivilianDashboard({
   activeScenario = "baseline",
   waterSurge = 0,
 }: CivilianDashboardProps) {
-  const { broadcastSOS, submitFieldDispatch } = useUserRole();
+  const {
+    broadcastSOS,
+    submitFieldDispatch,
+    dispatchedTeams,
+    userProfile,
+    distressBeacons,
+  } = useUserRole();
 
   // Civilian view mode: "map" (Live Map & Shelters) or "chat" (Dedicated Gemini Web Window)
   const [civilianView, setCivilianView] = useState<"map" | "chat">("map");
@@ -76,6 +92,29 @@ export function CivilianDashboard({
   const [isDesktop, setIsDesktop] = useState(
     typeof window !== "undefined" ? window.innerWidth >= 1024 : true
   );
+
+  // Active distress beacon created by this civilian session
+  const [myActiveBeaconId, setMyActiveBeaconId] = useState<string | number | null>(null);
+
+  // Collapsible state for floating rescue tracking HUD (flight tracker bar mode)
+  // Default mode: Collapsed so it only shows the flight tracker progress bar without covering the map
+  const [isRescueHudCollapsed, setIsRescueHudCollapsed] = useState(true);
+
+  // Strictly filter: The civilian must ONLY see the rescue team dispatched for them
+  const myRescueTeam = useMemo(() => {
+    return (
+      dispatchedTeams.find((team) => {
+        // Direct link to civilian ID
+        if (team.civilianId && team.civilianId === userProfile.id) return true;
+        // Direct link to current beacon
+        if (myActiveBeaconId && String(team.targetBeaconId) === String(myActiveBeaconId)) return true;
+        // Linked via beacon ownership
+        const targetBeacon = distressBeacons.find((b) => String(b.id) === String(team.targetBeaconId));
+        if (targetBeacon && targetBeacon.civilianId === userProfile.id) return true;
+        return false;
+      }) || null
+    );
+  }, [dispatchedTeams, userProfile.id, myActiveBeaconId, distressBeacons]);
 
   useEffect(() => {
     const handleResize = () => {
@@ -161,7 +200,7 @@ export function CivilianDashboard({
     const lng = userPosition?.lng || corridor.center?.lng || 85.495;
     const alt = userPosition?.altitude || 2780;
 
-    broadcastSOS({
+    const newBeacon = broadcastSOS({
       name: `Civilian Distress — ${corridor.name} (${formatDistance(distanceToHazard)} from River)`,
       lat,
       lng,
@@ -172,6 +211,7 @@ export function CivilianDashboard({
       corridorId: corridor.id,
     });
 
+    setMyActiveBeaconId(newBeacon.id);
     onTriggerSOS("Emergency SOS Broadcasted to APF Search & Rescue Base!");
     setSosSuccess(true);
     setTimeout(() => setSosSuccess(false), 9000);
@@ -385,6 +425,52 @@ export function CivilianDashboard({
       <div className="flex-1 flex flex-col lg:flex-row min-h-0 overflow-hidden">
         {/* LEFT COLUMN: Clean, Focused Civilian Sidebar (~400px) */}
         <aside className="w-full lg:w-[400px] xl:w-[420px] shrink-0 h-full flex flex-col bg-zinc-950 border-r border-zinc-800 overflow-hidden z-10">
+          {/* LIVE RESCUE TEAM DISPATCHED BANNER */}
+          {myRescueTeam && (
+            <div className="p-3.5 border-b border-zinc-800 shrink-0">
+              <div className="p-3 rounded-xl bg-zinc-900/60 border border-zinc-800 space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-sky-400" />
+                    <span className="text-xs font-mono font-medium text-zinc-200">
+                      SAR Rescue Inbound ({myRescueTeam.callSign})
+                    </span>
+                  </div>
+                  <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-300 border border-zinc-700/60 capitalize">
+                    {myRescueTeam.status.replace("_", " ")}
+                  </span>
+                </div>
+
+                <div className="flex items-baseline justify-between pt-0.5">
+                  <div>
+                    <span className="text-[10px] font-mono text-zinc-400 uppercase block">Countdown ETA</span>
+                    <span className="text-lg font-bold font-mono text-zinc-100">
+                      {formatEtaSeconds(myRescueTeam.etaSeconds)}
+                    </span>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-[10px] font-mono text-zinc-400 uppercase block">Remaining</span>
+                    <span className="text-xs font-mono text-zinc-300">
+                      {formatDistance(myRescueTeam.distanceRemainingMeters)}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="w-full h-1 rounded-full bg-zinc-800 overflow-hidden">
+                  <div
+                    className="h-full bg-sky-400 rounded-full transition-all duration-700"
+                    style={{ width: `${Math.min(100, Math.max(5, myRescueTeam.progress * 100))}%` }}
+                  />
+                </div>
+
+                <div className="pt-1.5 border-t border-zinc-800 text-[10px] text-zinc-400 flex items-center justify-between font-mono">
+                  <span className="truncate max-w-[180px]">{myRescueTeam.name}</span>
+                  <span>{myRescueTeam.contact}</span>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* 1. COMPACT SAFETY STATUS BANNER */}
           <div className="p-3.5 border-b border-zinc-800 shrink-0">
             <div
@@ -579,8 +665,194 @@ export function CivilianDashboard({
             onLocateMe={onLocateMe}
             isLocating={isLocating}
             simulatedWaterRise={waterSurge}
+            dispatchedTeams={dispatchedTeams}
+            currentCivilianId={userProfile.id}
+            myBeaconId={myActiveBeaconId || (corridor.id === "langtang" ? "sos-101" : undefined)}
             className="w-full h-full"
           />
+
+          {/* FLOATING INBOUND SAR RESCUE TRACKING HUD (COLLAPSIBLE FLIGHT TRACKER) */}
+          <AnimatePresence mode="wait">
+            {myRescueTeam && (
+              isRescueHudCollapsed ? (
+                /* COLLAPSED FLIGHT TRACKER MODE: Sleek, calm, minimal pill bar */
+                <motion.div
+                  key="hud-collapsed"
+                  initial={{ opacity: 0, y: -6, scale: 0.98 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -6, scale: 0.98 }}
+                  transition={{ duration: 0.15, ease: "easeOut" }}
+                  onClick={() => setIsRescueHudCollapsed(false)}
+                  className="absolute top-4 left-4 z-[1000] px-3.5 py-2 rounded-full bg-zinc-900/90 hover:bg-zinc-850/95 border border-zinc-800 shadow-xl backdrop-blur-xl text-zinc-100 cursor-pointer flex items-center gap-3 select-none group"
+                  title="Click to expand rescue flight details"
+                >
+                  {/* Callsign + Radar Pulse + Helicopter Icon */}
+                  <div className="flex items-center gap-2 shrink-0">
+                    <span className="relative flex h-2 w-2">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-60"></span>
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-sky-400"></span>
+                    </span>
+                    <HelicopterIcon className="w-3.5 h-3.5 text-sky-400" />
+                    <span className="text-xs font-mono font-medium text-zinc-200">
+                      {myRescueTeam.callSign}
+                    </span>
+                  </div>
+
+                  {/* Center Mini Track */}
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-mono text-zinc-400 shrink-0">Base</span>
+                    <div className="w-20 sm:w-28 h-1.5 rounded-full bg-zinc-800 overflow-hidden">
+                      <div
+                        className="h-full bg-sky-400 rounded-full transition-all duration-700 ease-out"
+                        style={{ width: `${Math.min(100, Math.max(5, myRescueTeam.progress * 100))}%` }}
+                      />
+                    </div>
+                    <span className="text-[10px] font-mono text-zinc-400 shrink-0">You</span>
+                  </div>
+
+                  {/* Right ETA & Expand */}
+                  <div className="flex items-center gap-2 shrink-0 pl-1 border-l border-zinc-800 text-xs font-mono">
+                    <span className="font-semibold text-zinc-100">
+                      {formatEtaSeconds(myRescueTeam.etaSeconds)}
+                    </span>
+                    <span className="text-zinc-400 hidden sm:inline">
+                      ({formatDistance(myRescueTeam.distanceRemainingMeters)})
+                    </span>
+                    <ChevronDown className="w-3.5 h-3.5 text-zinc-400 group-hover:text-zinc-200 transition-colors" />
+                  </div>
+                </motion.div>
+              ) : (
+                /* EXPANDED FULL TELEMETRY MODE: Clean, Calm & Non-stressful */
+                <motion.div
+                  key="hud-expanded"
+                  initial={{ opacity: 0, y: -6, scale: 0.98 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -6, scale: 0.98 }}
+                  transition={{ duration: 0.18, ease: "easeOut" }}
+                  className="absolute top-4 left-4 right-4 sm:right-auto sm:w-[380px] z-[1000] p-4 rounded-2xl bg-zinc-900/95 border border-zinc-800 shadow-2xl backdrop-blur-xl text-zinc-100 space-y-3"
+                >
+                  {/* Header Badge */}
+                  <div className="flex items-start justify-between">
+                    <div className="space-y-0.5">
+                      <div className="flex items-center gap-2">
+                        <span className="relative flex h-2 w-2">
+                          <span className={`animate-ping absolute inline-flex h-full w-full rounded-full ${
+                            myRescueTeam.status === "arrived" || myRescueTeam.status === "evacuating"
+                              ? "bg-emerald-400 opacity-60"
+                              : "bg-sky-400 opacity-60"
+                          }`}></span>
+                          <span className={`relative inline-flex rounded-full h-2 w-2 ${
+                            myRescueTeam.status === "arrived" || myRescueTeam.status === "evacuating"
+                              ? "bg-emerald-400"
+                              : "bg-sky-400"
+                          }`}></span>
+                        </span>
+                        <HelicopterIcon className="w-3.5 h-3.5 text-sky-400 shrink-0" />
+                        <span className="text-[10px] font-mono uppercase tracking-wider text-zinc-400 font-medium">
+                          Search & Rescue
+                        </span>
+                        <span className="px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-300 font-mono text-[10px] border border-zinc-700/60">
+                          {myRescueTeam.callSign}
+                        </span>
+                      </div>
+                      <h3 className="text-sm font-semibold text-zinc-100">
+                        {myRescueTeam.name}
+                      </h3>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-medium capitalize ${
+                        myRescueTeam.status === "arrived" || myRescueTeam.status === "evacuating"
+                          ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                          : "bg-sky-500/10 text-sky-400 border border-sky-500/20"
+                      }`}>
+                        {myRescueTeam.status.replace("_", " ")}
+                      </span>
+                      <button
+                        onClick={() => setIsRescueHudCollapsed(true)}
+                        className="p-1 rounded-md text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800 transition-colors cursor-pointer"
+                        title="Minimize to flight tracker bar"
+                      >
+                        <ChevronUp className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Metrics Box */}
+                  <div className="grid grid-cols-2 gap-3 p-3 rounded-xl bg-zinc-950/40 border border-zinc-800/60">
+                    <div>
+                      <span className="text-[10px] font-mono uppercase tracking-wider text-zinc-400 block">
+                        Estimated Arrival
+                      </span>
+                      <span className="text-xl font-bold font-mono text-zinc-100 tracking-tight block mt-0.5">
+                        {formatEtaSeconds(myRescueTeam.etaSeconds)}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-mono uppercase tracking-wider text-zinc-400 block">
+                        Distance
+                      </span>
+                      <div className="flex items-baseline gap-1 mt-0.5">
+                        <span className="text-xl font-bold font-mono text-zinc-100">
+                          {formatDistance(myRescueTeam.distanceRemainingMeters)}
+                        </span>
+                        <span className="text-[10px] font-mono text-zinc-400">
+                          @{myRescueTeam.speedKmH}km/h
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Flight Progress Bar */}
+                  <div className="space-y-1.5">
+                    <div className="flex justify-between text-[10px] font-mono text-zinc-400">
+                      <span className="truncate max-w-[130px]">{myRescueTeam.startBaseName}</span>
+                      <span className="text-zinc-400">{Math.round(myRescueTeam.progress * 100)}%</span>
+                      <span>Your Location</span>
+                    </div>
+                    <div className="relative w-full h-1.5 rounded-full bg-zinc-800 overflow-visible">
+                      <div
+                        className="h-full bg-sky-400 rounded-full transition-all duration-700 ease-out"
+                        style={{ width: `${Math.min(100, Math.max(5, myRescueTeam.progress * 100))}%` }}
+                      />
+                      <div
+                        className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 transition-all duration-700 ease-out pointer-events-none"
+                        style={{ left: `${Math.min(96, Math.max(4, myRescueTeam.progress * 100))}%` }}
+                      >
+                        <div className="w-5 h-5 rounded-full bg-zinc-900 border border-zinc-700 shadow-md flex items-center justify-center text-sky-400">
+                          <HelicopterIcon className="w-3 h-3" />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Reassuring Guidance & Radio */}
+                  <div className="pt-2 border-t border-zinc-800/60 text-xs text-zinc-400 space-y-1.5">
+                    <div className="flex items-start gap-2 text-zinc-400">
+                      <Shield className="w-3.5 h-3.5 text-zinc-400 shrink-0 mt-0.5" />
+                      <span className="leading-snug">
+                        Stay on open high ground. Keep clear line-of-sight with sky for helicopter approach.
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between text-[11px] font-mono text-zinc-400 pt-1 border-t border-zinc-800/40">
+                      <span>Radio: <strong className="text-zinc-300 font-semibold">{myRescueTeam.contact}</strong></span>
+                      <span>Signal: Bright clothing / light</span>
+                    </div>
+                  </div>
+
+                  {/* Explicit Collapse Action Button */}
+                  <button
+                    onClick={() => setIsRescueHudCollapsed(true)}
+                    className="w-full mt-2 py-1.5 px-3 rounded-xl bg-zinc-800/50 hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200 text-xs font-mono transition-colors flex items-center justify-center gap-1.5 cursor-pointer border border-zinc-800"
+                    title="Collapse to minimal flight tracker bar"
+                  >
+                    <ChevronUp className="w-3.5 h-3.5" />
+                    <span>Collapse to Flight Tracker Bar</span>
+                  </button>
+                </motion.div>
+              )
+            )}
+          </AnimatePresence>
 
           {/* Minimal Floating Action Pill to Open AI Safety Copilot */}
           <button
