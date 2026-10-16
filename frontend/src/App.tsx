@@ -5,6 +5,7 @@ import { RescuerDashboard } from "./components/rescuer/RescuerDashboard";
 import { UserRoleProvider, useUserRole, UserRole } from "./context/UserRoleContext";
 import { playEmergencyChime, playConfirmationBeep } from "./utils/audioAlert";
 import { Language } from "./data/localization";
+import { BrandLogo } from "./components/common/BrandLogo";
 import {
   CORRIDOR_CONFIGS,
   CORRIDOR_LANDSLIDE_ZONES,
@@ -80,37 +81,37 @@ function computeRisk(c: any) {
 
 const TIER_CONFIG = {
   Low: {
-    border: "border-zinc-800",
-    text: "text-zinc-300",
-    bg: "bg-zinc-900/60",
-    dot: "bg-emerald-500",
+    border: "border-[#16785d]/60",
+    text: "text-[#52c7ad]",
+    bg: "bg-[#053c2e]",
+    dot: "bg-[#52c7ad]",
     labelEn: "Safe baseline",
     labelNe: "सामान्य अवस्था",
     icon: CheckCircle2,
   },
   Moderate: {
-    border: "border-zinc-800",
-    text: "text-zinc-300",
-    bg: "bg-zinc-900/60",
-    dot: "bg-amber-500",
+    border: "border-[#1d4ed8]/50",
+    text: "text-[#38bdf8]",
+    bg: "bg-[#132845]",
+    dot: "bg-[#38bdf8]",
     labelEn: "Moderate watch",
     labelNe: "सतर्कता आवश्यक",
     icon: Activity,
   },
   High: {
-    border: "border-zinc-800",
-    text: "text-zinc-300",
-    bg: "bg-zinc-900/60",
-    dot: "bg-orange-500",
+    border: "border-[#78350f]/60",
+    text: "text-[#fbbf24]",
+    bg: "bg-[#3b2308]",
+    dot: "bg-[#fbbf24]",
     labelEn: "Elevated risk",
     labelNe: "उच्च जोखिम",
     icon: AlertTriangle,
   },
   Critical: {
-    border: "border-red-900/40",
-    text: "text-red-300",
-    bg: "bg-red-950/20",
-    dot: "bg-red-500 animate-pulse",
+    border: "border-[#9f1239]/60",
+    text: "text-[#fb7185]",
+    bg: "bg-[#3b0f19]",
+    dot: "bg-[#fb7185] animate-pulse",
     labelEn: "Critical emergency",
     labelNe: "आपतकालीन संकट",
     icon: AlertTriangle,
@@ -323,36 +324,22 @@ function MainApp() {
   };
 
   return (
-    <div className="w-full h-screen flex flex-col bg-zinc-950 text-zinc-100 antialiased overflow-hidden font-sans select-none">
+    <div className="w-full h-screen flex flex-col bg-[#0b1320] text-[#f1f5f9] antialiased overflow-hidden font-sans select-none">
       {/* 1. SIMPLE, MINIMAL & MODERN TOP NAVIGATION HEADER */}
-      <header className="px-4 py-2 bg-zinc-950 border-b border-zinc-800 flex items-center justify-between gap-3 shrink-0 z-30">
-        {/* Left: Brand + Corridor Dropdown */}
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2.5">
-            <div className="w-7 h-7 rounded-lg bg-zinc-900 border border-zinc-800 text-zinc-300 flex items-center justify-center font-medium">
-              <Mountain className="w-4 h-4" />
-            </div>
-            <div className="hidden sm:block">
-              <span className="font-semibold text-zinc-100 text-sm tracking-tight block leading-tight">
-                HimalSanket
-              </span>
-              <span className="text-[11px] text-zinc-500 block leading-none">
-                हिमाल संकेत
-              </span>
-            </div>
-          </div>
-
-          <div className="h-4 w-[1px] bg-zinc-800 hidden sm:block" />
+      <header className="px-4 py-2 bg-[#0b1320] border-b border-[#1c2536] flex items-center justify-between gap-3 shrink-0 z-30">
+        {/* Left: Brand + Corridor Dropdown (Spans Civilian Sidebar width ~400-420px) */}
+        <div className="flex items-center justify-between lg:w-[400px] xl:w-[420px] shrink-0 lg:pr-4">
+          <BrandLogo size="md" />
 
           {/* Himalayan Corridor Selector */}
           <div className="relative">
             <button
               onClick={() => setIsCorridorDropdownOpen((p) => !p)}
-              className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-zinc-900 hover:bg-zinc-850 border border-zinc-800 text-xs font-medium text-zinc-200 cursor-pointer transition-colors shadow-sm"
+              className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#111c2e] hover:bg-[#15233a] border border-[#1e2c44] text-xs font-semibold text-[#f1f5f9] cursor-pointer transition-colors shadow-sm"
             >
-              <Compass className="w-3.5 h-3.5 text-zinc-400" />
+              <Compass className="w-3.5 h-3.5 text-[#8fa0b5]" />
               <span>{selectedCorridor.name}</span>
-              <ChevronDown className="w-3 h-3 text-zinc-500" />
+              <ChevronDown className="w-3 h-3 text-[#707c9b]" />
             </button>
 
             {isCorridorDropdownOpen && (
@@ -361,8 +348,8 @@ function MainApp() {
                   className="fixed inset-0 z-[9998]"
                   onClick={() => setIsCorridorDropdownOpen(false)}
                 />
-                <div className="absolute left-0 top-10 w-60 rounded-xl bg-zinc-900 border border-zinc-800 shadow-xl p-1.5 z-[9999] text-xs space-y-0.5">
-                  <div className="text-[10px] font-mono text-zinc-500 uppercase tracking-wider px-2 py-1">
+                <div className="absolute right-0 lg:right-0 top-10 w-60 rounded-xl bg-[#111c2e] border border-[#1e2c44] shadow-2xl p-1.5 z-[9999] text-xs space-y-0.5">
+                  <div className="text-[10px] font-mono text-[#8fa0b5] uppercase tracking-wider px-2 py-1">
                     Select Himalayan Corridor
                   </div>
                   {corridors.map((c) => {
@@ -382,15 +369,15 @@ function MainApp() {
                         }}
                         className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-left cursor-pointer transition-colors ${
                           isCur
-                            ? "bg-zinc-800 text-zinc-100 font-medium"
-                            : "text-zinc-400 hover:bg-zinc-800/60 hover:text-zinc-200"
+                            ? "bg-[#1c2e4a] text-[#38bdf8] font-semibold border border-[#2a456c]"
+                            : "text-[#8fa0b5] hover:bg-[#15233a] hover:text-[#f1f5f9]"
                         }`}
                       >
                         <div className="truncate">
                           <div className="text-xs font-medium">{c.name}</div>
-                          <div className="text-[11px] text-zinc-500">{c.region}</div>
+                          <div className="text-[11px] text-[#64748b]">{c.region}</div>
                         </div>
-                        <span className="text-[11px] font-mono text-zinc-500">{c.rainfall}mm</span>
+                        <span className="text-[11px] font-mono text-[#64748b]">{c.rainfall}mm</span>
                       </button>
                     );
                   })}
@@ -401,13 +388,13 @@ function MainApp() {
         </div>
 
         {/* Center: CLEAN SEGMENTED ROLE CONTROL */}
-        <div className="flex items-center bg-zinc-900 p-1 rounded-lg border border-zinc-800">
+        <div className="flex items-center bg-[#111c2e] p-1 rounded-xl border border-[#1c2536]">
           <button
             onClick={() => handleSwitchRole("civilian")}
-            className={`px-3 py-1.5 rounded-md text-xs transition-colors cursor-pointer ${
+            className={`px-3 py-1.5 rounded-lg text-xs transition-colors cursor-pointer ${
               currentRole === "civilian"
-                ? "bg-zinc-800 text-zinc-100 font-medium shadow-sm"
-                : "text-zinc-400 hover:text-zinc-200 font-normal"
+                ? "bg-[#1c2e4a] text-[#38bdf8] font-semibold border border-[#2a456c] shadow-sm"
+                : "text-[#8fa0b5] hover:text-[#f1f5f9] font-medium"
             }`}
           >
             Civilian / Trekker
@@ -415,24 +402,24 @@ function MainApp() {
 
           <button
             onClick={() => handleSwitchRole("rescuer")}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs transition-colors cursor-pointer ${
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs transition-colors cursor-pointer ${
               currentRole === "rescuer"
-                ? "bg-zinc-800 text-zinc-100 font-medium shadow-sm"
-                : "text-zinc-400 hover:text-zinc-200 font-normal"
+                ? "bg-[#1c2e4a] text-[#38bdf8] font-semibold border border-[#2a456c] shadow-sm"
+                : "text-[#8fa0b5] hover:text-[#f1f5f9] font-medium"
             }`}
           >
             <span>Search & Rescue</span>
             {distressBeacons.filter((b) => b.status === "pending").length > 0 && (
-              <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+              <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse" />
             )}
           </button>
 
           <button
             onClick={() => handleSwitchRole("admin")}
-            className={`px-3 py-1.5 rounded-md text-xs transition-colors cursor-pointer ${
+            className={`px-3 py-1.5 rounded-lg text-xs transition-colors cursor-pointer ${
               currentRole === "admin"
-                ? "bg-zinc-800 text-zinc-100 font-medium shadow-sm"
-                : "text-zinc-400 hover:text-zinc-200 font-normal"
+                ? "bg-[#1c2e4a] text-[#38bdf8] font-semibold border border-[#2a456c] shadow-sm"
+                : "text-[#8fa0b5] hover:text-[#f1f5f9] font-medium"
             }`}
           >
             Command Admin
@@ -454,26 +441,26 @@ function MainApp() {
           {/* Language Toggle */}
           <button
             onClick={() => setLanguage((p) => (p === "en" ? "ne" : "en"))}
-            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-zinc-900 hover:bg-zinc-850 text-xs text-zinc-400 hover:text-zinc-200 border border-zinc-800 cursor-pointer transition-colors"
+            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[#121c2d] hover:bg-[#18253a] text-xs text-[#8fa0b5] hover:text-[#f1f5f9] border border-[#1e2c44] cursor-pointer transition-colors"
             title="Toggle Nepali / English"
           >
-            <Languages className="w-3.5 h-3.5 text-zinc-400" />
+            <Languages className="w-3.5 h-3.5 text-[#8fa0b5]" />
             <span>{language === "en" ? "नेपाली" : "EN"}</span>
           </button>
 
           {/* Sound Mute Toggle */}
           <button
             onClick={() => setAudioMuted((p) => !p)}
-            className="p-2 rounded-lg bg-zinc-900 hover:bg-zinc-850 text-zinc-400 hover:text-zinc-200 border border-zinc-800 cursor-pointer transition-colors"
+            className="p-2 rounded-lg bg-[#121c2d] hover:bg-[#18253a] text-[#8fa0b5] hover:text-[#f1f5f9] border border-[#1e2c44] cursor-pointer transition-colors"
             title={audioMuted ? "Unmute chimes" : "Mute chimes"}
           >
-            {audioMuted ? <VolumeX className="w-3.5 h-3.5 text-zinc-500" /> : <Volume2 className="w-3.5 h-3.5 text-zinc-400" />}
+            {audioMuted ? <VolumeX className="w-3.5 h-3.5 text-[#707c9b]" /> : <Volume2 className="w-3.5 h-3.5 text-[#8fa0b5]" />}
           </button>
         </div>
       </header>
 
       {/* 2. MAIN PURPOSEFUL ROLE VIEWPORT (100% Focused, Zero Extraneous Clutter) */}
-      <main className="flex-1 flex flex-col min-h-0 relative overflow-hidden bg-zinc-950">
+      <main className="flex-1 flex flex-col min-h-0 relative overflow-hidden bg-[#0b1320]">
         {currentRole === "civilian" && (
           <CivilianDashboard
             corridor={selectedCorridor}

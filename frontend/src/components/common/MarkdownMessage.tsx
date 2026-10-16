@@ -40,7 +40,7 @@ function renderInline(text: string): React.ReactNode[] {
 
       // Standard clean bold text
       return (
-        <strong key={i} className="font-semibold text-zinc-100">
+        <strong key={i} className="font-bold text-[#f1f5f9]">
           {inner}
         </strong>
       );
@@ -52,7 +52,7 @@ function renderInline(text: string): React.ReactNode[] {
       return (
         <code
           key={i}
-          className="font-mono text-xs bg-zinc-800/80 text-zinc-300 px-1.5 py-0.5 rounded border border-zinc-700/50 mx-0.5"
+          className="font-mono text-xs bg-[#1c2e4a] text-[#38bdf8] px-1.5 py-0.5 rounded border border-[#2a456c]/70 mx-0.5"
         >
           {code}
         </code>
@@ -63,7 +63,7 @@ function renderInline(text: string): React.ReactNode[] {
     if (token.startsWith("*") && token.endsWith("*") && token.length > 2) {
       const italicContent = token.slice(1, -1);
       return (
-        <em key={i} className="italic text-zinc-400">
+        <em key={i} className="italic text-[#8fa0b5]">
           {italicContent}
         </em>
       );
@@ -124,7 +124,7 @@ export const MarkdownMessage: React.FC<MarkdownMessageProps> = ({
         elements.push(
           <div
             key={`hr-${idx}`}
-            className="h-px bg-zinc-800 my-4"
+            className="h-px bg-[#1c2536] my-4"
           />
         );
         return;
@@ -148,10 +148,10 @@ export const MarkdownMessage: React.FC<MarkdownMessageProps> = ({
         elements.push(
           <div
             key={`alert-${idx}`}
-            className="my-3 p-3.5 rounded-xl bg-red-950/20 border border-red-900/40 text-red-200 text-sm flex items-start gap-3"
+            className="my-3 p-3.5 rounded-xl bg-[#3b0f19] border border-[#9f1239]/60 text-[#fb7185] text-sm flex items-start gap-3"
           >
-            <AlertTriangle className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
-            <div className="leading-relaxed font-medium">
+            <AlertTriangle className="w-4 h-4 text-[#fb7185] shrink-0 mt-0.5" />
+            <div className="leading-relaxed font-semibold">
               {renderInline(cleanText)}
             </div>
           </div>
@@ -175,10 +175,10 @@ export const MarkdownMessage: React.FC<MarkdownMessageProps> = ({
         elements.push(
           <div
             key={`safe-${idx}`}
-            className="my-2.5 p-3 rounded-xl bg-emerald-950/20 border border-emerald-900/40 text-emerald-200 text-sm flex items-start gap-3"
+            className="my-2.5 p-3 rounded-xl bg-[#053c2e] border border-[#16785d]/60 text-[#52c7ad] text-sm flex items-start gap-3"
           >
-            <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
-            <div className="leading-relaxed font-medium">
+            <ShieldCheck className="w-4 h-4 text-[#52c7ad] shrink-0 mt-0.5" />
+            <div className="leading-relaxed font-semibold">
               {renderInline(cleanText)}
             </div>
           </div>
@@ -193,7 +193,7 @@ export const MarkdownMessage: React.FC<MarkdownMessageProps> = ({
         elements.push(
           <div
             key={`heading-${idx}`}
-            className="text-sm font-semibold text-zinc-100 pt-3 pb-1 border-b border-zinc-800"
+            className="text-sm font-bold text-[#f1f5f9] pt-3 pb-1 border-b border-[#1c2536]"
           >
             {renderInline(headingText)}
           </div>
@@ -209,8 +209,8 @@ export const MarkdownMessage: React.FC<MarkdownMessageProps> = ({
         elements.push(
           <div
             key={`directive-${idx}`}
-            className={`my-2 py-1 text-sm font-semibold ${
-              isUrgent ? "text-red-400" : "text-zinc-200"
+            className={`my-2 py-1 text-sm font-bold ${
+              isUrgent ? "text-[#fb7185]" : "text-[#f1f5f9]"
             }`}
           >
             {directiveText}
@@ -232,10 +232,10 @@ export const MarkdownMessage: React.FC<MarkdownMessageProps> = ({
 
         currentList.items.push(
           <div key={`step-${idx}`} className="flex items-start gap-3 text-sm">
-            <span className="w-5 text-zinc-500 font-mono text-sm shrink-0 mt-0.5">
+            <span className="w-5 text-[#8fa0b5] font-mono text-sm shrink-0 mt-0.5">
               {num}.
             </span>
-            <div className="flex-1 leading-relaxed text-zinc-300">
+            <div className="flex-1 leading-relaxed text-[#f1f5f9]">
               {renderInline(stepBody)}
             </div>
           </div>
@@ -255,8 +255,8 @@ export const MarkdownMessage: React.FC<MarkdownMessageProps> = ({
 
         currentList.items.push(
           <div key={`bullet-${idx}`} className="flex items-start gap-2.5 text-sm">
-            <span className="w-1.5 h-1.5 rounded-full bg-zinc-500 shrink-0 mt-2" />
-            <div className="flex-1 leading-relaxed text-zinc-300">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#8fa0b5] shrink-0 mt-2" />
+            <div className="flex-1 leading-relaxed text-[#f1f5f9]">
               {renderInline(bulletBody)}
             </div>
           </div>
@@ -271,10 +271,10 @@ export const MarkdownMessage: React.FC<MarkdownMessageProps> = ({
         elements.push(
           <div
             key={`nepali-${idx}`}
-            className="my-2 p-3 rounded-xl bg-zinc-900/60 border border-zinc-800 text-zinc-300 text-sm leading-relaxed"
+            className="my-2 p-3 rounded-xl bg-[#111c2e] border border-[#1e2c44] text-[#f1f5f9] text-sm leading-relaxed"
           >
             <div className="flex items-start gap-2.5">
-              <Info className="w-4 h-4 text-zinc-400 shrink-0 mt-0.5" />
+              <Info className="w-4 h-4 text-[#38bdf8] shrink-0 mt-0.5" />
               <div className="flex-1">{renderInline(line)}</div>
             </div>
           </div>
@@ -285,7 +285,7 @@ export const MarkdownMessage: React.FC<MarkdownMessageProps> = ({
       // 9. Standard Paragraph Line
       flushList();
       elements.push(
-        <p key={`p-${idx}`} className="leading-relaxed text-zinc-300 my-1.5 text-sm">
+        <p key={`p-${idx}`} className="leading-relaxed text-[#f1f5f9] my-1.5 text-sm">
           {renderInline(line)}
         </p>
       );

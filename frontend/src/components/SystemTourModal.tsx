@@ -91,7 +91,7 @@ export function SystemTourModal({ isOpen, onClose, language }: SystemTourModalPr
   const StepIcon = step.icon;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
       <div className="w-full max-w-2xl bg-[#101A2A] border border-[#27364B] rounded-2xl shadow-2xl overflow-hidden flex flex-col">
         {/* Modal Header */}
         <div className="px-6 py-4 bg-[#080E19] border-b border-[#27364B] flex items-center justify-between">

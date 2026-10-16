@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Language } from "../data/localization";
 import { useUserRole } from "../context/UserRoleContext";
+import { BrandLogo } from "./common/BrandLogo";
 import {
   ShieldAlert,
   Radio,
@@ -120,24 +121,7 @@ export function CommandHeader({
         {/* LEFT: Traefik / Transcope Brand + Corridor Picker + Sensor Status */}
         <div className="flex items-center gap-3 sm:gap-4 flex-wrap">
           {/* Brand Logo with Traefik/Transcope aesthetic */}
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-600 flex items-center justify-center shadow-lg shadow-emerald-500/20 text-white font-black text-sm border border-emerald-400/40">
-              <Mountain className="w-4 h-4 text-white" />
-            </div>
-            <div>
-              <div className="flex items-center gap-1.5 leading-none">
-                <span className="font-extrabold tracking-tight text-white text-base">
-                  HimalSanket<span className="text-emerald-400">.</span>
-                </span>
-                <span className="text-[10px] text-cyan-400 font-semibold hidden md:inline">
-                  (हिमाल संकेत)
-                </span>
-              </div>
-              <div className="text-[9px] text-slate-400 font-mono leading-none mt-0.5">
-                Multi-Hazard Early Warning Network
-              </div>
-            </div>
-          </div>
+          <BrandLogo size="md" />
 
           {/* Active Corridor Selector Pill */}
           <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#0F172A] border border-white/[0.08] text-xs font-semibold text-white shadow-sm">

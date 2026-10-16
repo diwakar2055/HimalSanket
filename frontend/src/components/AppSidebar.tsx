@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { Language } from "../data/localization";
 import { useUserRole } from "../context/UserRoleContext";
+import { BrandLogo } from "./common/BrandLogo";
 
 export type SidebarTab =
   | "dashboard"
@@ -101,21 +102,7 @@ export function AppSidebar({
       {/* Top: Traefik Hub Style Brand & Emblem */}
       <div>
         <div className="p-4 border-b border-white/[0.08] flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-white/[0.05] border border-white/[0.1] flex items-center justify-center text-slate-200">
-              <Mountain className="w-5 h-5 text-emerald-400" />
-            </div>
-            <div>
-              <div className="flex items-center gap-1.5 leading-none">
-                <span className="font-extrabold text-white text-base tracking-tight">
-                  HimalSanket<span className="text-emerald-400">.</span>
-                </span>
-              </div>
-              <span className="text-[10px] text-slate-400 font-mono">
-                Multi-Hazard Platform
-              </span>
-            </div>
-          </div>
+          <BrandLogo size="md" />
         </div>
 
         {/* Primary Navigation Menu (Traefik Hub Vertical Pill Style) */}

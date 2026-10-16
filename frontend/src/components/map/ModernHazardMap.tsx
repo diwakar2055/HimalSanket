@@ -73,7 +73,9 @@ export function ModernHazardMap({
   const hazardsLayerRef = useRef<L.LayerGroup | null>(null);
   const rescueTeamsLayerRef = useRef<L.LayerGroup | null>(null);
 
-  const [mapType, setMapType] = useState<"topo" | "satellite">("topo");
+  const [mapType, setMapType] = useState<"topo" | "satellite">(() => {
+    return (localStorage.getItem("himalsanket_map_type") as "topo" | "satellite") || "satellite";
+  });
 
   // Tile sources: Clean Himalayan terrain with zero watermarks or API keys
   const tileSources = {
@@ -746,7 +748,7 @@ export function ModernHazardMap({
           <span class="absolute -inset-2 rounded-full bg-sky-400/20 animate-ping"></span>
 
           <!-- Unit Emblem Badge: Calm Dark Glass with Helicopter Silhouette -->
-          <div class="relative flex items-center justify-center w-8 h-8 rounded-full bg-zinc-900 text-sky-400 shadow-md border border-zinc-700 ring-2 ring-sky-500/30 transition-transform group-hover:scale-105">
+          <div class="relative flex items-center justify-center w-8 h-8 rounded-full bg-[#111c2e] text-[#38bdf8] shadow-md border border-[#1e2c44] ring-2 ring-sky-500/30 transition-transform group-hover:scale-105">
             ${
               isHeli
                 ? `<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
@@ -760,7 +762,7 @@ export function ModernHazardMap({
           </div>
 
           <!-- Mini Call Sign & Live ETA Tag -->
-          <div class="absolute -bottom-5 left-1/2 -translate-x-1/2 whitespace-nowrap px-1.5 py-0.5 rounded bg-zinc-900/90 text-zinc-300 font-mono text-[9px] font-medium border border-zinc-700/80 shadow">
+          <div class="absolute -bottom-5 left-1/2 -translate-x-1/2 whitespace-nowrap px-1.5 py-0.5 rounded bg-[#0b1320]/90 text-[#f1f5f9] font-mono text-[9px] font-semibold border border-[#1e2c44] shadow">
             ${team.callSign} • ${etaStr}
           </div>
         </div>
@@ -786,34 +788,34 @@ export function ModernHazardMap({
 
       // Detailed Interactive Popup
       marker.bindPopup(`
-        <div class="p-2.5 font-sans min-w-[210px] bg-zinc-950 text-zinc-100 rounded-lg">
-          <div class="flex items-center justify-between pb-1.5 border-b border-zinc-800">
-            <span class="text-[10px] font-mono text-zinc-400 uppercase font-medium">
+        <div class="p-2.5 font-sans min-w-[210px] bg-[#0b1320] text-[#f1f5f9] rounded-xl border border-[#1e2c44]">
+          <div class="flex items-center justify-between pb-1.5 border-b border-[#1c2536]">
+            <span class="text-[10px] font-mono text-[#8fa0b5] uppercase font-semibold">
               ${team.agency}
             </span>
-            <span class="px-1.5 py-0.2 rounded bg-zinc-800 text-zinc-300 font-mono text-[9px]">
+            <span class="px-1.5 py-0.2 rounded bg-[#111c2e] text-[#38bdf8] font-mono text-[9px] border border-[#1e2c44]">
               ${team.callSign}
             </span>
           </div>
 
-          <div class="font-semibold text-zinc-100 text-xs mt-1.5">${team.name}</div>
-          <div class="text-[11px] text-zinc-400 mt-0.5">Target: <strong>${team.targetCivilianName}</strong></div>
+          <div class="font-bold text-[#f1f5f9] text-xs mt-1.5">${team.name}</div>
+          <div class="text-[11px] text-[#8fa0b5] mt-0.5">Target: <strong>${team.targetCivilianName}</strong></div>
 
           <!-- Live Metrics Grid -->
-          <div class="grid grid-cols-2 gap-1.5 my-2 p-2 rounded bg-zinc-900/80 border border-zinc-800">
+          <div class="grid grid-cols-2 gap-1.5 my-2 p-2 rounded-lg bg-[#111c2e] border border-[#1e2c44]">
             <div>
-              <span class="text-[9px] text-zinc-500 font-mono uppercase block">Arrival</span>
-              <span class="text-xs font-mono font-bold text-zinc-100">${etaStr}</span>
+              <span class="text-[9px] text-[#8fa0b5] font-mono uppercase block">Arrival</span>
+              <span class="text-xs font-mono font-bold text-[#38bdf8]">${etaStr}</span>
             </div>
             <div>
-              <span class="text-[9px] text-zinc-500 font-mono uppercase block">Distance</span>
-              <span class="text-xs font-mono font-medium text-zinc-300">${distStr}</span>
+              <span class="text-[9px] text-[#8fa0b5] font-mono uppercase block">Distance</span>
+              <span class="text-xs font-mono font-bold text-[#f1f5f9]">${distStr}</span>
             </div>
           </div>
 
-          <div class="text-[10px] text-zinc-500 space-y-0.5 font-mono">
-            <div>Base: <span class="text-zinc-400">${team.startBaseName}</span></div>
-            <div>Radio: <span class="text-zinc-400">${team.contact}</span></div>
+          <div class="text-[10px] text-[#8c96af] space-y-0.5 font-mono">
+            <div>Base: <span class="text-[#f1f5f9]">${team.startBaseName}</span></div>
+            <div>Radio: <span class="text-[#f1f5f9]">${team.contact}</span></div>
           </div>
         </div>
       `);
@@ -823,7 +825,7 @@ export function ModernHazardMap({
   }, [visibleRescueTeams, mode]);
 
   return (
-    <div className={`relative w-full h-full overflow-hidden select-none bg-zinc-950 ${className}`}>
+    <div className={`relative w-full h-full overflow-hidden select-none bg-[#0b1320] ${className}`}>
       {/* Map Container */}
       <div ref={mapContainerRef} className="w-full h-full z-0" />
 
@@ -831,21 +833,29 @@ export function ModernHazardMap({
       <div className="absolute top-3 right-3 z-20 flex flex-col gap-2">
         {/* Tile Style Switcher */}
         <button
-          onClick={() => setMapType((p) => (p === "topo" ? "satellite" : "topo"))}
-          className="p-2.5 rounded-lg bg-zinc-900/90 hover:bg-zinc-800 text-zinc-300 hover:text-white border border-zinc-700/80 shadow-md backdrop-blur-sm transition-colors cursor-pointer flex items-center gap-2 text-xs font-medium"
+          onClick={() => {
+            setMapType((p) => {
+              const next = p === "topo" ? "satellite" : "topo";
+              try {
+                localStorage.setItem("himalsanket_map_type", next);
+              } catch (_) {}
+              return next;
+            });
+          }}
+          className="p-2.5 rounded-xl bg-[#111c2e]/90 hover:bg-[#15233a] text-[#8fa0b5] hover:text-[#f1f5f9] border border-[#1e2c44] hover:border-[#2a456c] shadow-lg backdrop-blur-md transition-colors cursor-pointer flex items-center gap-2 text-xs font-semibold"
           title="Toggle Satellite / Topographic Terrain"
         >
-          <Layers className="w-4 h-4 text-zinc-400" />
+          <Layers className="w-4 h-4 text-[#8fa0b5]" />
           <span className="hidden sm:inline">{mapType === "topo" ? "Satellite" : "Topography"}</span>
         </button>
 
         {/* Recenter Corridor */}
         <button
           onClick={handleRecenter}
-          className="p-2.5 rounded-lg bg-zinc-900/90 hover:bg-zinc-800 text-zinc-300 hover:text-white border border-zinc-700/80 shadow-md backdrop-blur-sm transition-colors cursor-pointer flex items-center gap-2 text-xs font-medium"
+          className="p-2.5 rounded-xl bg-[#111c2e]/90 hover:bg-[#15233a] text-[#8fa0b5] hover:text-[#f1f5f9] border border-[#1e2c44] hover:border-[#2a456c] shadow-lg backdrop-blur-md transition-colors cursor-pointer flex items-center gap-2 text-xs font-semibold"
           title="Fit Corridor Bounds"
         >
-          <Compass className="w-4 h-4 text-zinc-400" />
+          <Compass className="w-4 h-4 text-[#8fa0b5]" />
           <span className="hidden sm:inline">Fit Valley</span>
         </button>
 
@@ -854,25 +864,25 @@ export function ModernHazardMap({
           <button
             onClick={handleCenterUser}
             disabled={isLocating}
-            className="p-2.5 rounded-lg bg-zinc-900/90 hover:bg-zinc-800 text-zinc-300 hover:text-white border border-zinc-700/80 shadow-md backdrop-blur-sm transition-colors cursor-pointer flex items-center gap-2 text-xs font-medium"
+            className="p-2.5 rounded-xl bg-[#111c2e]/90 hover:bg-[#15233a] text-[#8fa0b5] hover:text-[#f1f5f9] border border-[#1e2c44] hover:border-[#2a456c] shadow-lg backdrop-blur-md transition-colors cursor-pointer flex items-center gap-2 text-xs font-semibold"
             title="Pan to My Coordinates"
           >
-            <Navigation className={`w-4 h-4 text-zinc-400 ${isLocating ? "animate-spin" : ""}`} />
+            <Navigation className={`w-4 h-4 text-[#8fa0b5] ${isLocating ? "animate-spin" : ""}`} />
             <span className="hidden sm:inline">My GPS</span>
           </button>
         )}
       </div>
 
       {/* Minimal Bottom Legend */}
-      <div className="absolute bottom-3 left-3 z-20 px-3.5 py-2 rounded-lg bg-zinc-900/90 border border-zinc-800 backdrop-blur-sm shadow-md text-xs text-zinc-300 flex items-center gap-3">
+      <div className="absolute bottom-3 left-3 z-20 px-3.5 py-2 rounded-xl bg-[#111c2e]/90 border border-[#1e2c44] backdrop-blur-md shadow-lg text-xs text-[#8fa0b5] flex items-center gap-3">
         <span className="flex items-center gap-1.5">
-          <span className="w-2.5 h-1 rounded-full bg-sky-600" />
+          <span className="w-2.5 h-1 rounded-full bg-sky-500" />
           <span>River Channel</span>
         </span>
         {mode === "civilian" && (
           <>
             <span className="flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-emerald-500" />
+              <span className="w-2 h-2 rounded-full bg-[#52c7ad]" />
               <span>Safe Shelter</span>
             </span>
             <span className="flex items-center gap-1.5">
@@ -880,11 +890,11 @@ export function ModernHazardMap({
               <span>Health Posts</span>
             </span>
             <span className="flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-sm bg-sky-600" />
+              <span className="w-2 h-2 rounded-sm bg-sky-500" />
               <span>Schools</span>
             </span>
             <span className="flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-sm bg-amber-600 flex items-center justify-center text-[7px] text-white font-bold leading-none">═</span>
+              <span className="w-2 h-2 rounded-sm bg-amber-500 flex items-center justify-center text-[7px] text-white font-bold leading-none">═</span>
               <span>Bridges</span>
             </span>
             <span className="flex items-center gap-1.5">
@@ -896,7 +906,7 @@ export function ModernHazardMap({
         {(mode === "rescuer" || mode === "admin") && (
           <>
             <span className="flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+              <span className="w-2 h-2 rounded-full bg-[#fb7185] animate-pulse" />
               <span>SOS Distresses</span>
             </span>
             <span className="flex items-center gap-1.5">
@@ -904,15 +914,15 @@ export function ModernHazardMap({
               <span>Health Posts</span>
             </span>
             <span className="flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-sm bg-sky-600" />
+              <span className="w-2 h-2 rounded-sm bg-sky-500" />
               <span>Schools & Shelters</span>
             </span>
             <span className="flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-indigo-600" />
+              <span className="w-2 h-2 rounded-full bg-indigo-500" />
               <span>Villages</span>
             </span>
             <span className="flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-sm bg-amber-600 flex items-center justify-center text-[7px] text-white font-bold leading-none">═</span>
+              <span className="w-2 h-2 rounded-sm bg-amber-500 flex items-center justify-center text-[7px] text-white font-bold leading-none">═</span>
               <span>Bridges</span>
             </span>
             {mode === "admin" && (
@@ -924,13 +934,13 @@ export function ModernHazardMap({
           </>
         )}
         {simulatedWaterRise > 0 && (
-          <span className="flex items-center gap-1.5 text-zinc-200 font-medium">
+          <span className="flex items-center gap-1.5 text-[#f1f5f9] font-semibold">
             <span className="w-2 h-2 rounded-full bg-amber-500" />
             <span>Surge +{simulatedWaterRise}m</span>
           </span>
         )}
         {visibleRescueTeams.length > 0 && (
-          <span className="flex items-center gap-1.5 text-zinc-300 font-medium">
+          <span className="flex items-center gap-1.5 text-[#38bdf8] font-semibold">
             <span className="relative flex h-2 w-2">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2 w-2 bg-sky-400"></span>

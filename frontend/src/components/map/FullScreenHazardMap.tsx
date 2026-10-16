@@ -290,7 +290,7 @@ export function FullScreenHazardMap({
   );
 
   // 2. Map View Styles: terrain (best for mountains), hybrid (satellite + labels), satellite, roadmap
-  const [mapType, setMapType] = useState<"terrain" | "hybrid" | "satellite" | "roadmap">("terrain");
+  const [mapType, setMapType] = useState<"terrain" | "hybrid" | "satellite" | "roadmap">("satellite");
   const [showLayerMenu, setShowLayerMenu] = useState(false);
   const [recenterTrigger, setRecenterTrigger] = useState(0);
   const [locateTrigger, setLocateTrigger] = useState(0);

@@ -23,6 +23,8 @@ import {
   Plane,
   Home,
   ChevronRight,
+  Info,
+  Globe2,
 } from "lucide-react";
 import { HelicopterIcon } from "../common/HelicopterIcon";
 
@@ -169,21 +171,21 @@ export function RescuerDashboard({
   );
 
   return (
-    <div className="w-full h-full flex flex-col lg:flex-row min-h-0 bg-zinc-950 text-zinc-100 overflow-hidden font-sans">
+    <div className="w-full h-full flex flex-col lg:flex-row min-h-0 bg-[#0b1320] text-[#f1f5f9] overflow-hidden font-sans">
       {/* LEFT COLUMN: SAR Tactical Queue (~420px) */}
-      <aside className="w-full lg:w-[420px] xl:w-[450px] shrink-0 h-full flex flex-col bg-zinc-950 border-r border-zinc-800 overflow-hidden">
+      <aside className="w-full lg:w-[420px] xl:w-[450px] shrink-0 h-full flex flex-col bg-[#0b1320] border-r border-[#1c2536] overflow-hidden">
         {/* Header & Stats Banner */}
-        <div className="p-4 border-b border-zinc-800 bg-zinc-950">
+        <div className="p-4 border-b border-[#17253b] bg-[#0b1320]">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2.5">
-              <div className="w-7 h-7 rounded-lg bg-zinc-900 border border-zinc-800 text-zinc-300 flex items-center justify-center font-medium">
-                <Radio className="w-4 h-4 text-zinc-400" />
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-2xl bg-[#142134] border border-[#22354e] flex items-center justify-center text-[#7ea9df] shadow-sm">
+                <Radio className="w-5 h-5 text-[#7ea9df]" />
               </div>
               <div>
-                <h2 className="text-sm font-semibold text-zinc-100 tracking-tight">
+                <h2 className="text-base font-bold text-white tracking-tight leading-tight">
                   Tactical SAR Command
                 </h2>
-                <p className="text-xs text-zinc-500">
+                <p className="text-xs text-[#8fa0b5] mt-0.5 font-normal">
                   APF & Nepal Army Mountain Rescue Forward Base
                 </p>
               </div>
@@ -195,86 +197,99 @@ export function RescuerDashboard({
                   playConfirmationBeep();
                   resetBeaconsToDefault();
                 }}
-                className="flex items-center gap-1 px-2 py-1 rounded-md bg-zinc-900 hover:bg-zinc-850 border border-zinc-800 text-[11px] text-zinc-400 hover:text-zinc-200 transition-colors cursor-pointer"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#142134] hover:bg-[#1a2c44] border border-[#22354e] text-xs font-medium text-[#8fa0b5] hover:text-white transition-colors cursor-pointer shadow-sm"
                 title="Reset test distress beacons to simulation state"
               >
-                <RotateCcw className="w-3 h-3 text-zinc-500" />
+                <RotateCcw className="w-3.5 h-3.5" />
                 <span>Reset</span>
               </button>
 
-              <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-zinc-900 border border-zinc-800 text-[11px] text-zinc-400">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                <span>Live Relay</span>
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-2xl bg-[#063b2c] border border-[#0d6e52] shadow-sm">
+                <span className="w-2.5 h-2.5 rounded-full bg-[#10b981] animate-pulse shadow-[0_0_8px_#10b981]" />
+                <div className="text-[11px] leading-tight font-semibold text-[#34d399]">
+                  <div>Live</div>
+                  <div>Relay</div>
+                </div>
               </div>
             </div>
           </div>
 
-          {/* Quick Metrics Bar */}
-          <div className="grid grid-cols-3 gap-2 mt-3 pt-3 border-t border-zinc-800 text-center">
-            <div className="p-2 rounded-lg bg-zinc-900/60 border border-zinc-800">
-              <span className="text-[10px] text-zinc-500 block uppercase tracking-wider font-mono">
-                Pending SOS
+          {/* Quick Metrics Bar (Pixel-Accurate 3 KPI Cards) */}
+          <div className="grid grid-cols-3 gap-3 mt-4 text-center">
+            {/* PENDING SOS */}
+            <div className="py-3 px-2 rounded-2xl bg-[#0d1626]/90 border border-[#2a1d2e] shadow-md flex flex-col items-center justify-center relative overflow-hidden">
+              <div className="absolute inset-0 bg-rose-500/5 pointer-events-none" />
+              <span className="text-[10px] font-semibold tracking-wider text-rose-300/80 uppercase">
+                PENDING SOS
               </span>
-              <strong className="text-base font-semibold text-rose-400">{pendingCount}</strong>
+              <span className="text-3xl font-bold text-rose-500 mt-1 leading-none">
+                {pendingCount}
+              </span>
             </div>
-            <div className="p-2 rounded-lg bg-zinc-900/60 border border-zinc-800">
-              <span className="text-[10px] text-zinc-500 block uppercase tracking-wider font-mono">
-                In Progress
+
+            {/* IN PROGRESS */}
+            <div className="py-3 px-2 rounded-2xl bg-[#0d1626]/90 border border-[#2e2a1e] shadow-md flex flex-col items-center justify-center relative overflow-hidden">
+              <div className="absolute inset-0 bg-amber-500/5 pointer-events-none" />
+              <span className="text-[10px] font-semibold tracking-wider text-amber-300/80 uppercase">
+                IN PROGRESS
               </span>
-              <strong className="text-base font-semibold text-amber-400">{dispatchedCount}</strong>
+              <span className="text-3xl font-bold text-amber-400 mt-1 leading-none">
+                {dispatchedCount}
+              </span>
             </div>
-            <div className="p-2 rounded-lg bg-zinc-900/60 border border-zinc-800">
-              <span className="text-[10px] text-zinc-500 block uppercase tracking-wider font-mono">
-                Evacuated
+
+            {/* EVACUATED */}
+            <div className="py-3 px-2 rounded-2xl bg-[#0d1626]/90 border border-[#1a332a] shadow-md flex flex-col items-center justify-center relative overflow-hidden">
+              <div className="absolute inset-0 bg-emerald-500/5 pointer-events-none" />
+              <span className="text-[10px] font-semibold tracking-wider text-emerald-300/80 uppercase">
+                EVACUATED
               </span>
-              <strong className="text-base font-semibold text-emerald-400">{rescuedCount}</strong>
+              <span className="text-3xl font-bold text-emerald-400 mt-1 leading-none">
+                {rescuedCount}
+              </span>
             </div>
           </div>
         </div>
 
-        {/* Primary View Mode Tabs */}
-        <div className="px-3 py-2 border-b border-zinc-800 bg-zinc-950 flex items-center justify-between text-xs gap-1.5 overflow-x-auto">
-          <div className="flex gap-1 bg-zinc-900 p-1 rounded-lg border border-zinc-800 w-full">
+        {/* Primary View Mode Tabs (Segmented Control Track) */}
+        <div className="px-4 py-3 border-b border-[#17253b] bg-[#0b1320]">
+          <div className="flex items-center gap-1 bg-[#09111e] p-1.5 rounded-2xl border border-[#17253b]">
             <button
               onClick={() => setActiveTab("incidents")}
-              className={`flex-1 px-2.5 py-1.5 rounded-md font-medium transition-colors cursor-pointer text-xs text-center ${
+              className={`flex-1 py-2 px-1 rounded-xl text-xs font-medium transition-all cursor-pointer text-center ${
                 activeTab === "incidents"
-                  ? "bg-zinc-800 text-zinc-100 shadow-sm"
-                  : "text-zinc-400 hover:text-zinc-200"
+                  ? "bg-[#14233c] text-white font-semibold border border-[#284268] shadow-md"
+                  : "text-[#8fa0b5] hover:text-white"
               }`}
             >
               Distress SOS ({corridorBeacons.length})
             </button>
             <button
               onClick={() => setActiveTab("units")}
-              className={`flex-1 px-2.5 py-1.5 rounded-md font-medium transition-colors cursor-pointer text-xs text-center flex items-center justify-center gap-1.5 ${
+              className={`flex-1 py-2 px-1 rounded-xl text-xs font-medium transition-all cursor-pointer text-center ${
                 activeTab === "units"
-                  ? "bg-amber-950/50 text-amber-300 border border-amber-800/60 shadow-sm font-semibold"
-                  : "text-zinc-400 hover:text-zinc-200"
+                  ? "bg-[#14233c] text-white font-semibold border border-[#284268] shadow-md"
+                  : "text-[#8fa0b5] hover:text-white"
               }`}
             >
-              <span>SAR Fleet</span>
-              {corridorDispatchedTeams.length > 0 && (
-                <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping" />
-              )}
-              <span>({corridorDispatchedTeams.length})</span>
+              SAR Fleet ({corridorDispatchedTeams.length})
             </button>
             <button
               onClick={() => setActiveTab("facilities")}
-              className={`flex-1 px-2.5 py-1.5 rounded-md font-medium transition-colors cursor-pointer text-xs text-center ${
+              className={`flex-1 py-2 px-1 rounded-xl text-xs font-medium transition-all cursor-pointer text-center ${
                 activeTab === "facilities"
-                  ? "bg-zinc-800 text-zinc-100 shadow-sm"
-                  : "text-zinc-400 hover:text-zinc-200"
+                  ? "bg-[#14233c] text-white font-semibold border border-[#284268] shadow-md"
+                  : "text-[#8fa0b5] hover:text-white"
               }`}
             >
               Facilities ({assets.length})
             </button>
             <button
               onClick={() => setActiveTab("reports")}
-              className={`flex-1 px-2.5 py-1.5 rounded-md font-medium transition-colors cursor-pointer text-xs text-center ${
+              className={`flex-1 py-2 px-1 rounded-xl text-xs font-medium transition-all cursor-pointer text-center ${
                 activeTab === "reports"
-                  ? "bg-zinc-800 text-zinc-100 shadow-sm"
-                  : "text-zinc-400 hover:text-zinc-200"
+                  ? "bg-[#14233c] text-white font-semibold border border-[#284268] shadow-md"
+                  : "text-[#8fa0b5] hover:text-white"
               }`}
             >
               Reports ({fieldDispatches.length})
@@ -284,19 +299,19 @@ export function RescuerDashboard({
 
         {/* Sub-Filters: Incident Status or Facility Category */}
         {activeTab === "incidents" && (
-          <div className="px-3.5 py-2 border-b border-zinc-800/80 bg-zinc-950/80 flex items-center justify-between text-xs">
-            <span className="text-[11px] text-zinc-500 uppercase font-mono tracking-wider">
+          <div className="px-4 py-2.5 border-b border-[#17253b] bg-[#0b1320] flex items-center justify-between text-xs">
+            <span className="text-[11px] text-[#8fa0b5] uppercase font-mono tracking-wider">
               Filter Status:
             </span>
-            <div className="flex items-center gap-1 text-xs">
+            <div className="flex items-center gap-1.5 text-xs">
               {(["all", "pending", "dispatched", "rescued"] as const).map((st) => (
                 <button
                   key={st}
                   onClick={() => setFilterStatus(st)}
-                  className={`px-2 py-0.5 rounded-md cursor-pointer transition-colors text-[11px] capitalize ${
+                  className={`px-3 py-1 rounded-full cursor-pointer transition-all text-xs font-medium capitalize ${
                     filterStatus === st
-                      ? "bg-zinc-800 text-zinc-100 font-medium border border-zinc-700"
-                      : "text-zinc-500 hover:text-zinc-300"
+                      ? "bg-[#1b2b45] text-white font-semibold border border-[#2b446a] shadow-sm"
+                      : "bg-[#0d1627] text-[#8fa0b5] hover:text-white border border-[#1c2c44]"
                   }`}
                 >
                   {st}
@@ -307,66 +322,70 @@ export function RescuerDashboard({
         )}
 
         {activeTab === "facilities" && (
-          <div className="px-3.5 py-2 border-b border-zinc-800/80 bg-zinc-950/80 flex items-center justify-between text-xs overflow-x-auto gap-1">
+          <div className="px-4 py-2.5 border-b border-[#17253b] bg-[#0b1320] flex items-center gap-2 overflow-x-auto custom-scrollbar text-xs">
             <button
               onClick={() => setFacilityFilter("all")}
-              className={`px-2 py-0.5 rounded-md cursor-pointer transition-colors text-[11px] whitespace-nowrap ${
+              className={`px-3.5 py-1.5 rounded-full cursor-pointer transition-all text-xs font-medium whitespace-nowrap ${
                 facilityFilter === "all"
-                  ? "bg-zinc-800 text-zinc-100 font-medium border border-zinc-700"
-                  : "text-zinc-500 hover:text-zinc-300"
+                  ? "bg-[#1b2b45] text-white font-semibold border border-[#2b446a] shadow-sm"
+                  : "bg-[#0d1627] text-[#8fa0b5] hover:text-white border border-[#1c2c44]"
               }`}
             >
               All ({assets.length + forwardBases.length})
             </button>
             <button
               onClick={() => setFacilityFilter("health")}
-              className={`px-2 py-0.5 rounded-md cursor-pointer transition-colors text-[11px] whitespace-nowrap ${
+              className={`px-3.5 py-1.5 rounded-full cursor-pointer transition-all text-xs font-medium whitespace-nowrap flex items-center gap-1.5 ${
                 facilityFilter === "health"
-                  ? "bg-rose-950/50 text-rose-300 border border-rose-900/60 font-medium"
-                  : "text-zinc-500 hover:text-zinc-300"
+                  ? "bg-[#1b2b45] text-white font-semibold border border-[#2b446a] shadow-sm"
+                  : "bg-[#0d1627] text-[#8fa0b5] hover:text-white border border-[#1c2c44]"
               }`}
             >
-              🏥 Health ({healthPosts.length})
+              <span>🧰</span>
+              <span>Health ({healthPosts.length})</span>
             </button>
             <button
               onClick={() => setFacilityFilter("school")}
-              className={`px-2 py-0.5 rounded-md cursor-pointer transition-colors text-[11px] whitespace-nowrap ${
+              className={`px-3.5 py-1.5 rounded-full cursor-pointer transition-all text-xs font-medium whitespace-nowrap flex items-center gap-1.5 ${
                 facilityFilter === "school"
-                  ? "bg-sky-950/50 text-sky-300 border border-sky-900/60 font-medium"
-                  : "text-zinc-500 hover:text-zinc-300"
+                  ? "bg-[#1b2b45] text-white font-semibold border border-[#2b446a] shadow-sm"
+                  : "bg-[#0d1627] text-[#8fa0b5] hover:text-white border border-[#1c2c44]"
               }`}
             >
-              🏫 Schools ({schools.length})
+              <span>🏫</span>
+              <span>Schools ({schools.length})</span>
             </button>
             <button
               onClick={() => setFacilityFilter("village")}
-              className={`px-2 py-0.5 rounded-md cursor-pointer transition-colors text-[11px] whitespace-nowrap ${
+              className={`px-3.5 py-1.5 rounded-full cursor-pointer transition-all text-xs font-medium whitespace-nowrap flex items-center gap-1.5 ${
                 facilityFilter === "village"
-                  ? "bg-indigo-950/50 text-indigo-300 border border-indigo-900/60 font-medium"
-                  : "text-zinc-500 hover:text-zinc-300"
+                  ? "bg-[#1b2b45] text-white font-semibold border border-[#2b446a] shadow-sm"
+                  : "bg-[#0d1627] text-[#8fa0b5] hover:text-white border border-[#1c2c44]"
               }`}
             >
-              🏘️ Villages ({villages.length})
+              <span>🏕️</span>
+              <span>Villages ({villages.length})</span>
             </button>
             <button
               onClick={() => setFacilityFilter("base")}
-              className={`px-2 py-0.5 rounded-md cursor-pointer transition-colors text-[11px] whitespace-nowrap ${
+              className={`px-3.5 py-1.5 rounded-full cursor-pointer transition-all text-xs font-medium whitespace-nowrap flex items-center gap-1.5 ${
                 facilityFilter === "base"
-                  ? "bg-amber-950/50 text-amber-300 border border-amber-900/60 font-medium"
-                  : "text-zinc-500 hover:text-zinc-300"
+                  ? "bg-[#1b2b45] text-white font-semibold border border-[#2b446a] shadow-sm"
+                  : "bg-[#0d1627] text-[#8fa0b5] hover:text-white border border-[#1c2c44]"
               }`}
             >
-              🚁 Bases ({forwardBases.length})
+              <span>🚁</span>
+              <span>Bases ({forwardBases.length})</span>
             </button>
           </div>
         )}
 
         {/* Scrollable Items Container with Top Padding to Prevent Clipping */}
-        <div className="flex-1 overflow-y-auto p-3.5 pt-2.5 space-y-2.5 custom-scrollbar bg-zinc-950">
+        <div className="flex-1 overflow-y-auto p-4 pt-3 space-y-3 custom-scrollbar bg-[#0b1320]">
           {/* TAB 1: INCIDENTS / DISTRESS SOS */}
           {activeTab === "incidents" && (
             displayedBeacons.length === 0 ? (
-              <div className="p-8 text-center text-zinc-500 text-xs">
+              <div className="p-8 text-center text-[#8c96af] text-xs">
                 No active distress beacons matching status: <span className="font-mono">{filterStatus}</span>.
               </div>
             ) : (
@@ -379,55 +398,55 @@ export function RescuerDashboard({
                   <div
                     key={beacon.id}
                     onClick={() => handleSelectVictim(beacon)}
-                    className={`p-3.5 rounded-xl border transition-colors cursor-pointer ${
+                    className={`p-4 rounded-2xl border transition-all cursor-pointer shadow-md ${
                       isSelected
-                        ? "bg-zinc-900 border-zinc-600 ring-1 ring-zinc-500/30 shadow-md"
-                        : "bg-zinc-900/50 hover:bg-zinc-900 border-zinc-800/80"
+                        ? "bg-[#13233c] border-[#38bdf8]/60 shadow-lg shadow-sky-950/40 ring-1 ring-[#38bdf8]/30"
+                        : "bg-[#111c2e] hover:bg-[#15233a] border-[#1c2536] hover:border-[#263750]"
                     }`}
                   >
                     {/* Top Row: Status badge + priority + time */}
                     <div className="flex items-center justify-between text-xs">
                       <div className="flex items-center gap-2">
                         <span
-                          className={`px-2 py-0.5 rounded-md text-[11px] font-medium tracking-wide uppercase ${
+                          className={`px-2.5 py-0.5 rounded-full text-[11px] font-semibold tracking-wide uppercase ${
                             isRescued
-                              ? "bg-emerald-950/40 text-emerald-300 border border-emerald-900/40"
+                              ? "bg-[#053c2e] text-[#52c7ad] border border-[#16785d]/60"
                               : isDispatched
-                              ? "bg-amber-950/40 text-amber-300 border border-amber-900/40"
-                              : "bg-rose-950/50 text-rose-300 border border-rose-900/50"
+                              ? "bg-[#3b2308] text-[#fbbf24] border border-[#78350f]/60"
+                              : "bg-[#3b0f19] text-[#fb7185] border border-[#9f1239]/60"
                           }`}
                         >
                           {isRescued ? "Rescued" : isDispatched ? "Squad Dispatched" : "Pending Action"}
                         </span>
-                        <span className="text-zinc-500 text-[11px]">{beacon.time}</span>
+                        <span className="text-[#6d7485] text-xs">{beacon.time}</span>
                       </div>
 
-                      <span className="text-[11px] font-mono font-semibold text-zinc-400">
+                      <span className="text-xs font-mono font-bold text-[#8fa0b5]">
                         PRIORITY {beacon.priority}
                       </span>
                     </div>
 
                     {/* Victim Name & Landmark */}
-                    <div className="mt-2">
-                      <h4 className="font-semibold text-zinc-100 text-sm leading-snug">
+                    <div className="mt-2.5">
+                      <h4 className="font-bold text-[#f1f5f9] text-[15px] leading-snug">
                         {beacon.name}
                       </h4>
-                      <p className="text-xs text-zinc-400 mt-1 leading-relaxed">
+                      <p className="text-xs text-[#8c96af] mt-1.5 leading-relaxed">
                         {beacon.detail}
                       </p>
                     </div>
 
                     {/* Coordinates & Assigned Unit */}
-                    <div className="mt-2.5 pt-2 border-t border-zinc-800/80 flex flex-wrap items-center justify-between text-[11px] text-zinc-400 gap-1.5">
-                      <span className="flex items-center gap-1 font-mono text-zinc-500">
-                        <MapPin className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
+                    <div className="mt-3 pt-2.5 border-t border-[#1c2536] flex flex-wrap items-center justify-between text-xs text-[#8fa0b5] gap-1.5">
+                      <span className="flex items-center gap-1 font-mono text-[#8fa0b5]">
+                        <MapPin className="w-3.5 h-3.5 text-[#8fa0b5] shrink-0" />
                         {beacon.lat.toFixed(4)}°N, {beacon.lng.toFixed(4)}°E
                         {beacon.altitude && <span> • ~{Math.round(beacon.altitude)}m</span>}
                       </span>
 
                       {beacon.contact && (
-                        <span className="flex items-center gap-1 text-zinc-400">
-                          <Phone className="w-3 h-3 text-zinc-500 shrink-0" />
+                        <span className="flex items-center gap-1 text-[#8fa0b5]">
+                          <Phone className="w-3 h-3 text-[#707c9b] shrink-0" />
                           <span>{beacon.contact}</span>
                         </span>
                       )}
@@ -439,33 +458,31 @@ export function RescuerDashboard({
                         if (liveTeam) {
                           const isTeamArrived = liveTeam.status === "arrived" || liveTeam.status === "evacuating" || liveTeam.etaSeconds <= 0;
                           return (
-                            <div className="mt-2.5 p-2.5 rounded-xl bg-zinc-900/40 border border-zinc-850 space-y-1.5">
+                            <div className="mt-3 p-3 rounded-xl bg-[#0b1320] border border-[#1c2536] space-y-2">
                               <div className="flex items-center justify-between text-xs">
-                                <span className="font-mono text-[10px] text-zinc-300 font-medium uppercase flex items-center gap-1.5">
-                                  <span className={`w-2 h-2 rounded-full ${isTeamArrived ? "bg-emerald-500/80" : "bg-sky-500/80"}`} />
+                                <span className="font-mono text-xs text-[#f1f5f9] font-medium uppercase flex items-center gap-1.5">
+                                  <span className={`w-2 h-2 rounded-full ${isTeamArrived ? "bg-[#34d399]" : "bg-[#38bdf8]"}`} />
                                   {liveTeam.name} ({liveTeam.callSign})
                                 </span>
-                                <span className={`text-[10px] font-mono px-2 py-0.5 rounded border capitalize ${
+                                <span className={`text-[10px] font-mono px-2 py-0.5 rounded-full border capitalize font-semibold ${
                                   isTeamArrived
-                                    ? "bg-emerald-950/40 text-emerald-400/90 border-emerald-800/40"
-                                    : "bg-zinc-800/70 text-zinc-400 border-zinc-700/50"
+                                    ? "bg-[#053c2e] text-[#52c7ad] border-[#16785d]/60"
+                                    : "bg-[#1c2e4a] text-[#38bdf8] border-[#2a456c]"
                                 }`}>
                                   {liveTeam.status.replace("_", " ")}
                                 </span>
                               </div>
                               <div className="flex items-center justify-between text-xs">
-                                <div className="text-[11px] font-mono text-zinc-400">
-                                  ETA: <strong className="text-zinc-200 font-semibold">{isTeamArrived ? "On-Site" : formatEtaSeconds(liveTeam.etaSeconds)}</strong>
+                                <div className="text-[11px] font-mono text-[#8fa0b5]">
+                                  ETA: <strong className="text-[#f1f5f9] font-semibold">{isTeamArrived ? "On-Site" : formatEtaSeconds(liveTeam.etaSeconds)}</strong>
                                 </div>
-                                <div className="text-[11px] font-mono text-zinc-400">
+                                <div className="text-[11px] font-mono text-[#8fa0b5]">
                                   {formatMeters(liveTeam.distanceRemainingMeters)} • {liveTeam.speedKmH}km/h
                                 </div>
                               </div>
-                              <div className="w-full h-1 rounded-full bg-zinc-800/80 overflow-hidden">
+                              <div className="w-full h-1.5 rounded-full bg-[#1c2536] overflow-hidden">
                                 <div
-                                  className={`h-full rounded-full transition-all duration-700 ${
-                                    isTeamArrived ? "bg-emerald-600/70" : "bg-sky-600/70"
-                                  }`}
+                                  className="h-full bg-gradient-to-r from-sky-500 to-emerald-400 rounded-full transition-all duration-700"
                                   style={{ width: `${Math.min(100, Math.max(5, liveTeam.progress * 100))}%` }}
                                 />
                               </div>
@@ -474,9 +491,9 @@ export function RescuerDashboard({
                         }
                         if (beacon.assignedUnit) {
                           return (
-                            <div className="mt-2 px-2.5 py-1 rounded-md bg-zinc-950 border border-zinc-800 text-[11px] text-amber-300/90 flex items-center justify-between">
+                            <div className="mt-2.5 px-3 py-1.5 rounded-xl bg-[#0b1320] border border-[#1c2536] text-xs text-amber-300 flex items-center justify-between">
                               <span>Squad: {beacon.assignedUnit}</span>
-                              <span className="text-[10px] text-zinc-500 font-mono">En Route</span>
+                              <span className="text-[10px] text-[#8fa0b5] font-mono">En Route</span>
                             </div>
                           );
                         }
@@ -485,15 +502,15 @@ export function RescuerDashboard({
                     )}
 
                     {/* Actions Row */}
-                    <div className="mt-3 pt-2.5 border-t border-zinc-800/80 flex items-center justify-between gap-2">
+                    <div className="mt-3.5 pt-3 border-t border-[#1c2536] flex items-center justify-between gap-2">
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
                           handleSelectVictim(beacon);
                         }}
-                        className="px-2.5 py-1.5 rounded-md bg-zinc-800 hover:bg-zinc-700 text-xs text-zinc-300 flex items-center gap-1.5 cursor-pointer transition-colors font-medium"
+                        className="group px-4 py-1.5 rounded-full bg-[#0b1626] hover:bg-[#12233c] active:scale-[0.97] text-xs font-semibold text-slate-200 hover:text-white border border-[#22446f] hover:border-sky-500/60 shadow-sm shadow-black/40 flex items-center gap-1.5 cursor-pointer transition-all duration-200"
                       >
-                        <Crosshair className="w-3.5 h-3.5 text-zinc-400" />
+                        <Crosshair className="w-3.5 h-3.5 text-sky-400 group-hover:text-sky-300 group-hover:rotate-45 transition-transform duration-300" />
                         <span>Locate on Map</span>
                       </button>
 
@@ -504,7 +521,7 @@ export function RescuerDashboard({
                               e.stopPropagation();
                               handleDispatch(beacon);
                             }}
-                            className="px-3 py-1.5 rounded-md bg-zinc-100 hover:bg-white text-zinc-900 text-xs font-medium transition-colors cursor-pointer shadow-sm"
+                            className="px-4 py-1.5 rounded-xl bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 active:scale-[0.98] text-white text-xs font-semibold shadow-lg shadow-sky-950/50 transition-all cursor-pointer flex items-center gap-1.5"
                           >
                             Dispatch Rescue Squad
                           </button>
@@ -516,15 +533,15 @@ export function RescuerDashboard({
                               e.stopPropagation();
                               handleMarkRescued(beacon);
                             }}
-                            className="px-3 py-1.5 rounded-md bg-zinc-900 hover:bg-zinc-800 text-emerald-400 border border-emerald-800/60 text-xs font-medium transition-colors cursor-pointer"
+                            className="px-4 py-1.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 active:scale-[0.98] text-white text-xs font-semibold shadow-lg shadow-emerald-950/50 transition-all cursor-pointer flex items-center gap-1.5"
                           >
                             Mark Rescued
                           </button>
                         )}
 
                         {isRescued && (
-                          <span className="text-xs text-emerald-400 font-medium flex items-center gap-1">
-                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                          <span className="text-xs text-[#34d399] font-medium flex items-center gap-1">
+                            <CheckCircle2 className="w-3.5 h-3.5 text-[#34d399]" />
                             <span>Evacuated to Clinic</span>
                           </span>
                         )}
@@ -539,18 +556,18 @@ export function RescuerDashboard({
           {/* TAB 2: ACTIVE RESCUE UNITS (Live SAR Fleet Simulation) */}
           {activeTab === "units" && (
             corridorDispatchedTeams.length === 0 ? (
-              <div className="p-8 text-center text-zinc-500 text-xs space-y-2">
-                <HelicopterIcon className="w-8 h-8 mx-auto text-zinc-600 opacity-50" />
+              <div className="p-8 text-center text-[#8fa0b5] text-xs space-y-2">
+                <HelicopterIcon className="w-8 h-8 mx-auto text-[#707c9b] opacity-60" />
                 <p>No active airborne or ground rescue teams deployed in {corridor.name}.</p>
-                <p className="text-[11px] text-zinc-600">
+                <p className="text-[11px] text-[#8c96af]">
                   Select an SOS Distress beacon in the queue and click <strong>Dispatch Rescue Squad</strong> to launch a simulated live SAR helicopter with real-time ETA tracking.
                 </p>
               </div>
             ) : (
-              <div className="space-y-2.5">
-                <div className="p-2.5 rounded-xl bg-zinc-900/60 border border-zinc-800 text-[11px] text-zinc-300 leading-snug flex items-center justify-between">
+              <div className="space-y-3">
+                <div className="p-3 rounded-xl bg-[#111c2e] border border-[#1c2536] text-xs text-[#cbd5e1] leading-snug flex items-center justify-between">
                   <span>Tracking {corridorDispatchedTeams.length} Airborne / Ground Units</span>
-                  <span className="font-mono text-[10px] text-zinc-400">1-sec telemetry sync</span>
+                  <span className="font-mono text-[10px] text-[#8fa0b5]">1-sec telemetry sync</span>
                 </div>
 
                 {corridorDispatchedTeams.map((team) => {
@@ -559,30 +576,30 @@ export function RescuerDashboard({
                   return (
                     <div
                       key={team.id}
-                      className="p-3.5 rounded-xl border border-zinc-800 bg-zinc-900/60 shadow-sm space-y-2.5"
+                      className="p-4 rounded-2xl border border-[#1c2536] bg-[#111c2e] shadow-md space-y-3"
                     >
                       {/* Unit Header */}
                       <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <span className="relative flex h-2 w-2">
+                        <div className="flex items-center gap-2.5">
+                          <span className="relative flex h-2.5 w-2.5">
                             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-60"></span>
-                            <span className="relative inline-flex rounded-full h-2 w-2 bg-sky-400"></span>
+                            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-sky-400"></span>
                           </span>
                           <div>
-                            <span className="text-[10px] font-mono text-zinc-400 uppercase tracking-wide">
+                            <span className="text-[10px] font-mono text-[#8fa0b5] uppercase tracking-wide">
                               {team.callSign} • {team.agency}
                             </span>
-                            <h4 className="font-semibold text-zinc-100 text-sm leading-tight">
+                            <h4 className="font-bold text-[#f1f5f9] text-[15px] leading-tight">
                               {team.name}
                             </h4>
                           </div>
                         </div>
 
                         <span
-                          className={`px-2 py-0.5 rounded-full text-[10px] font-mono capitalize font-medium ${
+                          className={`px-2.5 py-0.5 rounded-full text-[10px] font-mono capitalize font-semibold ${
                             isArrived
-                              ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
-                              : "bg-sky-500/10 text-sky-400 border border-sky-500/20"
+                              ? "bg-[#053c2e] text-[#52c7ad] border border-[#16785d]/60"
+                              : "bg-[#1c2e4a] text-[#38bdf8] border border-[#2a456c]"
                           }`}
                         >
                           {team.status.replace("_", " ")}
@@ -590,34 +607,34 @@ export function RescuerDashboard({
                       </div>
 
                       {/* Target Info */}
-                      <div className="text-xs text-zinc-400 bg-zinc-950 p-2 rounded-lg border border-zinc-800/80">
-                        <span className="text-[10px] font-mono uppercase text-zinc-500 block">Mission Target</span>
-                        <strong className="text-zinc-200">{team.targetCivilianName}</strong>
+                      <div className="text-xs text-[#8c96af] bg-[#0b1320] p-2.5 rounded-xl border border-[#1c2536]">
+                        <span className="text-[10px] font-mono uppercase text-[#8fa0b5] block">Mission Target</span>
+                        <strong className="text-[#f1f5f9] text-xs">{team.targetCivilianName}</strong>
                       </div>
 
                       {/* Dynamic Metrics Grid */}
-                      <div className="grid grid-cols-2 gap-2 p-2 rounded-lg bg-zinc-950/60 border border-zinc-850">
+                      <div className="grid grid-cols-2 gap-2.5 p-2.5 rounded-xl bg-[#0b1320] border border-[#1c2536]">
                         <div>
-                          <span className="text-[9px] font-mono uppercase text-zinc-500 block">Countdown ETA</span>
-                          <span className="text-lg font-bold font-mono text-zinc-100">
+                          <span className="text-[9px] font-mono uppercase text-[#8fa0b5] block">Countdown ETA</span>
+                          <strong className="text-base font-bold font-mono text-[#f1f5f9]">
                             {formatEtaSeconds(team.etaSeconds)}
-                          </span>
+                          </strong>
                         </div>
                         <div>
-                          <span className="text-[9px] font-mono uppercase text-zinc-500 block">Remaining Distance</span>
-                          <span className="text-sm font-bold font-mono text-zinc-200">
+                          <span className="text-[9px] font-mono uppercase text-[#8fa0b5] block">Remaining Distance</span>
+                          <strong className="text-sm font-bold font-mono text-[#f1f5f9]">
                             {formatMeters(team.distanceRemainingMeters)}
-                          </span>
+                          </strong>
                         </div>
                         <div>
-                          <span className="text-[9px] font-mono uppercase text-zinc-500 block">Ground Speed</span>
-                          <span className="text-xs font-mono text-zinc-300">
+                          <span className="text-[9px] font-mono uppercase text-[#8fa0b5] block">Ground Speed</span>
+                          <span className="text-xs font-mono text-[#cbd5e1]">
                             {team.speedKmH} km/h
                           </span>
                         </div>
                         <div>
-                          <span className="text-[9px] font-mono uppercase text-zinc-500 block">Forward Base</span>
-                          <span className="text-xs text-zinc-300 truncate block">
+                          <span className="text-[9px] font-mono uppercase text-[#8fa0b5] block">Forward Base</span>
+                          <span className="text-xs text-[#cbd5e1] truncate block">
                             {team.startBaseName}
                           </span>
                         </div>
@@ -625,32 +642,30 @@ export function RescuerDashboard({
 
                       {/* Progress Bar */}
                       <div className="space-y-1">
-                        <div className="flex justify-between text-[10px] font-mono text-zinc-400">
+                        <div className="flex justify-between text-[10px] font-mono text-[#8fa0b5]">
                           <span>Departed</span>
-                          <span className="text-zinc-300 font-medium">{Math.round(team.progress * 100)}% Complete</span>
+                          <span className="text-[#f1f5f9] font-medium">{Math.round(team.progress * 100)}% Complete</span>
                           <span>Target</span>
                         </div>
-                        <div className="w-full h-1.5 rounded-full bg-zinc-800/80 overflow-hidden">
+                        <div className="w-full h-1.5 rounded-full bg-[#1c2536] overflow-hidden">
                           <div
-                            className="h-full bg-sky-600/70 rounded-full transition-all duration-700"
+                            className="h-full bg-gradient-to-r from-sky-500 to-emerald-400 rounded-full transition-all duration-700"
                             style={{ width: `${Math.min(100, Math.max(5, team.progress * 100))}%` }}
                           />
                         </div>
                       </div>
 
                       {/* Footer Actions */}
-                      <div className="pt-2 border-t border-zinc-800/80 flex items-center justify-between text-[11px]">
-                        <span className="font-mono text-zinc-500 text-[10px]">
+                      <div className="pt-2.5 border-t border-[#1c2536] flex items-center justify-between text-xs">
+                        <span className="font-mono text-[#8fa0b5] text-[10px]">
                           VHF: {team.contact}
                         </span>
-                        <div className="flex items-center gap-2">
-                          <button
-                            onClick={() => cancelRescueTeam(team.id)}
-                            className="px-2 py-1 rounded-md bg-zinc-800 hover:bg-zinc-700 text-[11px] text-zinc-400 hover:text-zinc-200 transition-colors cursor-pointer"
-                          >
-                            Recall Unit
-                          </button>
-                        </div>
+                        <button
+                          onClick={() => cancelRescueTeam(team.id)}
+                          className="px-2.5 py-1 rounded-lg bg-[#162338] hover:bg-[#1d2f4c] text-xs text-[#cbd5e1] hover:text-white border border-[#223552] transition-colors cursor-pointer"
+                        >
+                          Recall Unit
+                        </button>
                       </div>
                     </div>
                   );
@@ -661,10 +676,13 @@ export function RescuerDashboard({
 
           {/* TAB 3: FACILITIES & SHELTERS (Schools, Health Posts, Villages, Helipads) */}
           {activeTab === "facilities" && (
-            <div className="space-y-2.5">
+            <div className="space-y-3">
               {/* Context Summary Banner */}
-              <div className="p-2.5 rounded-lg bg-zinc-900/40 border border-zinc-800/80 text-[11px] text-zinc-400 leading-snug">
-                Schools serve as reinforced assembly shelters, Health Posts handle medical triage, and Villages are vulnerable riverside zones.
+              <div className="p-3.5 rounded-2xl bg-[#0f1828]/85 border border-[#1b2b40] flex items-start gap-2.5 text-xs text-[#8fa0b5] leading-relaxed shadow-sm">
+                <Info className="w-4 h-4 text-[#64748b] shrink-0 mt-0.5" />
+                <span>
+                  Schools serve as reinforced assembly shelters, Health Posts handle medical triage, and Villages are vulnerable riverside zones.
+                </span>
               </div>
 
               {/* Bases Section (if filtered) */}
@@ -673,38 +691,40 @@ export function RescuerDashboard({
                   <div
                     key={base.id}
                     onClick={() => handleLocateBase(base)}
-                    className="p-3.5 rounded-xl border border-zinc-800/80 bg-zinc-900/50 hover:bg-zinc-900 transition-colors cursor-pointer"
+                    className="p-4 rounded-2xl border border-[#1c2e48] bg-[#0d1728]/80 hover:bg-[#122036] transition-all cursor-pointer shadow-lg shadow-black/25 space-y-3"
                   >
                     <div className="flex items-center justify-between text-xs">
-                      <span className="px-2 py-0.5 rounded-md text-[10px] font-mono uppercase bg-zinc-800 text-zinc-300 border border-zinc-700/60 flex items-center gap-1.5">
-                        <HelicopterIcon className="w-3 h-3 text-sky-400" />
-                        <span>SAR Forward Base & Helipad</span>
+                      <span className="px-3 py-1 rounded-full text-[10px] font-mono uppercase bg-[#132742] text-[#38bdf8] border border-[#1d3d66] flex items-center gap-1.5 font-bold tracking-wider">
+                        <HelicopterIcon className="w-3.5 h-3.5 text-[#38bdf8]" />
+                        <span>SAR FORWARD BASE & HELIPAD</span>
                       </span>
-                      <span className="text-[11px] font-mono text-zinc-400">
+                      <span className="text-xs font-mono text-[#8fa0b5]">
                         {base.heliFlightMin}m Flight Lag
                       </span>
                     </div>
 
-                    <h4 className="font-semibold text-zinc-100 text-sm mt-2 leading-tight">
-                      {base.name}
-                    </h4>
-
-                    <div className="text-xs text-zinc-400 mt-1">
-                      Agency: <strong className="text-zinc-200">{base.agency}</strong>
+                    <div>
+                      <h4 className="font-bold text-white text-base tracking-tight leading-snug">
+                        {base.name}
+                      </h4>
+                      <div className="text-xs text-[#8fa0b5] mt-1">
+                        Agency: <strong className="text-slate-100 font-bold">{base.agency}</strong>
+                      </div>
                     </div>
 
-                    <div className="mt-2.5 pt-2 border-t border-zinc-800/80 flex items-center justify-between">
-                      <span className="text-[11px] font-mono text-zinc-500">
-                        {base.lat.toFixed(4)}°N, {base.lng.toFixed(4)}°E
+                    <div className="pt-2.5 border-t border-[#17253b] flex items-center justify-between">
+                      <span className="text-xs font-mono text-[#8fa0b5] flex items-center gap-1.5">
+                        <Globe2 className="w-3.5 h-3.5 text-[#64748b]" />
+                        <span>{base.lat.toFixed(4)}°N, {base.lng.toFixed(4)}°E</span>
                       </span>
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
                           handleLocateBase(base);
                         }}
-                        className="px-2.5 py-1 rounded-md bg-zinc-800 hover:bg-zinc-700 text-xs text-zinc-300 flex items-center gap-1 font-medium transition-colors"
+                        className="group px-4 py-1.5 rounded-full bg-[#0b1626] hover:bg-[#12233c] active:scale-[0.97] text-xs font-semibold text-slate-200 hover:text-white border border-[#22446f] hover:border-sky-500/60 shadow-sm shadow-black/40 flex items-center gap-1.5 cursor-pointer transition-all duration-200"
                       >
-                        <Crosshair className="w-3 h-3 text-zinc-400" />
+                        <Crosshair className="w-3.5 h-3.5 text-sky-400 group-hover:text-sky-300 group-hover:rotate-45 transition-transform duration-300" />
                         <span>Locate on Map</span>
                       </button>
                     </div>
@@ -723,86 +743,89 @@ export function RescuerDashboard({
                   <div
                     key={asset.id}
                     onClick={() => handleLocateAsset(asset)}
-                    className={`p-3.5 rounded-xl border transition-colors cursor-pointer ${
+                    className={`p-4 rounded-2xl border transition-all cursor-pointer shadow-lg shadow-black/25 space-y-3 ${
                       isSelected
-                        ? "bg-zinc-900 border-zinc-600 ring-1 ring-zinc-500/30 shadow-md"
-                        : "bg-zinc-900/50 hover:bg-zinc-900 border-zinc-800/80"
+                        ? "bg-[#13233c] border-[#38bdf8]/60 shadow-sky-950/40 ring-1 ring-[#38bdf8]/30"
+                        : "bg-[#0d1728]/80 hover:bg-[#122036] border-[#1c2e48]"
                     }`}
                   >
                     {/* Badge Row */}
                     <div className="flex items-center justify-between text-xs">
                       {isHealth && (
-                        <span className="px-2 py-0.5 rounded-md text-[10px] font-mono uppercase bg-rose-950/40 text-rose-300 border border-rose-900/50 flex items-center gap-1">
-                          <HeartPulse className="w-3 h-3 text-rose-400" />
-                          <span>Emergency Medical Clinic</span>
+                        <span className="px-3 py-1 rounded-full text-[10px] font-mono uppercase bg-rose-950/50 text-rose-300 border border-rose-900/60 flex items-center gap-1.5 font-bold tracking-wider">
+                          <HeartPulse className="w-3.5 h-3.5 text-rose-400" />
+                          <span>EMERGENCY MEDICAL CLINIC</span>
                         </span>
                       )}
                       {isSchool && (
-                        <span className="px-2 py-0.5 rounded-md text-[10px] font-mono uppercase bg-sky-950/40 text-sky-300 border border-sky-900/50 flex items-center gap-1">
-                          <GraduationCap className="w-3 h-3 text-sky-400" />
-                          <span>Community School Evac Shelter</span>
+                        <span className="px-3 py-1 rounded-full text-[10px] font-mono uppercase bg-sky-950/50 text-sky-300 border border-sky-900/60 flex items-center gap-1.5 font-bold tracking-wider">
+                          <GraduationCap className="w-3.5 h-3.5 text-sky-400" />
+                          <span>COMMUNITY SCHOOL EVAC SHELTER</span>
                         </span>
                       )}
                       {isVillage && (
-                        <span className="px-2 py-0.5 rounded-md text-[10px] font-mono uppercase bg-indigo-950/40 text-indigo-300 border border-indigo-900/50 flex items-center gap-1">
-                          <Home className="w-3 h-3 text-indigo-400" />
-                          <span>Village Settlement at Risk</span>
+                        <span className="px-3 py-1 rounded-full text-[10px] font-mono uppercase bg-indigo-950/50 text-indigo-300 border border-indigo-900/60 flex items-center gap-1.5 font-bold tracking-wider">
+                          <Home className="w-3.5 h-3.5 text-indigo-400" />
+                          <span>VULNERABLE RIVERSIDE SETTLEMENT</span>
                         </span>
                       )}
                       {isShelter && (
-                        <span className="px-2 py-0.5 rounded-md text-[10px] font-mono uppercase bg-emerald-950/40 text-emerald-300 border border-emerald-900/50 flex items-center gap-1">
-                          <Shield className="w-3 h-3 text-emerald-400" />
-                          <span>Verified Safe Refuge</span>
+                        <span className="px-3 py-1 rounded-full text-[10px] font-mono uppercase bg-[#053c2e] text-[#52c7ad] border border-[#16785d]/60 flex items-center gap-1.5 font-bold tracking-wider">
+                          <Shield className="w-3.5 h-3.5 text-[#34d399]" />
+                          <span>VERIFIED SAFE REFUGE</span>
                         </span>
                       )}
 
-                      <span className="text-[11px] font-mono text-zinc-500">
+                      <span className="text-xs font-mono text-[#8fa0b5]">
                         {asset.elevation}m ASL
                       </span>
                     </div>
 
                     {/* Facility Name */}
-                    <h4 className="font-semibold text-zinc-100 text-sm mt-2 leading-snug">
-                      {asset.name}
-                    </h4>
+                    <div>
+                      <h4 className="font-bold text-white text-base tracking-tight leading-snug">
+                        {asset.name}
+                      </h4>
 
-                    {/* Metrics: Population or Shelter Capacity or Surge */}
-                    <div className="mt-1.5 flex flex-wrap gap-2 text-xs">
-                      {asset.population && (
-                        <span className="px-2 py-0.5 rounded bg-zinc-900 border border-zinc-800 text-zinc-300 text-[11px]">
-                          Population: <strong className="text-zinc-100">{asset.population}</strong>
-                        </span>
-                      )}
-                      {asset.capacity && (
-                        <span className="px-2 py-0.5 rounded bg-zinc-900 border border-zinc-800 text-zinc-300 text-[11px]">
-                          Assembly Cap: <strong className="text-zinc-100">{asset.capacity}</strong>
-                        </span>
-                      )}
-                      {asset.hazardThresholdMeters && (
-                        <span className="px-2 py-0.5 rounded bg-zinc-900 border border-zinc-800 text-amber-400 text-[11px]">
-                          Surge Alert: <strong>+{asset.hazardThresholdMeters}m</strong>
-                        </span>
-                      )}
+                      {/* Metrics: Population or Shelter Capacity or Surge */}
+                      <div className="mt-2 flex flex-wrap gap-2 text-xs">
+                        {asset.population && (
+                          <span className="px-2.5 py-0.5 rounded-lg bg-[#0b1320] border border-[#1c2536] text-[#cbd5e1] text-xs">
+                            Population: <strong className="text-white">{asset.population}</strong>
+                          </span>
+                        )}
+                        {asset.capacity && (
+                          <span className="px-2.5 py-0.5 rounded-lg bg-[#0b1320] border border-[#1c2536] text-[#cbd5e1] text-xs">
+                            Assembly Cap: <strong className="text-white">{asset.capacity}</strong>
+                          </span>
+                        )}
+                        {asset.hazardThresholdMeters && (
+                          <span className="px-2.5 py-0.5 rounded-lg bg-[#0b1320] border border-[#1c2536] text-amber-400 text-xs font-medium">
+                            Surge Alert: <strong>+{asset.hazardThresholdMeters}m</strong>
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Description or Risk Note */}
+                      <p className="text-xs text-[#8fa0b5] mt-2 leading-relaxed">
+                        {asset.riskNote || asset.description}
+                      </p>
                     </div>
 
-                    {/* Description or Risk Note */}
-                    <p className="text-xs text-zinc-400 mt-2 leading-relaxed">
-                      {asset.riskNote || asset.description}
-                    </p>
-
                     {/* Bottom Action Row */}
-                    <div className="mt-3 pt-2.5 border-t border-zinc-800/80 flex items-center justify-between">
-                      <span className="text-[11px] font-mono text-zinc-500">
-                        {asset.lat.toFixed(4)}°N, {asset.lng.toFixed(4)}°E
+                    <div className="pt-2.5 border-t border-[#17253b] flex items-center justify-between">
+                      <span className="text-xs font-mono text-[#8fa0b5] flex items-center gap-1.5">
+                        <Globe2 className="w-3.5 h-3.5 text-[#64748b]" />
+                        <span>{asset.lat.toFixed(4)}°N, {asset.lng.toFixed(4)}°E</span>
                       </span>
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
                           handleLocateAsset(asset);
                         }}
-                        className="px-2.5 py-1 rounded-md bg-zinc-800 hover:bg-zinc-700 text-xs text-zinc-300 flex items-center gap-1 font-medium transition-colors"
+                        className="group px-4 py-1.5 rounded-full bg-[#0b1626] hover:bg-[#12233c] active:scale-[0.97] text-xs font-semibold text-slate-200 hover:text-white border border-[#22446f] hover:border-sky-500/60 shadow-sm shadow-black/40 flex items-center gap-1.5 cursor-pointer transition-all duration-200"
                       >
-                        <Crosshair className="w-3 h-3 text-zinc-400" />
+                        <Crosshair className="w-3.5 h-3.5 text-sky-400 group-hover:text-sky-300 group-hover:rotate-45 transition-transform duration-300" />
                         <span>Locate on Map</span>
                       </button>
                     </div>
@@ -815,28 +838,28 @@ export function RescuerDashboard({
           {/* TAB 3: FIELD REPORTS / CITIZEN DISPATCHES */}
           {activeTab === "reports" && (
             fieldDispatches.length === 0 ? (
-              <div className="p-8 text-center text-zinc-500 text-xs">
+              <div className="p-8 text-center text-[#8fa0b5] text-xs">
                 No ground reports filed yet.
               </div>
             ) : (
               fieldDispatches.map((report) => (
                 <div
                   key={report.id}
-                  className="p-3.5 rounded-xl bg-zinc-900/50 border border-zinc-800/80 space-y-1.5"
+                  className="p-4 rounded-2xl bg-[#111c2e] border border-[#1c2536] shadow-md space-y-2"
                 >
                   <div className="flex items-center justify-between text-xs">
-                    <span className="font-semibold text-zinc-200 capitalize">
+                    <span className="font-bold text-[#f1f5f9] capitalize text-sm">
                       Field Observation: {report.type}
                     </span>
-                    <span className="text-zinc-500 text-[11px]">{report.time}</span>
+                    <span className="text-[#6d7485] text-xs">{report.time}</span>
                   </div>
 
-                  <div className="text-xs text-zinc-300 leading-relaxed">{report.note}</div>
+                  <div className="text-xs text-[#cbd5e1] leading-relaxed">{report.note}</div>
 
-                  <div className="text-xs text-zinc-500 flex items-center justify-between pt-1.5 border-t border-zinc-800/80">
+                  <div className="text-xs text-[#8fa0b5] flex items-center justify-between pt-2 border-t border-[#1c2536]">
                     <span>Sender: {report.senderName}</span>
                     {report.aiClassification && (
-                      <span className="text-[11px] px-1.5 py-0.5 rounded bg-zinc-900 border border-zinc-800 text-amber-300/90 font-medium">
+                      <span className="text-[11px] px-2 py-0.5 rounded-full bg-[#3b2308] border border-[#78350f]/60 text-[#fbbf24] font-semibold">
                         {report.aiClassification}
                       </span>
                     )}
@@ -849,7 +872,7 @@ export function RescuerDashboard({
       </aside>
 
       {/* RIGHT STAGE: Tactical Rescue Map */}
-      <main className="flex-1 h-full min-h-[350px] relative bg-zinc-950">
+      <main className="flex-1 h-full min-h-[350px] relative bg-[#0b1320]">
         <ModernHazardMap
           corridor={corridor}
           assets={assets}

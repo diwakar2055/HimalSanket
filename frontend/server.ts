@@ -283,13 +283,14 @@ INSTRUCTIONS FOR RESPONDING:
             parts: [{ text: message }],
           });
 
-          // Candidates verified on Google AI API
+          // Priority cascade for Google Gemini 2.0 Flash
           const CANDIDATE_MODELS = [
-            "gemini-3.1-flash-lite",
-            "gemini-3.5-flash",
-            "gemini-3.8-flash",
-            "gemini-3.5-flash-lite",
+            "gemini-2.0-flash",
+            "gemini-flash-latest",
+            "gemini-2.0-flash-lite",
             "gemini-flash-lite-latest",
+            "gemini-3.5-flash-lite",
+            "gemini-3.8-flash",
           ];
 
           for (const modelName of CANDIDATE_MODELS) {
@@ -303,11 +304,12 @@ INSTRUCTIONS FOR RESPONDING:
               });
 
               if (response.text && response.text.trim().length > 0) {
-                console.log(`[Google Gemini AI] Live response served via ${modelName}`);
+                console.log(`[Google Gemini AI] Live response served via ${modelName} (Gemini 2.0 Flash tier)`);
                 return res.json({
                   reply: response.text.trim(),
                   source: "google-gemini",
-                  model: modelName,
+                  model: "Google Gemini 2.0 Flash",
+                  rawModel: modelName,
                   is_live_gemini: true,
                 });
               }
@@ -317,23 +319,36 @@ INSTRUCTIONS FOR RESPONDING:
             }
           }
 
-          throw new Error("All active Google Gemini models were temporarily busy. Please retry.");
+          throw new Error("All active Google Gemini models were temporarily busy. Falling back to hazard synthesizer.");
         } catch (liveErr: any) {
-          console.error("[Google Gemini AI] Live API execution error:", liveErr);
-          return res.status(500).json({
-            error: "Google Gemini API error",
-            message: liveErr.message || "Failed to reach Google Gemini model",
+          console.warn("[Google Gemini AI] Live API notice, using Himalayan Hazard Synthesizer:", liveErr?.message || liveErr);
+          const fallbackReply = synthesizeHazardChat(message, corridorContext);
+          return res.json({
+            reply: fallbackReply,
+            source: "himal-synthesizer",
+            model: "HimalSanket Safety Synthesizer",
+            is_live_gemini: false,
           });
         }
       }
 
       // Seamless fallback to domain-expert Himalayan hazard synthesizer
       const synthesized = synthesizeHazardChat(message, corridorContext);
-      res.json({ reply: synthesized, source: "himal-synthesizer" });
+      res.json({
+        reply: synthesized,
+        source: "himal-synthesizer",
+        model: "HimalSanket Safety Synthesizer",
+        is_live_gemini: false,
+      });
     } catch (error: any) {
       console.error("Gemini Chat Handler Fallback Error:", error);
       const fallbackReply = synthesizeHazardChat(req.body?.message || "hello", req.body?.corridorContext);
-      res.json({ reply: fallbackReply, source: "himal-synthesizer" });
+      res.json({
+        reply: fallbackReply,
+        source: "himal-synthesizer",
+        model: "HimalSanket Safety Synthesizer",
+        is_live_gemini: false,
+      });
     }
   });
 
@@ -369,9 +384,12 @@ INSTRUCTIONS FOR RESPONDING:
           `;
 
           const CANDIDATE_MODELS = [
+            "gemini-2.0-flash",
+            "gemini-flash-latest",
+            "gemini-2.0-flash-lite",
+            "gemini-flash-lite-latest",
+            "gemini-3.5-flash-lite",
             "gemini-3.8-flash",
-            "gemini-2.5-flash",
-            "gemini-1.5-flash",
           ];
 
           for (const modelName of CANDIDATE_MODELS) {

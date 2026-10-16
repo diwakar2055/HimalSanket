@@ -71,7 +71,7 @@ Requirements:
             from google import genai
             client = genai.Client(api_key=api_key)
             response = None
-            for candidate in ["gemini-3.8-flash", "gemini-2.5-flash", "gemini-1.5-flash"]:
+            for candidate in ["gemini-2.0-flash", "gemini-flash-latest", "gemini-2.0-flash-lite", "gemini-flash-lite-latest", "gemini-3.5-flash-lite", "gemini-3.8-flash"]:
                 try:
                     response = client.models.generate_content(
                         model=candidate,
@@ -89,7 +89,7 @@ Requirements:
             return GeminiBriefingResponse(
                 corridor_name=data.corridor_name,
                 risk_level=data.risk_level,
-                model_used="Google Gemini (Live API)",
+                model_used="Google Gemini 2.0 Flash (Live API)",
                 briefing_en=raw_text.strip(),
                 briefing_ne="Gemini live response generated above.",
                 sms_alert_romanized=f"HimalSanket ALERT: {data.corridor_name} {data.risk_level.upper()} hazard. Pahiro/GLOF jokhim. Surakshit sthan ma basnu.",
