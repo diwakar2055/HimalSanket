@@ -437,28 +437,35 @@ export function RescuerDashboard({
                       (() => {
                         const liveTeam = dispatchedTeams.find((t) => String(t.targetBeaconId) === String(beacon.id));
                         if (liveTeam) {
+                          const isTeamArrived = liveTeam.status === "arrived" || liveTeam.status === "evacuating" || liveTeam.etaSeconds <= 0;
                           return (
-                            <div className="mt-2.5 p-2.5 rounded-xl bg-zinc-900/60 border border-zinc-800 space-y-1.5">
+                            <div className="mt-2.5 p-2.5 rounded-xl bg-zinc-900/40 border border-zinc-850 space-y-1.5">
                               <div className="flex items-center justify-between text-xs">
                                 <span className="font-mono text-[10px] text-zinc-300 font-medium uppercase flex items-center gap-1.5">
-                                  <span className="w-2 h-2 rounded-full bg-sky-400" />
+                                  <span className={`w-2 h-2 rounded-full ${isTeamArrived ? "bg-emerald-500/80" : "bg-sky-500/80"}`} />
                                   {liveTeam.name} ({liveTeam.callSign})
                                 </span>
-                                <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-300 border border-zinc-750 font-medium capitalize">
+                                <span className={`text-[10px] font-mono px-2 py-0.5 rounded border capitalize ${
+                                  isTeamArrived
+                                    ? "bg-emerald-950/40 text-emerald-400/90 border-emerald-800/40"
+                                    : "bg-zinc-800/70 text-zinc-400 border-zinc-700/50"
+                                }`}>
                                   {liveTeam.status.replace("_", " ")}
                                 </span>
                               </div>
                               <div className="flex items-center justify-between text-xs">
                                 <div className="text-[11px] font-mono text-zinc-400">
-                                  ETA: <strong className="text-zinc-100 font-semibold">{formatEtaSeconds(liveTeam.etaSeconds)}</strong>
+                                  ETA: <strong className="text-zinc-200 font-semibold">{isTeamArrived ? "On-Site" : formatEtaSeconds(liveTeam.etaSeconds)}</strong>
                                 </div>
                                 <div className="text-[11px] font-mono text-zinc-400">
                                   {formatMeters(liveTeam.distanceRemainingMeters)} • {liveTeam.speedKmH}km/h
                                 </div>
                               </div>
-                              <div className="w-full h-1 rounded-full bg-zinc-800 overflow-hidden">
+                              <div className="w-full h-1 rounded-full bg-zinc-800/80 overflow-hidden">
                                 <div
-                                  className="h-full bg-sky-400 rounded-full transition-all duration-700"
+                                  className={`h-full rounded-full transition-all duration-700 ${
+                                    isTeamArrived ? "bg-emerald-600/70" : "bg-sky-600/70"
+                                  }`}
                                   style={{ width: `${Math.min(100, Math.max(5, liveTeam.progress * 100))}%` }}
                                 />
                               </div>
@@ -623,9 +630,9 @@ export function RescuerDashboard({
                           <span className="text-zinc-300 font-medium">{Math.round(team.progress * 100)}% Complete</span>
                           <span>Target</span>
                         </div>
-                        <div className="w-full h-1.5 rounded-full bg-zinc-800 overflow-hidden">
+                        <div className="w-full h-1.5 rounded-full bg-zinc-800/80 overflow-hidden">
                           <div
-                            className="h-full bg-sky-400 rounded-full transition-all duration-700"
+                            className="h-full bg-sky-600/70 rounded-full transition-all duration-700"
                             style={{ width: `${Math.min(100, Math.max(5, team.progress * 100))}%` }}
                           />
                         </div>

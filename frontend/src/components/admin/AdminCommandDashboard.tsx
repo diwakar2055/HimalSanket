@@ -336,7 +336,7 @@ export function AdminCommandDashboard({
               <div className="p-3 rounded-xl bg-zinc-900/60 border border-zinc-800 space-y-2 text-xs">
                 <div className="flex items-center justify-between">
                   <span className="font-mono text-[10px] font-medium text-zinc-300 uppercase tracking-wide flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full bg-sky-400" />
+                    <span className="w-2 h-2 rounded-full bg-sky-500/80" />
                     Active SAR Fleet ({dispatchedTeams.length})
                   </span>
                   <span className="text-[10px] text-zinc-500 font-mono">Live Sync</span>

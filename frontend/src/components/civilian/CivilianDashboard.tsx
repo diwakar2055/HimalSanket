@@ -426,50 +426,59 @@ export function CivilianDashboard({
         {/* LEFT COLUMN: Clean, Focused Civilian Sidebar (~400px) */}
         <aside className="w-full lg:w-[400px] xl:w-[420px] shrink-0 h-full flex flex-col bg-zinc-950 border-r border-zinc-800 overflow-hidden z-10">
           {/* LIVE RESCUE TEAM DISPATCHED BANNER */}
-          {myRescueTeam && (
-            <div className="p-3.5 border-b border-zinc-800 shrink-0">
-              <div className="p-3 rounded-xl bg-zinc-900/60 border border-zinc-800 space-y-2">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-sky-400" />
-                    <span className="text-xs font-mono font-medium text-zinc-200">
-                      SAR Rescue Inbound ({myRescueTeam.callSign})
+          {myRescueTeam && (() => {
+            const isArrived = myRescueTeam.status === "arrived" || myRescueTeam.status === "evacuating" || myRescueTeam.etaSeconds <= 0;
+            return (
+              <div className="p-3.5 border-b border-zinc-800 shrink-0">
+                <div className="p-3 rounded-xl bg-zinc-900/40 border border-zinc-850 space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className={`w-2 h-2 rounded-full ${isArrived ? "bg-emerald-500/80" : "bg-sky-500/80"}`} />
+                      <span className="text-xs font-mono font-medium text-zinc-300">
+                        SAR Rescue {isArrived ? "On-Site" : "Inbound"} ({myRescueTeam.callSign})
+                      </span>
+                    </div>
+                    <span className={`text-[10px] font-mono px-2 py-0.5 rounded border capitalize ${
+                      isArrived
+                        ? "bg-emerald-950/40 text-emerald-400/90 border-emerald-800/40"
+                        : "bg-zinc-800/70 text-zinc-400 border-zinc-700/50"
+                    }`}>
+                      {myRescueTeam.status.replace("_", " ")}
                     </span>
                   </div>
-                  <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-300 border border-zinc-700/60 capitalize">
-                    {myRescueTeam.status.replace("_", " ")}
-                  </span>
-                </div>
 
-                <div className="flex items-baseline justify-between pt-0.5">
-                  <div>
-                    <span className="text-[10px] font-mono text-zinc-400 uppercase block">Countdown ETA</span>
-                    <span className="text-lg font-bold font-mono text-zinc-100">
-                      {formatEtaSeconds(myRescueTeam.etaSeconds)}
-                    </span>
+                  <div className="flex items-baseline justify-between pt-0.5">
+                    <div>
+                      <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-wider block">Countdown ETA</span>
+                      <span className="text-base font-bold font-mono text-zinc-200">
+                        {isArrived ? "On-Site" : formatEtaSeconds(myRescueTeam.etaSeconds)}
+                      </span>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-wider block">Remaining</span>
+                      <span className="text-xs font-mono text-zinc-400">
+                        {formatDistance(myRescueTeam.distanceRemainingMeters)}
+                      </span>
+                    </div>
                   </div>
-                  <div className="text-right">
-                    <span className="text-[10px] font-mono text-zinc-400 uppercase block">Remaining</span>
-                    <span className="text-xs font-mono text-zinc-300">
-                      {formatDistance(myRescueTeam.distanceRemainingMeters)}
-                    </span>
+
+                  <div className="w-full h-1 rounded-full bg-zinc-800/80 overflow-hidden">
+                    <div
+                      className={`h-full rounded-full transition-all duration-700 ${
+                        isArrived ? "bg-emerald-600/70" : "bg-sky-600/70"
+                      }`}
+                      style={{ width: `${Math.min(100, Math.max(5, myRescueTeam.progress * 100))}%` }}
+                    />
                   </div>
-                </div>
 
-                <div className="w-full h-1 rounded-full bg-zinc-800 overflow-hidden">
-                  <div
-                    className="h-full bg-sky-400 rounded-full transition-all duration-700"
-                    style={{ width: `${Math.min(100, Math.max(5, myRescueTeam.progress * 100))}%` }}
-                  />
-                </div>
-
-                <div className="pt-1.5 border-t border-zinc-800 text-[10px] text-zinc-400 flex items-center justify-between font-mono">
-                  <span className="truncate max-w-[180px]">{myRescueTeam.name}</span>
-                  <span>{myRescueTeam.contact}</span>
+                  <div className="pt-1.5 border-t border-zinc-800/80 text-[10px] text-zinc-500 flex items-center justify-between font-mono">
+                    <span className="truncate max-w-[180px] text-zinc-400">{myRescueTeam.name}</span>
+                    <span className="text-zinc-500">{myRescueTeam.contact}</span>
+                  </div>
                 </div>
               </div>
-            </div>
-          )}
+            );
+          })()}
 
           {/* 1. COMPACT SAFETY STATUS BANNER */}
           <div className="p-3.5 border-b border-zinc-800 shrink-0">
@@ -675,50 +684,63 @@ export function CivilianDashboard({
           <AnimatePresence mode="wait">
             {myRescueTeam && (
               isRescueHudCollapsed ? (
-                /* COLLAPSED FLIGHT TRACKER MODE: Sleek, calm, minimal pill bar */
+                /* COLLAPSED FLIGHT TRACKER MODE: Sleek, compact dynamic island pill */
                 <motion.div
                   key="hud-collapsed"
-                  initial={{ opacity: 0, y: -6, scale: 0.98 }}
+                  initial={{ opacity: 0, y: -6, scale: 0.96 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: -6, scale: 0.98 }}
+                  exit={{ opacity: 0, y: -6, scale: 0.96 }}
                   transition={{ duration: 0.15, ease: "easeOut" }}
                   onClick={() => setIsRescueHudCollapsed(false)}
-                  className="absolute top-4 left-4 z-[1000] px-3.5 py-2 rounded-full bg-zinc-900/90 hover:bg-zinc-850/95 border border-zinc-800 shadow-xl backdrop-blur-xl text-zinc-100 cursor-pointer flex items-center gap-3 select-none group"
-                  title="Click to expand rescue flight details"
+                  className="absolute top-3 left-3 z-[1000] px-2.5 py-1.5 rounded-full bg-zinc-950/80 hover:bg-zinc-900/90 border border-zinc-800/80 hover:border-zinc-700/90 shadow-lg shadow-black/40 backdrop-blur-md text-zinc-100 cursor-pointer flex items-center gap-2 select-none group transition-all"
+                  title="Click to view rescue telemetry"
                 >
-                  {/* Callsign + Radar Pulse + Helicopter Icon */}
-                  <div className="flex items-center gap-2 shrink-0">
-                    <span className="relative flex h-2 w-2">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-60"></span>
-                      <span className="relative inline-flex rounded-full h-2 w-2 bg-sky-400"></span>
-                    </span>
-                    <HelicopterIcon className="w-3.5 h-3.5 text-sky-400" />
-                    <span className="text-xs font-mono font-medium text-zinc-200">
+                  {/* Helicopter Icon & Radar Beacon */}
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <div className="relative flex items-center justify-center w-5 h-5 rounded-full bg-zinc-800/80 border border-zinc-700/60 text-zinc-300">
+                      <span
+                        className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-50 ${
+                          myRescueTeam.status === "arrived" || myRescueTeam.status === "evacuating" || myRescueTeam.etaSeconds <= 0
+                            ? "bg-emerald-500"
+                            : "bg-sky-500"
+                        }`}
+                      />
+                      <HelicopterIcon className="w-3 h-3 relative z-10" />
+                    </div>
+                    <span className="text-[11px] font-mono font-medium text-zinc-300">
                       {myRescueTeam.callSign}
                     </span>
                   </div>
 
-                  {/* Center Mini Track */}
-                  <div className="flex items-center gap-2">
-                    <span className="text-[10px] font-mono text-zinc-400 shrink-0">Base</span>
-                    <div className="w-20 sm:w-28 h-1.5 rounded-full bg-zinc-800 overflow-hidden">
-                      <div
-                        className="h-full bg-sky-400 rounded-full transition-all duration-700 ease-out"
-                        style={{ width: `${Math.min(100, Math.max(5, myRescueTeam.progress * 100))}%` }}
-                      />
-                    </div>
-                    <span className="text-[10px] font-mono text-zinc-400 shrink-0">You</span>
+                  {/* Micro Progress Track */}
+                  <div className="w-10 sm:w-12 h-1 rounded-full bg-zinc-800/80 overflow-hidden shrink-0">
+                    <div
+                      className={`h-full rounded-full transition-all duration-700 ease-out ${
+                        myRescueTeam.status === "arrived" || myRescueTeam.status === "evacuating" || myRescueTeam.etaSeconds <= 0
+                          ? "bg-emerald-600/70"
+                          : "bg-sky-600/70"
+                      }`}
+                      style={{ width: `${Math.min(100, Math.max(8, myRescueTeam.progress * 100))}%` }}
+                    />
                   </div>
 
-                  {/* Right ETA & Expand */}
-                  <div className="flex items-center gap-2 shrink-0 pl-1 border-l border-zinc-800 text-xs font-mono">
-                    <span className="font-semibold text-zinc-100">
-                      {formatEtaSeconds(myRescueTeam.etaSeconds)}
-                    </span>
-                    <span className="text-zinc-400 hidden sm:inline">
-                      ({formatDistance(myRescueTeam.distanceRemainingMeters)})
-                    </span>
-                    <ChevronDown className="w-3.5 h-3.5 text-zinc-400 group-hover:text-zinc-200 transition-colors" />
+                  {/* Right Status / ETA */}
+                  <div className="flex items-center gap-1.5 shrink-0 pl-1 border-l border-zinc-800/80 text-[11px] font-mono">
+                    {myRescueTeam.status === "arrived" || myRescueTeam.status === "evacuating" || myRescueTeam.etaSeconds <= 0 ? (
+                      <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-emerald-950/40 text-emerald-400/90 border border-emerald-800/40">
+                        On-Site
+                      </span>
+                    ) : (
+                      <>
+                        <span className="font-semibold text-zinc-200">
+                          {formatEtaSeconds(myRescueTeam.etaSeconds)}
+                        </span>
+                        <span className="text-zinc-500 text-[10px] hidden sm:inline">
+                          ({formatDistance(myRescueTeam.distanceRemainingMeters)})
+                        </span>
+                      </>
+                    )}
+                    <ChevronDown className="w-3.5 h-3.5 text-zinc-500 group-hover:text-zinc-300 group-hover:translate-y-0.5 transition-transform" />
                   </div>
                 </motion.div>
               ) : (
@@ -729,7 +751,7 @@ export function CivilianDashboard({
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: -6, scale: 0.98 }}
                   transition={{ duration: 0.18, ease: "easeOut" }}
-                  className="absolute top-4 left-4 right-4 sm:right-auto sm:w-[380px] z-[1000] p-4 rounded-2xl bg-zinc-900/95 border border-zinc-800 shadow-2xl backdrop-blur-xl text-zinc-100 space-y-3"
+                  className="absolute top-3 left-3 right-3 sm:right-auto sm:w-[330px] z-[1000] p-3.5 rounded-2xl bg-zinc-950/90 border border-zinc-800/90 shadow-2xl backdrop-blur-xl text-zinc-100 space-y-2.5"
                 >
                   {/* Header Badge */}
                   <div className="flex items-start justify-between">
@@ -738,16 +760,16 @@ export function CivilianDashboard({
                         <span className="relative flex h-2 w-2">
                           <span className={`animate-ping absolute inline-flex h-full w-full rounded-full ${
                             myRescueTeam.status === "arrived" || myRescueTeam.status === "evacuating"
-                              ? "bg-emerald-400 opacity-60"
-                              : "bg-sky-400 opacity-60"
+                              ? "bg-emerald-500/70"
+                              : "bg-sky-500/70"
                           }`}></span>
                           <span className={`relative inline-flex rounded-full h-2 w-2 ${
                             myRescueTeam.status === "arrived" || myRescueTeam.status === "evacuating"
-                              ? "bg-emerald-400"
-                              : "bg-sky-400"
+                              ? "bg-emerald-500/80"
+                              : "bg-sky-500/80"
                           }`}></span>
                         </span>
-                        <HelicopterIcon className="w-3.5 h-3.5 text-sky-400 shrink-0" />
+                        <HelicopterIcon className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
                         <span className="text-[10px] font-mono uppercase tracking-wider text-zinc-400 font-medium">
                           Search & Rescue
                         </span>
@@ -763,8 +785,8 @@ export function CivilianDashboard({
                     <div className="flex items-center gap-2">
                       <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-medium capitalize ${
                         myRescueTeam.status === "arrived" || myRescueTeam.status === "evacuating"
-                          ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
-                          : "bg-sky-500/10 text-sky-400 border border-sky-500/20"
+                          ? "bg-emerald-950/40 text-emerald-400/90 border border-emerald-800/40"
+                          : "bg-zinc-800/80 text-zinc-300 border border-zinc-700/60"
                       }`}>
                         {myRescueTeam.status.replace("_", " ")}
                       </span>
@@ -812,14 +834,18 @@ export function CivilianDashboard({
                     </div>
                     <div className="relative w-full h-1.5 rounded-full bg-zinc-800 overflow-visible">
                       <div
-                        className="h-full bg-sky-400 rounded-full transition-all duration-700 ease-out"
+                        className={`h-full rounded-full transition-all duration-700 ease-out ${
+                          myRescueTeam.status === "arrived" || myRescueTeam.status === "evacuating" || myRescueTeam.etaSeconds <= 0
+                            ? "bg-emerald-600/70"
+                            : "bg-sky-600/70"
+                        }`}
                         style={{ width: `${Math.min(100, Math.max(5, myRescueTeam.progress * 100))}%` }}
                       />
                       <div
                         className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 transition-all duration-700 ease-out pointer-events-none"
                         style={{ left: `${Math.min(96, Math.max(4, myRescueTeam.progress * 100))}%` }}
                       >
-                        <div className="w-5 h-5 rounded-full bg-zinc-900 border border-zinc-700 shadow-md flex items-center justify-center text-sky-400">
+                        <div className="w-5 h-5 rounded-full bg-zinc-900 border border-zinc-700 shadow-md flex items-center justify-center text-zinc-300">
                           <HelicopterIcon className="w-3 h-3" />
                         </div>
                       </div>
