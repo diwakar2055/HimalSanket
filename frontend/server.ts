@@ -28,11 +28,10 @@ function reloadEnv(force = false) {
 
   const currentDir = getCurrentDir();
   const envPaths = [
-    path.resolve(process.cwd(), ".env.local"),
     path.resolve(currentDir, ".env.local"),
-    "/Users/ankitgyawali/Downloads/himalSanket/himalsanket-fullstack/frontend/.env.local",
-    "/Users/ankitgyawali/BG/HimalSanket/.env.local",
-    "/Users/ankitgyawali/Downloads/himalSanket/himalsanket-riskengine/.env.local",
+    path.resolve(process.cwd(), "frontend", ".env.local"),
+    path.resolve(process.cwd(), ".env.local"),
+    path.resolve(currentDir, "..", ".env.local"),
   ];
   for (const p of envPaths) {
     if (fs.existsSync(p)) {
@@ -456,6 +455,18 @@ INSTRUCTIONS FOR RESPONDING:
         ne: `वातावरणीय सूचकहरूको निरन्तर अनुगमन भइरहेको छ। स्थानीय निकायको निर्देशन पालना गर्नुहोस्।`
       });
     }
+  });
+
+  // Dynamic runtime configuration endpoint - ensures frontend always receives fresh .env.local on browser refresh
+  app.get("/api/system/config", (req, res) => {
+    reloadEnv(true);
+    res.json({
+      VITE_GOOGLE_MAPS_API_KEY: process.env.VITE_GOOGLE_MAPS_API_KEY || "",
+      VITE_RISK_ENGINE_API: process.env.VITE_RISK_ENGINE_API || "http://localhost:8000",
+      VITE_GOOGLE_GEOCODING_API_KEY: process.env.GOOGLE_GEOCODING_API_KEY || process.env.VITE_GOOGLE_GEOCODING_API_KEY || "",
+      VITE_GOOGLE_ELEVATION_API_KEY: process.env.GOOGLE_ELEVATION_API_KEY || process.env.VITE_GOOGLE_ELEVATION_API_KEY || "",
+      VITE_GOOGLE_PLACES_API_KEY: process.env.GOOGLE_PLACES_API_KEY || process.env.VITE_GOOGLE_PLACES_API_KEY || "",
+    });
   });
 
   // Dedicated API status inspector for separate API keys (hardened - boolean only)

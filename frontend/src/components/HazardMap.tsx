@@ -42,8 +42,12 @@ export function HazardMap() {
 
   const [simulatedWaterRise, setSimulatedWaterRise] = useState<number>(0); // 0 to 5 meters
 
-  // API Key management from environment
-  const apiKey = (import.meta.env.VITE_GOOGLE_MAPS_API_KEY as string) || "";
+  // API Key management from environment or dynamic runtime config
+  const rawKey =
+    (typeof window !== "undefined" && (window as any).__APP_CONFIG__?.VITE_GOOGLE_MAPS_API_KEY) ||
+    (import.meta.env.VITE_GOOGLE_MAPS_API_KEY as string) ||
+    "";
+  const apiKey = (!rawKey || rawKey.includes("YOUR_") || rawKey.includes("MOCK")) ? "" : rawKey.trim();
 
   // Vector map zoom & pan state
   const [zoomLevel, setZoomLevel] = useState<number>(1);
