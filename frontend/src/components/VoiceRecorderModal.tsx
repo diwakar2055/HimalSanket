@@ -44,9 +44,42 @@ export function VoiceRecorderModal({
   const [selectedCategory, setSelectedCategory] = useState<"water" | "crack" | "sound" | "other">("water");
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const mediaStreamRef = useRef<MediaStream | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const timerRef = useRef<any>(null);
   const speechRecognizerRef = useRef<any>(null);
+
+  // MED-02: Clean up Object URL when audioUrl changes or on unmount
+  useEffect(() => {
+    return () => {
+      if (audioUrl) {
+        URL.revokeObjectURL(audioUrl);
+      }
+    };
+  }, [audioUrl]);
+
+  // MED-02: Unmount track & stream cleanup
+  useEffect(() => {
+    return () => {
+      if (mediaStreamRef.current) {
+        mediaStreamRef.current.getTracks().forEach((track) => track.stop());
+        mediaStreamRef.current = null;
+      }
+      if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
+        try {
+          mediaRecorderRef.current.stop();
+        } catch (_) {}
+      }
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+      }
+      if (speechRecognizerRef.current) {
+        try {
+          speechRecognizerRef.current.stop();
+        } catch (_) {}
+      }
+    };
+  }, []);
 
   // Initialize Speech Recognition if supported
   useEffect(() => {
@@ -81,10 +114,19 @@ export function VoiceRecorderModal({
     };
   }, [isOpen]);
 
+  const handleClose = () => {
+    stopRecording();
+    if (mediaStreamRef.current) {
+      mediaStreamRef.current.getTracks().forEach((track) => track.stop());
+      mediaStreamRef.current = null;
+    }
+    onClose();
+  };
+
   useEffect(() => {
     if (!isOpen) return;
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+      if (e.key === "Escape") handleClose();
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
@@ -109,6 +151,9 @@ export function VoiceRecorderModal({
   }, [transcript]);
 
   const startRecording = async () => {
+    if (audioUrl) {
+      URL.revokeObjectURL(audioUrl);
+    }
     audioChunksRef.current = [];
     setTranscript("");
     setDetectedKeywords([]);
@@ -117,6 +162,7 @@ export function VoiceRecorderModal({
 
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      mediaStreamRef.current = stream;
       const mediaRecorder = new MediaRecorder(stream);
       mediaRecorderRef.current = mediaRecorder;
 
@@ -129,6 +175,7 @@ export function VoiceRecorderModal({
         const url = URL.createObjectURL(audioBlob);
         setAudioUrl(url);
         stream.getTracks().forEach((track) => track.stop());
+        mediaStreamRef.current = null;
       };
 
       mediaRecorder.start();
@@ -152,12 +199,18 @@ export function VoiceRecorderModal({
     if (mediaRecorderRef.current && isRecording) {
       mediaRecorderRef.current.stop();
     }
+    if (mediaStreamRef.current) {
+      mediaStreamRef.current.getTracks().forEach((track) => track.stop());
+      mediaStreamRef.current = null;
+    }
     if (speechRecognizerRef.current) {
       try {
         speechRecognizerRef.current.stop();
       } catch (_) {}
     }
-    clearInterval(timerRef.current);
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+    }
     setIsRecording(false);
   };
 
@@ -167,6 +220,7 @@ export function VoiceRecorderModal({
   );
 
   const handleSubmit = () => {
+    stopRecording();
     onSubmitVoiceReport({
       category: selectedCategory,
       transcript: transcript || "Voice dispatch recorded from mountain field observation.",
@@ -194,7 +248,7 @@ export function VoiceRecorderModal({
             </div>
           </div>
           <button
-            onClick={onClose}
+            onClick={handleClose}
             className="p-1 rounded-lg text-[#8fa0b5] hover:text-[#f1f5f9] hover:bg-[#15233a] transition-colors cursor-pointer"
           >
             <X className="w-4 h-4" />
@@ -300,7 +354,7 @@ export function VoiceRecorderModal({
         {/* Footer */}
         <div className="px-5 py-3 bg-[#0b1320] border-t border-[#1c2536] flex items-center justify-end gap-2">
           <button
-            onClick={onClose}
+            onClick={handleClose}
             className="px-3.5 py-1.5 rounded-xl text-xs font-semibold text-[#8fa0b5] hover:text-[#f1f5f9] bg-[#111c2e] hover:bg-[#15233a] border border-[#1e2c44] transition-colors cursor-pointer"
           >
             Cancel

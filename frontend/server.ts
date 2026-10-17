@@ -16,7 +16,16 @@ const getCurrentDir = () => {
   return process.cwd();
 };
 
-function reloadEnv() {
+let lastEnvReload = 0;
+const ENV_RELOAD_COOLDOWN_MS = 10_000; // 10s cooldown cache (MED-01)
+
+function reloadEnv(force = false) {
+  const now = Date.now();
+  if (!force && now - lastEnvReload < ENV_RELOAD_COOLDOWN_MS) {
+    return;
+  }
+  lastEnvReload = now;
+
   const currentDir = getCurrentDir();
   const envPaths = [
     path.resolve(process.cwd(), ".env.local"),
@@ -32,7 +41,7 @@ function reloadEnv() {
     }
   }
 }
-reloadEnv();
+reloadEnv(true);
 
 const isConfiguredApiKey = (key?: string) => {
   if (!key) return false;

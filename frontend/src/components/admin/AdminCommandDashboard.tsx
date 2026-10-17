@@ -322,6 +322,93 @@ export function AdminCommandDashboard({
 
         {/* OPERATIONS SIDEBAR (~380px) */}
         <aside className="w-full lg:w-[380px] xl:w-[400px] shrink-0 h-full flex flex-col bg-[#0b1320] border-l border-[#1c2738] overflow-y-auto custom-scrollbar">
+          {/* HIGH-VALUE MODALS LAUNCHPAD (CRIT-03: SitrepExportModal, ValleyElevationProfileModal, SentinelLakeModal) */}
+          <div className="p-4 border-b border-[#1c2738] bg-[#0e1726]/80 space-y-2.5">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-[#38bdf8] flex items-center gap-1.5">
+                <Sparkles className="w-3.5 h-3.5 text-[#38bdf8]" />
+                Command Intelligence Modals
+              </span>
+              <span className="text-[9px] font-mono text-[#8fa0b5] px-1.5 py-0.5 rounded bg-[#111c2e] border border-[#1e2c44]">
+                Interactive
+              </span>
+            </div>
+
+            <div className="grid grid-cols-3 gap-2">
+              {/* 1. SITREP Export Modal */}
+              <button
+                type="button"
+                onClick={() => {
+                  playConfirmationBeep();
+                  setIsSitrepModalOpen(true);
+                }}
+                className="p-2.5 rounded-xl bg-[#131f32] hover:bg-[#1a2b45] active:bg-[#101b2c] border border-[#233a59] hover:border-[#38bdf8]/60 text-left transition-all group cursor-pointer flex flex-col justify-between shadow-sm"
+                title="Open NDRRMA Emergency SITREP Generator & Broadcast Formatter"
+              >
+                <div className="flex items-center justify-between w-full mb-1">
+                  <FileText className="w-3.5 h-3.5 text-emerald-400 group-hover:scale-110 transition-transform" />
+                  <span className="text-[8px] font-mono text-emerald-400 px-1 rounded bg-emerald-500/10 border border-emerald-500/30">NDRRMA</span>
+                </div>
+                <div>
+                  <div className="text-[11px] font-bold text-white group-hover:text-[#38bdf8] transition-colors leading-tight">
+                    SITREP
+                  </div>
+                  <div className="text-[9px] text-[#8fa0b5] leading-tight mt-0.5">
+                    Export Brief
+                  </div>
+                </div>
+              </button>
+
+              {/* 2. Valley Elevation Profile Modal */}
+              <button
+                type="button"
+                onClick={() => {
+                  playConfirmationBeep();
+                  setIsElevationModalOpen(true);
+                }}
+                className="p-2.5 rounded-xl bg-[#131f32] hover:bg-[#1a2b45] active:bg-[#101b2c] border border-[#233a59] hover:border-cyan-400/60 text-left transition-all group cursor-pointer flex flex-col justify-between shadow-sm"
+                title="Inspect longitudinal river profile, slope gradient & hydrodynamic wave times"
+              >
+                <div className="flex items-center justify-between w-full mb-1">
+                  <Activity className="w-3.5 h-3.5 text-cyan-400 group-hover:scale-110 transition-transform" />
+                  <span className="text-[8px] font-mono text-cyan-400 px-1 rounded bg-cyan-500/10 border border-cyan-500/30">DEM</span>
+                </div>
+                <div>
+                  <div className="text-[11px] font-bold text-white group-hover:text-cyan-300 transition-colors leading-tight">
+                    Elevation
+                  </div>
+                  <div className="text-[9px] text-[#8fa0b5] leading-tight mt-0.5">
+                    Wave Profile
+                  </div>
+                </div>
+              </button>
+
+              {/* 3. Sentinel Lake Modal */}
+              <button
+                type="button"
+                onClick={() => {
+                  playConfirmationBeep();
+                  setIsSentinelLakeModalOpen(true);
+                }}
+                className="p-2.5 rounded-xl bg-[#131f32] hover:bg-[#1a2b45] active:bg-[#101b2c] border border-[#233a59] hover:border-emerald-400/60 text-left transition-all group cursor-pointer flex flex-col justify-between shadow-sm"
+                title="Launch Sentinel-2 Multispectral Split Satellite Lake Area Comparison"
+              >
+                <div className="flex items-center justify-between w-full mb-1">
+                  <CloudRain className="w-3.5 h-3.5 text-emerald-400 group-hover:scale-110 transition-transform" />
+                  <span className="text-[8px] font-mono text-emerald-400 px-1 rounded bg-emerald-500/10 border border-emerald-500/30">MSI</span>
+                </div>
+                <div>
+                  <div className="text-[11px] font-bold text-white group-hover:text-emerald-300 transition-colors leading-tight">
+                    Sentinel-2
+                  </div>
+                  <div className="text-[9px] text-[#8fa0b5] leading-tight mt-0.5">
+                    GLOF Lake
+                  </div>
+                </div>
+              </button>
+            </div>
+          </div>
+
           {/* A. FLOOD SURGE SIMULATOR */}
           <div className="p-5 border-b border-[#1c2738] space-y-3.5">
             <div className="flex items-center justify-between">
