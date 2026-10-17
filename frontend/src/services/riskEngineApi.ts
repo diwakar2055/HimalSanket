@@ -10,6 +10,7 @@
  */
 
 const RISK_ENGINE_API_BASE =
+  (typeof window !== "undefined" && (window as any).__APP_CONFIG__?.VITE_RISK_ENGINE_API) ||
   (typeof import.meta !== "undefined" && import.meta.env && import.meta.env.VITE_RISK_ENGINE_API) ||
   "http://localhost:8000";
 

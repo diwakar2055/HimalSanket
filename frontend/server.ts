@@ -545,7 +545,21 @@ INSTRUCTIONS FOR RESPONDING:
     const distPath = path.join(process.cwd(), "dist");
     app.use(express.static(distPath));
     app.get("*", (req, res) => {
-      res.sendFile(path.join(distPath, "index.html"));
+      const indexPath = path.join(distPath, "index.html");
+      try {
+        if (fs.existsSync(indexPath)) {
+          let html = fs.readFileSync(indexPath, "utf-8");
+          const runtimeConfig = {
+            VITE_GOOGLE_MAPS_API_KEY: process.env.VITE_GOOGLE_MAPS_API_KEY || "",
+            VITE_RISK_ENGINE_API: process.env.VITE_RISK_ENGINE_API || "",
+          };
+          const configScript = `<script>window.__APP_CONFIG__ = ${JSON.stringify(runtimeConfig)};</script>`;
+          html = html.replace("</head>", `${configScript}</head>`);
+          res.setHeader("Content-Type", "text/html; charset=utf-8");
+          return res.send(html);
+        }
+      } catch (_) {}
+      res.sendFile(indexPath);
     });
   }
 

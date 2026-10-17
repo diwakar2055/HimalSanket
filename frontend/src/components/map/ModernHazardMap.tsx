@@ -984,6 +984,13 @@ function LeafletHazardMapInner({
 // If no key is configured or auth fails, seamlessly runs high-res Satellite GIS.
 // Never prompts the user on the frontend for an API key.
 // ---------------------------------------------------------------------------
+export const getEffectiveGoogleMapsKey = (): string => {
+  if (typeof window !== "undefined" && (window as any).__APP_CONFIG__?.VITE_GOOGLE_MAPS_API_KEY) {
+    return (window as any).__APP_CONFIG__.VITE_GOOGLE_MAPS_API_KEY;
+  }
+  return import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "";
+};
+
 export const isConfiguredGoogleMapsKey = (key?: string): boolean => {
   if (!key) return false;
   const trimmed = key.trim();
@@ -998,8 +1005,8 @@ export const isConfiguredGoogleMapsKey = (key?: string): boolean => {
 };
 
 export function ModernHazardMap(props: ModernHazardMapProps) {
-  const configuredKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
-  const hasValidGoogleKey = isConfiguredGoogleMapsKey(configuredKey);
+  const effectiveKey = getEffectiveGoogleMapsKey();
+  const hasValidGoogleKey = isConfiguredGoogleMapsKey(effectiveKey);
 
   const [engine, setEngine] = useState<"google" | "leaflet">(() => {
     const saved = localStorage.getItem("himalsanket_map_engine") as "google" | "leaflet" | null;

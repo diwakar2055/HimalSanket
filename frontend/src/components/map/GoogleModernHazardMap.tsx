@@ -355,8 +355,11 @@ export function GoogleModernHazardMap({
     );
   }, [userPosition, distressBeacons]);
 
-  // API Key is strictly provided by the environment (.env.local) - never requested from frontend
-  const apiKey = (import.meta.env.VITE_GOOGLE_MAPS_API_KEY as string) || "";
+  // API Key is strictly provided by the environment or runtime config - never requested from frontend
+  const apiKey =
+    (typeof window !== "undefined" && (window as any).__APP_CONFIG__?.VITE_GOOGLE_MAPS_API_KEY) ||
+    (import.meta.env.VITE_GOOGLE_MAPS_API_KEY as string) ||
+    "";
   const [authFailed, setAuthFailed] = useState(false);
 
   // Clear any legacy client-side keys and listen for Google Maps auth failure
