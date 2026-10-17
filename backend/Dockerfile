@@ -13,10 +13,8 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy application source code
-COPY config.py models.py risk_engine.py cache.py timesfm_forecaster.py satellite_analyzer.py ai_reasoner.py main.py ./
-COPY routes/ ./routes/
-COPY static/ ./static/
+# Copy application source code (all modules, routes, and static assets)
+COPY . .
 
 # Create a non-privileged user for security on Cloud Run
 RUN useradd -u 1001 appuser && chown -R appuser:appuser /app
