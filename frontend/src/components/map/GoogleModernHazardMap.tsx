@@ -371,14 +371,12 @@ export function GoogleModernHazardMap({
     const prevAuthFailure = (window as any).gm_authFailure;
     (window as any).gm_authFailure = () => {
       setAuthFailed(true);
-      // Automatically switch to Leaflet Satellite GIS if Google Maps fails auth
-      onSwitchToLeaflet();
       if (typeof prevAuthFailure === "function") prevAuthFailure();
     };
     return () => {
       (window as any).gm_authFailure = prevAuthFailure;
     };
-  }, [onSwitchToLeaflet]);
+  }, []);
 
   // Format SAR Helpers
   const formatEtaTime = (seconds: number): string => {
@@ -834,14 +832,14 @@ export function GoogleModernHazardMap({
           <div className="flex items-center gap-2">
             <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0" />
             <span>
-              Google Maps authentication unavailable. Switched to high-resolution Satellite GIS.
+              Google Maps key unauthorized or missing in <code>frontend/.env.local</code>.
             </span>
           </div>
           <button
             onClick={onSwitchToLeaflet}
             className="px-3 py-1 bg-amber-600 hover:bg-amber-500 text-white rounded font-medium cursor-pointer shadow"
           >
-            Switch to Satellite GIS
+            Switch to Leaflet Satellite
           </button>
         </div>
       )}
