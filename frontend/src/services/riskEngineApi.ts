@@ -11,7 +11,7 @@
 
 const RISK_ENGINE_API_BASE =
   (typeof import.meta !== "undefined" && import.meta.env && import.meta.env.VITE_RISK_ENGINE_API) ||
-  "http://localhost:8080";
+  "http://localhost:8000";
 
 export interface OrchestratedLocationInput {
   location_id: string;

@@ -1,0 +1,16 @@
+1
+00:00:00,100 --> 00:00:03,502
+Watch what happens during an active emergency drill.
+
+2
+00:00:03,452 --> 00:00:14,011
+When sensors detect an acute cloudburst surge, our FastAPI orchestrator on Google Cloud Run recalculates corridor risk in milliseconds, escalating from Moderate to Critical.
+
+3
+00:00:14,011 --> 00:00:26,392
+Our GIS hydrodynamic model computes downstream wave arrival times: eighteen minutes to Lama Hotel gorge, thirty-eight minutes to Syabrubesi, and seventy-eight minutes to the Betrawati arterial bridge.
+
+4
+00:00:26,392 --> 00:00:40,357
+Instantly, Google Gemini synthesizes telemetry into localized action directives in English, native Nepali, compressed SMS alerts for 2G phones, and one-click official SITREP reports for Nepal's Disaster Management Authority.
+

@@ -42,6 +42,14 @@ export function SentinelLakeModal({
     setSliderPos(pct);
   };
 
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [onClose]);
+
   return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 backdrop-blur-md p-4 animate-in fade-in duration-200">
       <div className="w-full max-w-3xl rounded-3xl border border-white/[0.1] shadow-2xl overflow-hidden flex flex-col max-h-[92vh] bg-[#18191E] text-slate-100 font-sans">

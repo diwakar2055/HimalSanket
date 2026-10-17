@@ -155,6 +155,14 @@ export function ValleyElevationProfileModal({
   const [selectedStation, setSelectedStation] = useState<ProfileStation | null>(null);
   const [surge, setSurge] = useState<number>(initialSurge);
 
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [onClose]);
+
   const maxElev = profile.stations[0].elevationM;
   const minElev = profile.stations[profile.stations.length - 1].elevationM;
   const totalDrop = maxElev - minElev;

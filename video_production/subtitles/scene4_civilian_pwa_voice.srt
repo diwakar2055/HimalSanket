@@ -1,0 +1,20 @@
+1
+00:00:00,100 --> 00:00:04,121
+Disaster tools fail if people on the ground cannot use them.
+
+2
+00:00:04,071 --> 00:00:15,000
+For local guides, porters, and trekkers, HimalSanket operates as an offline-first Progressive Web App. Porters walking through freezing monsoon rain cannot type text on a phone.
+
+3
+00:00:15,000 --> 00:00:19,809
+With one tap, they record a ten-second voice note in their native dialect.
+
+4
+00:00:19,809 --> 00:00:30,738
+Google Gemini transcribes the audio, extracting critical danger keywords like murky floodwaters, landslide cracks, or acoustic rumblings, directly boosting risk confidence.
+
+5
+00:00:30,738 --> 00:00:40,011
+Trekkers can also consult our Gemini AI Safety Copilot for real-time trail guidance based on their live GPS elevation and distance to hazard zones.
+

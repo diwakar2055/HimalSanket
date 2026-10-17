@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useCallback } from "react";
 import { ModernHazardMap } from "../map/ModernHazardMap";
-import { MapAsset, CORRIDOR_CONFIGS } from "../../data/hazardMapData";
+import { MapAsset, CORRIDOR_CONFIGS, CORRIDOR_SENTINEL_LAKES } from "../../data/hazardMapData";
 import { Language } from "../../data/localization";
 import { useUserRole } from "../../context/UserRoleContext";
 import { playConfirmationBeep, playEmergencyChime } from "../../utils/audioAlert";
@@ -17,8 +17,14 @@ import {
   FileText,
   Volume2,
   Plane,
+  X,
+  Sparkles,
 } from "lucide-react";
 import { HelicopterIcon } from "../common/HelicopterIcon";
+import { SentinelLakeModal } from "../SentinelLakeModal";
+import { TimesfmForecastChart } from "../TimesfmForecastChart";
+import { ValleyElevationProfileModal } from "../ValleyElevationProfileModal";
+import { SitrepExportModal } from "../SitrepExportModal";
 
 interface AdminCommandDashboardProps {
   corridors: any[];
@@ -58,6 +64,11 @@ export function AdminCommandDashboard({
   const [advisorySent, setAdvisorySent] = useState(false);
   const [advisoryText, setAdvisoryText] = useState("");
 
+  const [isSentinelLakeModalOpen, setIsSentinelLakeModalOpen] = useState(false);
+  const [isTimesfmModalOpen, setIsTimesfmModalOpen] = useState(false);
+  const [isElevationModalOpen, setIsElevationModalOpen] = useState(false);
+  const [isSitrepModalOpen, setIsSitrepModalOpen] = useState(false);
+
   const selectedCorridor = useMemo(() => {
     const config = CORRIDOR_CONFIGS[selectedId] || CORRIDOR_CONFIGS.langtang;
     const telemetry = corridors.find((c) => c.id === selectedId) || corridors[0];
@@ -70,6 +81,25 @@ export function AdminCommandDashboard({
       centerName: config.centerName,
     };
   }, [corridors, selectedId]);
+
+  const corridorLake = useMemo(() => {
+    return (
+      CORRIDOR_SENTINEL_LAKES[selectedId] ||
+      CORRIDOR_SENTINEL_LAKES.langtang || {
+        lake_name: `${selectedCorridor.name} Glacial Lake`,
+        elevation_m: 4950,
+        region: selectedCorridor.region,
+        gps: selectedCorridor.gps,
+        baseline_date: "2026-08-05",
+        current_date: "2026-08-25",
+        baseline_area_km2: 0.88,
+        current_area_km2: 1.01,
+        area_change_pct: 14.8,
+        sensor: "Sentinel-2 MSI Level-2A",
+        water_mask_status: "EXPANDING RAPIDLY",
+      }
+    );
+  }, [selectedId, selectedCorridor]);
 
   const pendingSosCount = distressBeacons.filter((b) => b.status === "pending").length;
 
@@ -170,12 +200,26 @@ export function AdminCommandDashboard({
             </span>
           </div>
 
-          {/* Metric 2: Rainfall Telemetry */}
-          <div className="p-3.5 rounded-xl bg-[#111c2e] border border-[#1e2c44] flex items-center justify-between shadow-sm">
+          {/* Metric 2: Rainfall Telemetry & TimesFM Forecast */}
+          <div
+            onClick={() => {
+              playConfirmationBeep();
+              setIsTimesfmModalOpen(true);
+            }}
+            role="button"
+            tabIndex={0}
+            className="p-3.5 rounded-xl bg-[#111c2e] hover:bg-[#14233a] border border-[#1e2c44] hover:border-[#38bdf8]/60 flex items-center justify-between shadow-sm cursor-pointer transition-all group"
+            title="Click to view Google TimesFM 24h Predictive Precipitation Forecast"
+          >
             <div>
-              <span className="text-[11px] font-semibold text-[#8fa0b5] uppercase tracking-wider block">
-                Catchment Rain
-              </span>
+              <div className="flex items-center gap-1.5">
+                <span className="text-[11px] font-semibold text-[#8fa0b5] group-hover:text-[#38bdf8] uppercase tracking-wider block transition-colors">
+                  Catchment Rain
+                </span>
+                <span className="text-[9px] font-mono px-1 rounded bg-[#38bdf8]/15 text-[#38bdf8] border border-[#38bdf8]/30">
+                  TimesFM ↗
+                </span>
+              </div>
               <div className="flex items-baseline gap-1 mt-0.5">
                 <span className="text-xl font-bold text-[#f1f5f9] font-mono">
                   {selectedCorridor.rainfall}
@@ -185,15 +229,29 @@ export function AdminCommandDashboard({
                 </span>
               </div>
             </div>
-            <CloudRain className="w-4 h-4 text-[#8fa0b5]" />
+            <CloudRain className="w-4 h-4 text-[#8fa0b5] group-hover:text-[#38bdf8] transition-colors" />
           </div>
 
-          {/* Metric 3: Glacial Lake (GLOF) Watch */}
-          <div className="p-3.5 rounded-xl bg-[#111c2e] border border-[#1e2c44] flex items-center justify-between shadow-sm">
+          {/* Metric 3: Glacial Lake (GLOF) Watch & Sentinel-2 NDWI */}
+          <div
+            onClick={() => {
+              playConfirmationBeep();
+              setIsSentinelLakeModalOpen(true);
+            }}
+            role="button"
+            tabIndex={0}
+            className="p-3.5 rounded-xl bg-[#111c2e] hover:bg-[#14233a] border border-[#1e2c44] hover:border-emerald-500/60 flex items-center justify-between shadow-sm cursor-pointer transition-all group"
+            title="Click to inspect Sentinel-2 Multispectral Split Satellite View"
+          >
             <div>
-              <span className="text-[11px] font-semibold text-[#8fa0b5] uppercase tracking-wider block">
-                Glacial Lake Area
-              </span>
+              <div className="flex items-center gap-1.5">
+                <span className="text-[11px] font-semibold text-[#8fa0b5] group-hover:text-emerald-400 uppercase tracking-wider block transition-colors">
+                  Glacial Lake Area
+                </span>
+                <span className="text-[9px] font-mono px-1 rounded bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+                  Sentinel-2 ↗
+                </span>
+              </div>
               <div className="flex items-baseline gap-1 mt-0.5">
                 <span className="text-xl font-bold text-[#f1f5f9] font-mono">
                   +{selectedCorridor.lakeChange || 3.8}%
@@ -201,7 +259,7 @@ export function AdminCommandDashboard({
                 <span className="text-xs text-[#8c96af] font-normal">NDWI</span>
               </div>
             </div>
-            <Satellite className="w-4 h-4 text-[#8fa0b5]" />
+            <Satellite className="w-4 h-4 text-[#8fa0b5] group-hover:text-emerald-400 transition-colors" />
           </div>
 
           {/* Metric 4: Active SOS Alerts */}
@@ -317,6 +375,18 @@ export function AdminCommandDashboard({
                     20 + waterSurge * 35
                   )}m laterally.`}
             </p>
+
+            <button
+              onClick={() => {
+                playConfirmationBeep();
+                setIsElevationModalOpen(true);
+              }}
+              className="w-full py-2.5 px-3 rounded-xl bg-[#14233a] hover:bg-[#1c3252] border border-[#234066] text-xs text-[#38bdf8] font-semibold flex items-center justify-center gap-2 cursor-pointer transition-colors shadow-sm"
+              title="View Hydrodynamic Wave Travel Times & Elevation Drop Profile"
+            >
+              <Activity className="w-3.5 h-3.5 text-[#38bdf8]" />
+              <span>Valley Elevation Profile & Hydrodynamic Wave Times</span>
+            </button>
           </div>
 
           {/* B. SCENARIO DRILL TRIGGER */}
@@ -390,6 +460,18 @@ export function AdminCommandDashboard({
               <span>Broadcast Official Advisory</span>
             </button>
 
+            <button
+              onClick={() => {
+                playConfirmationBeep();
+                setIsSitrepModalOpen(true);
+              }}
+              className="w-full py-2.5 px-3 rounded-2xl bg-[#17263d] hover:bg-[#1e3454] border border-[#234066] text-xs text-[#38bdf8] font-semibold flex items-center justify-center gap-2 cursor-pointer transition-colors shadow-sm"
+              title="Generate Official Disaster SITREP for Nepal NDRRMA"
+            >
+              <FileText className="w-4 h-4 text-[#38bdf8]" />
+              <span>Generate Official NDRRMA SITREP</span>
+            </button>
+
             {/* Active SAR Fleet Live Telemetry Card */}
             <div className="p-3.5 rounded-2xl bg-[#131d2e] border border-[#1e2c44] space-y-2.5 text-xs">
               <div className="flex items-center justify-between">
@@ -424,6 +506,53 @@ export function AdminCommandDashboard({
           </div>
         </aside>
       </div>
+
+      {/* MODALS */}
+      {isSentinelLakeModalOpen && (
+        <SentinelLakeModal
+          lake={corridorLake}
+          onClose={() => setIsSentinelLakeModalOpen(false)}
+          language={language}
+        />
+      )}
+
+      {isTimesfmModalOpen && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 backdrop-blur-md p-4 animate-in fade-in duration-200">
+          <div className="w-full max-w-4xl max-h-[90vh] min-h-[440px] bg-[#111c2e] border border-white/10 rounded-3xl p-6 overflow-y-auto relative shadow-2xl custom-scrollbar flex flex-col justify-center">
+            <button
+              onClick={() => setIsTimesfmModalOpen(false)}
+              className="absolute top-5 right-5 p-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+            >
+              <X className="w-5 h-5" />
+            </button>
+            <TimesfmForecastChart
+              corridorId={selectedId}
+              corridorName={selectedCorridor.name}
+              currentRainfall={selectedCorridor.rainfall}
+              rainThreshold={selectedCorridor.rainThreshold || 144}
+              activeScenario={activeScenario}
+            />
+          </div>
+        </div>
+      )}
+
+      {isElevationModalOpen && (
+        <ValleyElevationProfileModal
+          corridorId={selectedId}
+          waterSurge={waterSurge}
+          onClose={() => setIsElevationModalOpen(false)}
+        />
+      )}
+
+      {isSitrepModalOpen && (
+        <SitrepExportModal
+          corridor={selectedCorridor}
+          risk={selectedRisk}
+          liveData={liveData}
+          waterSurge={waterSurge}
+          onClose={() => setIsSitrepModalOpen(false)}
+        />
+      )}
     </div>
   );
 }

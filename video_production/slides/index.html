@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HimalSanket — Google Cloud AI Builder Cup 2026 Presentation</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-color: #070d18;
+      color: #f1f5f9;
+      overflow-x: hidden;
+    }
+    .font-mono {
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .glass-card {
+      background: rgba(17, 28, 46, 0.85);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(56, 189, 248, 0.18);
+    }
+    .glow-cyan {
+      box-shadow: 0 0 35px rgba(56, 189, 248, 0.22);
+    }
+    .glow-rose {
+      box-shadow: 0 0 35px rgba(244, 63, 94, 0.25);
+    }
+    .active-tab {
+      background: #0284c7 !important;
+      color: #ffffff !important;
+      box-shadow: 0 0 15px rgba(2, 132, 199, 0.5);
+    }
+  </style>
+</head>
+<body class="w-screen h-screen flex flex-col justify-between p-4 sm:p-6 select-none relative bg-[#070d18]">
+  
+  <!-- 1. TOP HEADER & NAVIGATION -->
+  <header class="w-full flex flex-wrap items-center justify-between gap-3 z-30 shrink-0 border-b border-white/[0.08] pb-3">
+    <!-- Brand -->
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-600 to-sky-400 flex items-center justify-center shadow-lg shadow-sky-500/20">
+        <svg class="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="m8 3 4 8 5-5 5 15H2L8 3z"/>
+        </svg>
+      </div>
+      <div>
+        <div class="flex items-center gap-2">
+          <h1 class="text-lg font-bold tracking-tight text-white">HimalSanket <span class="text-sky-400 font-normal text-xs">हिमाल संकेत</span></h1>
+          <span class="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-sky-500/10 text-sky-400 border border-sky-500/30">AI BUILDER CUP 2026</span>
+        </div>
+        <p class="text-[11px] text-slate-400">Multi-Hazard Early Warning & Autonomous SAR</p>
+      </div>
+    </div>
+
+    <!-- Navigation Tabs (Guaranteed Instant Click Switching) -->
+    <div class="flex items-center gap-2">
+      <div class="flex items-center bg-[#0d1626] p-1 rounded-xl border border-sky-500/25 shadow-inner">
+        <button onclick="selectSlide(1)" id="tab-1" class="px-3.5 py-1.5 rounded-lg text-xs font-bold active-tab transition-all cursor-pointer">
+          1. Problem & Stats
+        </button>
+        <button onclick="selectSlide(2)" id="tab-2" class="px-3.5 py-1.5 rounded-lg text-xs font-bold text-slate-300 hover:text-white hover:bg-white/[0.05] transition-all cursor-pointer">
+          2. Live Prototype
+        </button>
+        <button onclick="selectSlide(3)" id="tab-3" class="px-3.5 py-1.5 rounded-lg text-xs font-bold text-slate-300 hover:text-white hover:bg-white/[0.05] transition-all cursor-pointer">
+          3. Architecture & Outro
+        </button>
+      </div>
+
+      <!-- Auto-Advance Toggle -->
+      <button id="btn-autoadvance" onclick="toggleAutoAdvance()" class="px-2.5 py-1.5 rounded-xl border border-white/10 text-[11px] font-mono text-slate-400 hover:text-slate-200 bg-white/[0.03] transition-all flex items-center gap-1.5 cursor-pointer" title="Automatically advance slides with audio">
+        <span id="dot-autoadvance" class="w-1.5 h-1.5 rounded-full bg-slate-500"></span>
+        <span id="label-autoadvance">Auto-Advance: OFF</span>
+      </button>
+
+      <!-- Hotkeys Hint -->
+      <span class="hidden lg:inline text-[10px] font-mono text-slate-500 bg-white/[0.02] px-2 py-1 rounded-lg border border-white/5">
+        Keys: [1] [2] [3] [Space]
+      </span>
+    </div>
+  </header>
+
+  <!-- 2. MAIN PRESENTATION CANVAS -->
+  <div class="flex-1 w-full min-h-0 flex flex-col justify-center items-center relative overflow-hidden py-2">
+    
+    <!-- SLIDE 1: Problem & Himalayan Reality (0:00 - 0:32) -->
+    <main id="slide-1" class="w-full max-w-6xl flex flex-col justify-center animate-in fade-in duration-200">
+      <div class="text-center space-y-2.5 mb-6">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs font-bold tracking-wider uppercase">
+          <span class="w-2 h-2 rounded-full bg-rose-500 animate-ping"></span>
+          The Himalayan Disaster Blind Spot
+        </div>
+        <h2 class="text-3xl sm:text-5xl font-extrabold tracking-tight text-white leading-tight">
+          When High Glaciers Burst, <br/>
+          <span class="text-transparent bg-clip-text bg-gradient-to-r from-rose-400 via-amber-300 to-sky-400">Ten Minutes Isn't Enough To Climb Out.</span>
+        </h2>
+        <p class="text-slate-400 text-sm sm:text-base max-w-2xl mx-auto leading-relaxed">
+          Deep mountain canyons like Langtang and Everest have only one trail in and one trail out. 
+          Traditional river sensors trigger alerts only after bridges and teahouses are already washing away.
+        </p>
+      </div>
+
+      <!-- 3 Big Problem Metrics Cards -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+        <div class="glass-card p-5 sm:p-6 rounded-2xl glow-rose border-rose-500/30 flex flex-col justify-between">
+          <div>
+            <span class="text-xs font-mono font-bold text-rose-400 uppercase tracking-wider block">Catastrophic Toll</span>
+            <div class="text-4xl sm:text-5xl font-extrabold text-white font-mono mt-2">1,287+</div>
+            <p class="text-xs text-slate-300 font-medium mt-1">Lives Lost in Himalayan Floods</p>
+          </div>
+          <p class="text-xs text-slate-400 leading-relaxed mt-4 pt-4 border-t border-white/[0.08]">
+            Monsoon cloudbursts and moraine breaches sweep entire valley settlements in minutes.
+          </p>
+        </div>
+
+        <div class="glass-card p-5 sm:p-6 rounded-2xl glow-cyan border-sky-500/30 flex flex-col justify-between">
+          <div>
+            <span class="text-xs font-mono font-bold text-sky-400 uppercase tracking-wider block">Corridor Chokepoints</span>
+            <div class="text-4xl sm:text-5xl font-extrabold text-white font-mono mt-2">380+</div>
+            <p class="text-xs text-slate-300 font-medium mt-1">Stranded in Single Valley Cuts</p>
+          </div>
+          <p class="text-xs text-slate-400 leading-relaxed mt-4 pt-4 border-t border-white/[0.08]">
+            Single trails trapped by surging rivers cut off all terrestrial escape and cellular communication.
+          </p>
+        </div>
+
+        <div class="glass-card p-5 sm:p-6 rounded-2xl border-amber-500/30 flex flex-col justify-between">
+          <div>
+            <span class="text-xs font-mono font-bold text-amber-400 uppercase tracking-wider block">The Reaction Window</span>
+            <div class="text-4xl sm:text-5xl font-extrabold text-amber-300 font-mono mt-2">10-15m</div>
+            <p class="text-xs text-slate-300 font-medium mt-1">Legacy In-River Sensor Warning</p>
+          </div>
+          <p class="text-xs text-slate-400 leading-relaxed mt-4 pt-4 border-t border-white/[0.08]">
+            Alerts sound only after the flood hits the river gauge. Civilians cannot scale canyon cliffs in 10 minutes.
+          </p>
+        </div>
+      </div>
+
+      <!-- The HimalSanket Shift Banner -->
+      <div class="mt-6 p-4 rounded-2xl bg-gradient-to-r from-sky-950/70 via-slate-900 to-indigo-950/70 border border-sky-500/30 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded-lg bg-sky-500/20 text-sky-400 flex items-center justify-center font-bold text-xs shrink-0">VS</div>
+          <p class="text-xs sm:text-sm text-slate-200">
+            <strong class="text-sky-400">The HimalSanket Shift:</strong> We combine weak pre-disaster signals (Sentinel-2 satellite NDWI, TimesFM precipitation forecasts, USGS seismic tremors & porter voice notes) to predict disasters <strong class="text-emerald-400">hours before impact</strong>.
+          </p>
+        </div>
+        <button onclick="selectSlide(2)" class="hidden sm:flex px-3 py-1.5 rounded-lg bg-sky-500 hover:bg-sky-400 text-white font-bold text-xs shrink-0 items-center gap-1 cursor-pointer transition-all">
+          <span>See Live Prototype</span>
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
+        </button>
+      </div>
+    </main>
+
+    <!-- SLIDE 2: Prototype Live Demo (0:33 - 3:20) -->
+    <main id="slide-2" class="hidden w-full h-full max-w-7xl flex flex-col justify-between animate-in fade-in duration-200">
+      <!-- Toolbar for Prototype Mode -->
+      <div class="flex items-center justify-between mb-2 px-1">
+        <div class="flex items-center gap-2">
+          <span class="px-2.5 py-0.5 rounded-md text-[10px] font-mono font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 uppercase">
+            ● Live Prototype Active
+          </span>
+          <span class="text-xs text-slate-400 font-mono">http://localhost:3000</span>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <button id="btn-proto-embed" onclick="setProtoView('embed')" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-sky-500 text-white cursor-pointer transition-all">
+            Interactive Embed
+          </button>
+          <button id="btn-proto-cards" onclick="setProtoView('cards')" class="px-2.5 py-1 rounded-lg text-xs font-bold text-slate-400 hover:text-white bg-white/[0.05] cursor-pointer transition-all">
+            3-Role Overview
+          </button>
+          <a href="http://localhost:3000" target="_blank" class="px-2.5 py-1 rounded-lg text-xs font-bold text-sky-400 hover:text-sky-300 bg-sky-500/10 border border-sky-500/30 flex items-center gap-1 transition-all">
+            <span>Open in Full Tab ↗</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- View 1: Embedded Iframe of http://localhost:3000 -->
+      <div id="proto-embed-container" class="flex-1 w-full rounded-2xl overflow-hidden border border-sky-500/30 bg-[#0b1320] shadow-2xl relative">
+        <iframe id="proto-iframe" src="http://localhost:3000" class="w-full h-full border-0" allow="geolocation; microphone"></iframe>
+      </div>
+
+      <!-- View 2: Feature Overview Cards -->
+      <div id="proto-cards-container" class="hidden flex-1 w-full grid grid-cols-1 md:grid-cols-3 gap-5 items-center">
+        <div class="glass-card p-6 rounded-2xl border-white/10 hover:border-sky-500/40 transition-all h-full flex flex-col justify-between">
+          <div>
+            <div class="w-12 h-12 rounded-xl bg-sky-500/20 text-sky-400 flex items-center justify-center font-bold mb-4 text-xl">1</div>
+            <h3 class="text-lg font-bold text-white mb-1">Admin Command Center</h3>
+            <p class="text-xs text-sky-400 font-mono mb-3">Multi-Hazard Fusion & GIS</p>
+            <p class="text-xs text-slate-300 leading-relaxed">
+              5-metric continuous health cards, interactive flood surge simulator (+5m), downstream river cascade travel times, and Gemini bilingual tactical briefings.
+            </p>
+          </div>
+          <div class="pt-4 mt-4 border-t border-white/[0.08] text-[11px] font-mono text-slate-400">
+            Live Drill: Moderate ➔ Critical Spike
+          </div>
+        </div>
+
+        <div class="glass-card p-6 rounded-2xl border-white/10 hover:border-emerald-500/40 transition-all h-full flex flex-col justify-between">
+          <div>
+            <div class="w-12 h-12 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold mb-4 text-xl">2</div>
+            <h3 class="text-lg font-bold text-white mb-1">Civilian / Trekker PWA</h3>
+            <p class="text-xs text-emerald-400 font-mono mb-3">Offline-First Mountain Companion</p>
+            <p class="text-xs text-slate-300 leading-relaxed">
+              One-tap voice report recorder with AI Nepali keyword extraction, live distance to hazard zones, safe shelters directory, and Gemini conversational safety assistant.
+            </p>
+          </div>
+          <div class="pt-4 mt-4 border-t border-white/[0.08] text-[11px] font-mono text-slate-400">
+            Voice AI: «पहिरो» & «पानी बढ्यो»
+          </div>
+        </div>
+
+        <div class="glass-card p-6 rounded-2xl border-white/10 hover:border-rose-500/40 transition-all h-full flex flex-col justify-between">
+          <div>
+            <div class="w-12 h-12 rounded-xl bg-rose-500/20 text-rose-400 flex items-center justify-center font-bold mb-4 text-xl">3</div>
+            <h3 class="text-lg font-bold text-white mb-1">Search & Rescue Fleet</h3>
+            <p class="text-xs text-rose-400 font-mono mb-3">SOS Capsule & Sortie Tracking</p>
+            <p class="text-xs text-slate-300 leading-relaxed">
+              Low-bandwidth GPS distress micro-packet triage, live helicopter rescue sortie dispatch with ETA countdowns, and civilian tracking HUD.
+            </p>
+          </div>
+          <div class="pt-4 mt-4 border-t border-white/[0.08] text-[11px] font-mono text-slate-400">
+            Triage: SAR-NAT-8 Sortie In Flight
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- SLIDE 3: Architecture & Closing (3:21 - 3:44) -->
+    <main id="slide-3" class="hidden w-full max-w-5xl flex flex-col justify-center animate-in fade-in duration-200">
+      <div class="text-center space-y-2 mb-6">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-bold tracking-wider uppercase">
+          Google Cloud Ecosystem Put To Real Work
+        </div>
+        <h2 class="text-3xl sm:text-4xl font-extrabold text-white">Full-Stack Cloud Architecture</h2>
+      </div>
+
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        <div class="glass-card p-4 rounded-xl border-white/10 text-center">
+          <div class="w-10 h-10 mx-auto rounded-lg bg-sky-500/20 text-sky-400 flex items-center justify-center mb-2 font-mono font-bold text-xs">AI</div>
+          <h4 class="text-sm font-bold text-white">Google Gemini</h4>
+          <p class="text-[11px] text-slate-400 mt-1">Multimodal reasoning, English/Nepali briefings & voice analysis</p>
+        </div>
+
+        <div class="glass-card p-4 rounded-xl border-white/10 text-center">
+          <div class="w-10 h-10 mx-auto rounded-lg bg-indigo-500/20 text-indigo-400 flex items-center justify-center mb-2 font-mono font-bold text-xs">FM</div>
+          <h4 class="text-sm font-bold text-white">Google TimesFM</h4>
+          <p class="text-[11px] text-slate-400 mt-1">Pre-trained Foundation Model for 24h precipitation forecasting</p>
+        </div>
+
+        <div class="glass-card p-4 rounded-xl border-white/10 text-center">
+          <div class="w-10 h-10 mx-auto rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center mb-2 font-mono font-bold text-xs">RUN</div>
+          <h4 class="text-sm font-bold text-white">Cloud Run</h4>
+          <p class="text-[11px] text-slate-400 mt-1">Containerized microservices & deterministic mathematical engine</p>
+        </div>
+
+        <div class="glass-card p-4 rounded-xl border-white/10 text-center">
+          <div class="w-10 h-10 mx-auto rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center mb-2 font-mono font-bold text-xs">SYNC</div>
+          <h4 class="text-sm font-bold text-white">Cloud Firestore</h4>
+          <p class="text-[11px] text-slate-400 mt-1">Real-time bi-directional SOS and dispatch coordination</p>
+        </div>
+      </div>
+
+      <!-- Closing Impact Banner -->
+      <div class="glass-card p-6 sm:p-8 rounded-2xl border-sky-500/40 text-center relative overflow-hidden glow-cyan">
+        <p class="text-xl sm:text-2xl font-bold text-slate-100 italic mb-2">
+          "Langtang has flooded twice in a decade. HimalSanket exists so there isn't a third time."
+        </p>
+        <p class="text-xs sm:text-sm text-sky-400 font-mono mt-3">
+          Team HimalSanket: Amrit, Divakar, Basanta, Sudip · Google Cloud AI Builder Cup 2026
+        </p>
+      </div>
+    </main>
+
+  </div>
+
+  <!-- 3. BOTTOM AUDIO & SYNCHRONIZED CAPTIONS CONTROLLER -->
+  <footer class="w-full glass-card p-3 sm:p-4 rounded-2xl flex flex-col gap-2.5 z-30 shrink-0 border border-sky-500/20">
+    
+    <!-- Timeline Scrub Bar -->
+    <div class="w-full flex items-center gap-3">
+      <span id="time-current" class="text-xs font-mono text-sky-400 w-10 text-right">0:00</span>
+      <div class="relative flex-1 h-2 rounded-full bg-slate-800 cursor-pointer overflow-hidden" onclick="seekAudio(event)" id="scrub-container">
+        <div id="scrub-fill" class="h-full bg-gradient-to-r from-sky-500 to-cyan-400 rounded-full w-0 transition-all duration-75"></div>
+      </div>
+      <span id="time-total" class="text-xs font-mono text-slate-400 w-10">3:50</span>
+    </div>
+
+    <!-- Playback Buttons & Live Subtitles Bar -->
+    <div class="flex flex-col sm:flex-row items-center justify-between gap-3">
+      <!-- Play/Pause Controls -->
+      <div class="flex items-center gap-2 shrink-0">
+        <button id="btn-play" onclick="togglePlayAudio()" class="px-4 py-2 rounded-xl bg-sky-500 hover:bg-sky-400 text-white font-bold text-xs flex items-center gap-2 shadow-lg shadow-sky-500/25 transition-all cursor-pointer">
+          <svg id="icon-play" class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+          <span id="label-play">Play AI Voiceover</span>
+        </button>
+
+        <button onclick="skipSeconds(-5)" class="p-2 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] text-slate-300 text-xs cursor-pointer transition-all" title="Rewind 5s">
+          -5s
+        </button>
+        <button onclick="skipSeconds(5)" class="p-2 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] text-slate-300 text-xs cursor-pointer transition-all" title="Forward 5s">
+          +5s
+        </button>
+      </div>
+
+      <!-- Live Synchronized Subtitles Pill -->
+      <div class="flex-1 w-full max-w-3xl">
+        <div id="caption-box" class="px-4 py-2 rounded-xl bg-black/75 border border-sky-500/25 text-xs sm:text-sm font-medium text-slate-200 min-h-[42px] flex items-center justify-center text-center shadow-inner">
+          <span class="text-slate-500 italic">Press "Play AI Voiceover" to start synchronized narration & captions.</span>
+        </div>
+      </div>
+
+      <!-- Scene Quick Jump Buttons (6 Acts) -->
+      <div class="flex flex-wrap items-center gap-1 shrink-0">
+        <button onclick="jumpToScene(0)" class="px-2 py-1 rounded-lg text-[10px] font-mono text-slate-400 hover:text-white bg-white/[0.04] border border-white/10 cursor-pointer">1. Problem (0s)</button>
+        <button onclick="jumpToScene(38.5)" class="px-2 py-1 rounded-lg text-[10px] font-mono text-slate-400 hover:text-white bg-white/[0.04] border border-white/10 cursor-pointer">2. Fusion & TimesFM (38s)</button>
+        <button onclick="jumpToScene(84.6)" class="px-2 py-1 rounded-lg text-[10px] font-mono text-slate-400 hover:text-white bg-white/[0.04] border border-white/10 cursor-pointer">3. Live Drill (85s)</button>
+        <button onclick="jumpToScene(126.5)" class="px-2 py-1 rounded-lg text-[10px] font-mono text-slate-400 hover:text-white bg-white/[0.04] border border-white/10 cursor-pointer">4. Voice AI (126s)</button>
+        <button onclick="jumpToScene(168.0)" class="px-2 py-1 rounded-lg text-[10px] font-mono text-slate-400 hover:text-white bg-white/[0.04] border border-white/10 cursor-pointer">5. SOS SAR (168s)</button>
+        <button onclick="jumpToScene(203.7)" class="px-2 py-1 rounded-lg text-[10px] font-mono text-slate-400 hover:text-white bg-white/[0.04] border border-white/10 cursor-pointer">6. Architecture (204s)</button>
+      </div>
+    </div>
+
+    <!-- Hidden audio element with relative and absolute path fallbacks -->
+    <audio id="audio-player" preload="auto">
+      <source src="../audio/himalsanket_master_voiceover.mp3" type="audio/mpeg">
+      <source src="/video-production/audio/himalsanket_master_voiceover.mp3" type="audio/mpeg">
+    </audio>
+  </footer>
+
+  <!-- 4. JAVASCRIPT: GUARANTEED ZERO-FAIL SLIDE SWITCHING & EMBEDDED SUBTITLES -->
+  <script>
+    // Embedded Subtitles Array (Zero CORS fetch dependency, works 100% on file:/// and http://)
+    const CUES = [
+      { start: 0.100, end: 10.204, text: "In August 2026, a catastrophic glacial flood tore through Langtang Valley, leaving over three hundred eighty tourists uncontactable and claiming thousands of lives." },
+      { start: 10.154, end: 15.714, text: "In steep Himalayan canyons, there is only one foot trail in, and one trail out." },
+      { start: 15.714, end: 20.952, text: "Today's government warning systems rely solely on physical river sensors downstream." },
+      { start: 20.952, end: 28.416, text: "Sirens sound only after bridges are already washing away, giving people ten minutes to scale vertical cliffs in the pitch dark." },
+      { start: 28.416, end: 36.952, text: "This is HimalSanket: an AI-powered multi-hazard early warning and autonomous rescue system built so the next search doesn't take eleven days." },
+      { start: 38.552, end: 41.621, text: "HimalSanket doesn't guess or hallucinate." },
+      { start: 41.571, end: 58.916, text: "Our deterministic fusion engine combines five continuous vectors: catchment rainfall at thirty percent weight, Sentinel-2 glacial lake expansion at twenty-five percent, USGS seismic tremors at twenty percent, porter ground reports at fifteen percent, and geomorphic slope at ten percent." },
+      { start: 58.916, end: 71.309, text: "Using European Space Agency Sentinel-2 multispectral imagery, our pipeline monitors moraine lakes at five thousand meters altitude, tracking normalized difference water index expansion pixel by pixel." },
+      { start: 71.309, end: 83.011, text: "Simultaneously, Google's TimesFM foundation model forecasts precipitation spikes twenty-four hours in advance, allowing mountain communities to evacuate long before cloudbursts hit the ground." },
+      { start: 84.611, end: 88.014, text: "Watch what happens during an active emergency drill." },
+      { start: 87.964, end: 98.523, text: "When sensors detect an acute cloudburst surge, our FastAPI orchestrator on Google Cloud Run recalculates corridor risk in milliseconds, escalating from Moderate to Critical." },
+      { start: 98.523, end: 110.904, text: "Our GIS hydrodynamic model computes downstream wave arrival times: eighteen minutes to Lama Hotel gorge, thirty-eight minutes to Syabrubesi, and seventy-eight minutes to the Betrawati arterial bridge." },
+      { start: 110.904, end: 124.869, text: "Instantly, Google Gemini synthesizes telemetry into localized action directives in English, native Nepali, compressed SMS alerts for 2G phones, and one-click official SITREP reports for Nepal's Disaster Management Authority." },
+      { start: 126.469, end: 130.490, text: "Disaster tools fail if people on the ground cannot use them." },
+      { start: 130.440, end: 141.369, text: "For local guides, porters, and trekkers, HimalSanket operates as an offline-first Progressive Web App. Porters walking through freezing monsoon rain cannot type text on a phone." },
+      { start: 141.369, end: 146.178, text: "With one tap, they record a ten-second voice note in their native dialect." },
+      { start: 146.178, end: 157.107, text: "Google Gemini transcribes the audio, extracting critical danger keywords like murky floodwaters, landslide cracks, or acoustic rumblings, directly boosting risk confidence." },
+      { start: 157.107, end: 166.380, text: "Trekkers can also consult our Gemini AI Safety Copilot for real-time trail guidance based on their live GPS elevation and distance to hazard zones." },
+      { start: 167.980, end: 172.776, text: "When disaster strikes and a civilian is trapped, every kilobyte matters." },
+      { start: 172.726, end: 182.821, text: "HimalSanket's SOS Distress Capsule transmits ultralight micro-packets with exact GPS coordinates first, guaranteed to puncture fleeting 2G signal windows." },
+      { start: 182.821, end: 191.035, text: "At Search and Rescue headquarters, incoming distress calls are automatically prioritized by elevation vulnerability and medical urgency." },
+      { start: 191.035, end: 202.083, text: "With one click, commanders dispatch search and rescue helicopter sorties, streaming live telemetry, terrain clearance vectors, and real-time flight tracking directly to rescue teams." },
+      { start: 203.683, end: 209.335, text: "Under the hood, Google Gemini provides multimodal reasoning and multilingual briefings." },
+      { start: 209.285, end: 213.369, text: "Google TimesFM delivers predictive rainfall forecasting." },
+      { start: 213.369, end: 220.416, text: "Cloud Run powers our microservice orchestrator, and Cloud Firestore synchronizes life-saving alerts in real time." },
+      { start: 220.416, end: 224.416, text: "Langtang has flooded and buried its people twice in a decade." },
+      { start: 224.416, end: 227.857, text: "HimalSanket exists so there isn't a third time." },
+      { start: 227.857, end: 230.700, text: "Thank you." }
+    ];
+
+    let currentSlide = 1;
+    let autoAdvance = false;
+
+    const audio = document.getElementById("audio-player");
+    const playBtn = document.getElementById("btn-play");
+    const playIcon = document.getElementById("icon-play");
+    const playLabel = document.getElementById("label-play");
+    const timeCurrent = document.getElementById("time-current");
+    const timeTotal = document.getElementById("time-total");
+    const scrubFill = document.getElementById("scrub-fill");
+    const captionBox = document.getElementById("caption-box");
+
+    // 1. GUARANTEED MANUAL SLIDE SWITCHING
+    function selectSlide(n, userInitiated = true) {
+      currentSlide = n;
+      for (let i = 1; i <= 3; i++) {
+        const slideEl = document.getElementById(`slide-${i}`);
+        const tabEl = document.getElementById(`tab-${i}`);
+        if (i === n) {
+          slideEl.classList.remove("hidden");
+          tabEl.className = "px-3.5 py-1.5 rounded-lg text-xs font-bold active-tab transition-all cursor-pointer";
+        } else {
+          slideEl.classList.add("hidden");
+          tabEl.className = "px-3.5 py-1.5 rounded-lg text-xs font-bold text-slate-300 hover:text-white hover:bg-white/[0.05] transition-all cursor-pointer";
+        }
+      }
+
+      // If user manually switched tabs, turn off auto-advance so audio never fights them
+      if (userInitiated && autoAdvance) {
+        toggleAutoAdvance(false);
+      }
+    }
+
+    // Prototype view sub-toggle (Embed iframe vs 3 cards)
+    function setProtoView(mode) {
+      const embedCont = document.getElementById("proto-embed-container");
+      const cardsCont = document.getElementById("proto-cards-container");
+      const btnEmbed = document.getElementById("btn-proto-embed");
+      const btnCards = document.getElementById("btn-proto-cards");
+
+      if (mode === "embed") {
+        embedCont.classList.remove("hidden");
+        cardsCont.classList.add("hidden");
+        btnEmbed.className = "px-2.5 py-1 rounded-lg text-xs font-bold bg-sky-500 text-white cursor-pointer transition-all";
+        btnCards.className = "px-2.5 py-1 rounded-lg text-xs font-bold text-slate-400 hover:text-white bg-white/[0.05] cursor-pointer transition-all";
+      } else {
+        embedCont.classList.add("hidden");
+        cardsCont.classList.remove("hidden");
+        btnEmbed.className = "px-2.5 py-1 rounded-lg text-xs font-bold text-slate-400 hover:text-white bg-white/[0.05] cursor-pointer transition-all";
+        btnCards.className = "px-2.5 py-1 rounded-lg text-xs font-bold bg-sky-500 text-white cursor-pointer transition-all";
+      }
+    }
+
+    // Auto-advance toggle
+    function toggleAutoAdvance(forceState) {
+      autoAdvance = typeof forceState === "boolean" ? forceState : !autoAdvance;
+      const dot = document.getElementById("dot-autoadvance");
+      const lbl = document.getElementById("label-autoadvance");
+      if (autoAdvance) {
+        dot.className = "w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse";
+        lbl.innerText = "Auto-Advance: ON";
+      } else {
+        dot.className = "w-1.5 h-1.5 rounded-full bg-slate-500";
+        lbl.innerText = "Auto-Advance: OFF";
+      }
+    }
+
+    // Audio Play/Pause
+    function togglePlayAudio() {
+      if (audio.paused) {
+        audio.play().then(() => {
+          playLabel.innerText = "Pause";
+          playIcon.innerHTML = '<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>';
+        }).catch(err => {
+          console.error("Playback failed:", err);
+          captionBox.innerHTML = `<span class="text-rose-400">Audio playback notice: Please click anywhere on the page to enable browser sound.</span>`;
+        });
+      } else {
+        audio.pause();
+        playLabel.innerText = "Play AI Voiceover";
+        playIcon.innerHTML = '<path d="M8 5v14l11-7z"/>';
+      }
+    }
+
+    function skipSeconds(sec) {
+      audio.currentTime = Math.max(0, Math.min(audio.duration || 224, audio.currentTime + sec));
+    }
+
+    function seekAudio(e) {
+      const container = document.getElementById("scrub-container");
+      const rect = container.getBoundingClientRect();
+      const clickX = e.clientX - rect.left;
+      const pct = Math.max(0, Math.min(1, clickX / rect.width));
+      const dur = audio.duration || 224.4;
+      audio.currentTime = pct * dur;
+    }
+
+    function jumpToScene(timeSec) {
+      audio.currentTime = timeSec;
+      if (audio.paused) {
+        togglePlayAudio();
+      }
+      if (timeSec < 33) selectSlide(1, false);
+      else if (timeSec < 203) selectSlide(2, false);
+      else selectSlide(3, false);
+    }
+
+    // Synchronize Timeline, Captions & Optional Auto-Advance
+    audio.addEventListener("timeupdate", () => {
+      const t = audio.currentTime;
+      const dur = audio.duration || 224.4;
+      const mins = Math.floor(t / 60);
+      const secs = Math.floor(t % 60);
+      timeCurrent.innerText = `${mins}:${secs < 10 ? "0" : ""}${secs}`;
+
+      const totalMins = Math.floor(dur / 60);
+      const totalSecs = Math.floor(dur % 60);
+      timeTotal.innerText = `${totalMins}:${totalSecs < 10 ? "0" : ""}${totalSecs}`;
+
+      // Update progress bar
+      const pct = (t / dur) * 100;
+      scrubFill.style.width = `${pct}%`;
+
+      // Synchronize Subtitles
+      const activeCue = CUES.find(c => t >= c.start && t <= c.end);
+      if (activeCue) {
+        captionBox.innerHTML = `<span class="text-sky-300 font-semibold tracking-wide">"${activeCue.text}"</span>`;
+      }
+
+      // ONLY advance slides automatically if user explicitly turned Auto-Advance ON
+      if (autoAdvance) {
+        if (t < 33 && currentSlide !== 1) {
+          selectSlide(1, false);
+        } else if (t >= 33 && t < 203 && currentSlide !== 2) {
+          selectSlide(2, false);
+        } else if (t >= 203 && currentSlide !== 3) {
+          selectSlide(3, false);
+        }
+      }
+    });
+
+    audio.addEventListener("ended", () => {
+      playLabel.innerText = "Replay";
+      playIcon.innerHTML = '<path d="M8 5v14l11-7z"/>';
+    });
+
+    // Keyboard Hotkeys
+    window.addEventListener("keydown", (e) => {
+      if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") return;
+      if (e.key === "1") selectSlide(1);
+      if (e.key === "2") selectSlide(2);
+      if (e.key === "3") selectSlide(3);
+      if (e.key === " " || e.code === "Space") {
+        e.preventDefault();
+        togglePlayAudio();
+      }
+      if (e.key === "ArrowLeft") skipSeconds(-5);
+      if (e.key === "ArrowRight") skipSeconds(5);
+    });
+  </script>
+</body>
+</html>

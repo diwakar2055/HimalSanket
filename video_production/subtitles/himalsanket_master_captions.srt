@@ -1,0 +1,112 @@
+1
+00:00:00,100 --> 00:00:10,204
+In August 2026, a catastrophic glacial flood tore through Langtang Valley, leaving over three hundred eighty tourists uncontactable and claiming thousands of lives.
+
+2
+00:00:10,154 --> 00:00:15,714
+In steep Himalayan canyons, there is only one foot trail in, and one trail out.
+
+3
+00:00:15,714 --> 00:00:20,952
+Today's government warning systems rely solely on physical river sensors downstream.
+
+4
+00:00:20,952 --> 00:00:28,416
+Sirens sound only after bridges are already washing away, giving people ten minutes to scale vertical cliffs in the pitch dark.
+
+5
+00:00:28,416 --> 00:00:36,952
+This is HimalSanket: an AI-powered multi-hazard early warning and autonomous rescue system built so the next search doesn't take eleven days.
+
+6
+00:00:38,552 --> 00:00:41,621
+HimalSanket doesn't guess or hallucinate.
+
+7
+00:00:41,571 --> 00:00:58,916
+Our deterministic fusion engine combines five continuous vectors: catchment rainfall at thirty percent weight, Sentinel-2 glacial lake expansion at twenty-five percent, USGS seismic tremors at twenty percent, porter ground reports at fifteen percent, and geomorphic slope at ten percent.
+
+8
+00:00:58,916 --> 00:01:11,309
+Using European Space Agency Sentinel-2 multispectral imagery, our pipeline monitors moraine lakes at five thousand meters altitude, tracking normalized difference water index expansion pixel by pixel.
+
+9
+00:01:11,309 --> 00:01:23,011
+Simultaneously, Google's TimesFM foundation model forecasts precipitation spikes twenty-four hours in advance, allowing mountain communities to evacuate long before cloudbursts hit the ground.
+
+10
+00:01:24,611 --> 00:01:28,014
+Watch what happens during an active emergency drill.
+
+11
+00:01:27,964 --> 00:01:38,523
+When sensors detect an acute cloudburst surge, our FastAPI orchestrator on Google Cloud Run recalculates corridor risk in milliseconds, escalating from Moderate to Critical.
+
+12
+00:01:38,523 --> 00:01:50,904
+Our GIS hydrodynamic model computes downstream wave arrival times: eighteen minutes to Lama Hotel gorge, thirty-eight minutes to Syabrubesi, and seventy-eight minutes to the Betrawati arterial bridge.
+
+13
+00:01:50,904 --> 00:02:04,869
+Instantly, Google Gemini synthesizes telemetry into localized action directives in English, native Nepali, compressed SMS alerts for 2G phones, and one-click official SITREP reports for Nepal's Disaster Management Authority.
+
+14
+00:02:06,469 --> 00:02:10,490
+Disaster tools fail if people on the ground cannot use them.
+
+15
+00:02:10,440 --> 00:02:21,369
+For local guides, porters, and trekkers, HimalSanket operates as an offline-first Progressive Web App. Porters walking through freezing monsoon rain cannot type text on a phone.
+
+16
+00:02:21,369 --> 00:02:26,178
+With one tap, they record a ten-second voice note in their native dialect.
+
+17
+00:02:26,178 --> 00:02:37,107
+Google Gemini transcribes the audio, extracting critical danger keywords like murky floodwaters, landslide cracks, or acoustic rumblings, directly boosting risk confidence.
+
+18
+00:02:37,107 --> 00:02:46,380
+Trekkers can also consult our Gemini AI Safety Copilot for real-time trail guidance based on their live GPS elevation and distance to hazard zones.
+
+19
+00:02:47,980 --> 00:02:52,776
+When disaster strikes and a civilian is trapped, every kilobyte matters.
+
+20
+00:02:52,726 --> 00:03:02,821
+HimalSanket's SOS Distress Capsule transmits ultralight micro-packets with exact GPS coordinates first, guaranteed to puncture fleeting 2G signal windows.
+
+21
+00:03:02,821 --> 00:03:11,035
+At Search and Rescue headquarters, incoming distress calls are automatically prioritized by elevation vulnerability and medical urgency.
+
+22
+00:03:11,035 --> 00:03:22,083
+With one click, commanders dispatch search and rescue helicopter sorties, streaming live telemetry, terrain clearance vectors, and real-time flight tracking directly to rescue teams.
+
+23
+00:03:23,683 --> 00:03:29,335
+Under the hood, Google Gemini provides multimodal reasoning and multilingual briefings.
+
+24
+00:03:29,285 --> 00:03:33,369
+Google TimesFM delivers predictive rainfall forecasting.
+
+25
+00:03:33,369 --> 00:03:40,416
+Cloud Run powers our microservice orchestrator, and Cloud Firestore synchronizes life-saving alerts in real time.
+
+26
+00:03:40,416 --> 00:03:44,416
+Langtang has flooded and buried its people twice in a decade.
+
+27
+00:03:44,416 --> 00:03:47,857
+HimalSanket exists so there isn't a third time.
+
+28
+00:03:47,857 --> 00:03:49,238
+Thank you.
+

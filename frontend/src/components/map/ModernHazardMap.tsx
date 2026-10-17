@@ -18,6 +18,7 @@ import {
   Navigation,
 } from "lucide-react";
 import { HELICOPTER_SVG_PATH } from "../common/HelicopterIcon";
+import { GoogleModernHazardMap } from "./GoogleModernHazardMap";
 
 export interface ModernHazardMapProps {
   corridor: CorridorConfig;
@@ -39,7 +40,7 @@ export interface ModernHazardMapProps {
   className?: string;
 }
 
-export function ModernHazardMap({
+function LeafletHazardMapInner({
   corridor,
   assets = [],
   mode = "admin",
@@ -56,8 +57,9 @@ export function ModernHazardMap({
   simulatedWaterRise = 0,
   onLocateMe,
   isLocating = false,
+  onSwitchToGoogle,
   className = "",
-}: ModernHazardMapProps) {
+}: ModernHazardMapProps & { onSwitchToGoogle: () => void }) {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<L.Map | null>(null);
   const tileLayerRef = useRef<L.TileLayer | null>(null);
@@ -588,7 +590,7 @@ export function ModernHazardMap({
     if (!userGpsLayerRef.current) return;
     userGpsLayerRef.current.clearLayers();
 
-    if (!userPosition) return;
+    if (!userPosition || mode !== "civilian") return;
 
     // Glowing User Dot
     const userIcon = L.divIcon({
@@ -830,7 +832,23 @@ export function ModernHazardMap({
       <div ref={mapContainerRef} className="w-full h-full z-0" />
 
       {/* Floating Modern HUD Controls */}
-      <div className="absolute top-3 right-3 z-20 flex flex-col gap-2">
+      <div className="absolute top-3 right-3 z-20 flex flex-col items-end gap-2">
+        {/* Engine Switcher Pill */}
+        <div className="flex items-center text-xs p-1 rounded-xl bg-[#111c2e]/90 border border-[#1e2c44] shadow-xl backdrop-blur-md">
+          <button
+            onClick={onSwitchToGoogle}
+            className="px-2.5 py-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 font-medium transition-colors cursor-pointer text-xs flex items-center gap-1.5"
+            title="Switch to Google Maps Platform (3D Terrain & Satellite)"
+          >
+            <Compass className="w-3.5 h-3.5 text-sky-400" />
+            <span>Google Maps</span>
+          </button>
+          <div className="px-2.5 py-1.5 rounded-lg bg-sky-600 text-white font-semibold flex items-center gap-1.5 text-xs shadow-sm cursor-default">
+            <Layers className="w-3.5 h-3.5 text-white" />
+            <span>Leaflet</span>
+          </div>
+        </div>
+
         {/* Tile Style Switcher */}
         <button
           onClick={() => {
@@ -859,8 +877,8 @@ export function ModernHazardMap({
           <span className="hidden sm:inline">Fit Valley</span>
         </button>
 
-        {/* Locate User (Civilian & Rescuer) */}
-        {(mode === "civilian" || mode === "rescuer") && (
+        {/* Locate User (Civilian mode only) */}
+        {mode === "civilian" && (
           <button
             onClick={handleCenterUser}
             disabled={isLocating}
@@ -907,7 +925,7 @@ export function ModernHazardMap({
           <>
             <span className="flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-[#fb7185] animate-pulse" />
-              <span>SOS Distresses</span>
+              <span>SOS</span>
             </span>
             <span className="flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-rose-500" />
@@ -915,11 +933,7 @@ export function ModernHazardMap({
             </span>
             <span className="flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-sm bg-sky-500" />
-              <span>Schools & Shelters</span>
-            </span>
-            <span className="flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-indigo-500" />
-              <span>Villages</span>
+              <span>Schools</span>
             </span>
             <span className="flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-sm bg-amber-500 flex items-center justify-center text-[7px] text-white font-bold leading-none">═</span>
@@ -952,3 +966,40 @@ export function ModernHazardMap({
     </div>
   );
 }
+
+// ---------------------------------------------------------------------------
+// Unified ModernHazardMap Engine Orchestrator
+// Defaults to Google Maps Platform (AI Builder Cup Showcase) with seamless
+// 1-click fallback to Leaflet High-Res Satellite GIS.
+// ---------------------------------------------------------------------------
+export function ModernHazardMap(props: ModernHazardMapProps) {
+  const [engine, setEngine] = useState<"google" | "leaflet">(() => {
+    return (
+      (localStorage.getItem("himalsanket_map_engine") as "google" | "leaflet") || "google"
+    );
+  });
+
+  const handleSwitchEngine = useCallback((nextEngine: "google" | "leaflet") => {
+    setEngine(nextEngine);
+    try {
+      localStorage.setItem("himalsanket_map_engine", nextEngine);
+    } catch (_) {}
+  }, []);
+
+  if (engine === "google") {
+    return (
+      <GoogleModernHazardMap
+        {...props}
+        onSwitchToLeaflet={() => handleSwitchEngine("leaflet")}
+      />
+    );
+  }
+
+  return (
+    <LeafletHazardMapInner
+      {...props}
+      onSwitchToGoogle={() => handleSwitchEngine("google")}
+    />
+  );
+}
+

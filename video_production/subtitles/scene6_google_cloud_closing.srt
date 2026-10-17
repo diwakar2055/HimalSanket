@@ -1,0 +1,24 @@
+1
+00:00:00,100 --> 00:00:05,752
+Under the hood, Google Gemini provides multimodal reasoning and multilingual briefings.
+
+2
+00:00:05,702 --> 00:00:09,785
+Google TimesFM delivers predictive rainfall forecasting.
+
+3
+00:00:09,785 --> 00:00:16,833
+Cloud Run powers our microservice orchestrator, and Cloud Firestore synchronizes life-saving alerts in real time.
+
+4
+00:00:16,833 --> 00:00:20,833
+Langtang has flooded and buried its people twice in a decade.
+
+5
+00:00:20,833 --> 00:00:24,273
+HimalSanket exists so there isn't a third time.
+
+6
+00:00:24,273 --> 00:00:25,654
+Thank you.
+

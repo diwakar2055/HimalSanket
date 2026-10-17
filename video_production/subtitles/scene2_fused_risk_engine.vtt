@@ -1,0 +1,17 @@
+WEBVTT
+
+1
+00:00:00.100 --> 00:00:03.169
+HimalSanket doesn't guess or hallucinate.
+
+2
+00:00:03.119 --> 00:00:20.464
+Our deterministic fusion engine combines five continuous vectors: catchment rainfall at thirty percent weight, Sentinel-2 glacial lake expansion at twenty-five percent, USGS seismic tremors at twenty percent, porter ground reports at fifteen percent, and geomorphic slope at ten percent.
+
+3
+00:00:20.464 --> 00:00:32.857
+Using European Space Agency Sentinel-2 multispectral imagery, our pipeline monitors moraine lakes at five thousand meters altitude, tracking normalized difference water index expansion pixel by pixel.
+
+4
+00:00:32.857 --> 00:00:44.559
+Simultaneously, Google's TimesFM foundation model forecasts precipitation spikes twenty-four hours in advance, allowing mountain communities to evacuate long before cloudbursts hit the ground.

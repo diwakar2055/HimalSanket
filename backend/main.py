@@ -94,6 +94,22 @@ static_path = os.path.join(os.path.dirname(__file__), "static")
 if os.path.exists(static_path):
     app.mount("/static", StaticFiles(directory=static_path), name="static")
 
+# Mount Video Production Suite & Presentation Slides
+video_prod_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "video_production"))
+if os.path.exists(video_prod_path):
+    app.mount("/video-production", StaticFiles(directory=video_prod_path), name="video_production")
+
+@app.get("/slides", response_class=HTMLResponse, tags=["Video Presentation"])
+async def video_slides():
+    """
+    Serves the interactive 1080p video presentation slides with AI voiceover player.
+    """
+    slides_file = os.path.join(video_prod_path, "slides", "index.html")
+    if os.path.exists(slides_file):
+        with open(slides_file, "r", encoding="utf-8") as f:
+            return HTMLResponse(content=f.read())
+    return HTMLResponse(content="<h1>Slides not found</h1>", status_code=404)
+
 
 @app.get("/docs-web", response_class=HTMLResponse, tags=["System Overview"])
 @app.get("/documentation", response_class=HTMLResponse, tags=["System Overview"])

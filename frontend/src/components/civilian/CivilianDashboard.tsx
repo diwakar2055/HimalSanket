@@ -896,7 +896,7 @@ export function CivilianDashboard({
               playConfirmationBeep();
               setCivilianView("chat");
             }}
-            className="absolute bottom-6 right-6 z-[1000] px-4 py-2.5 rounded-full bg-[#111c2e]/95 hover:bg-[#15233a] border border-[#1e2c44] hover:border-[#2a456c] text-[#f1f5f9] font-semibold text-xs shadow-xl flex items-center gap-2 cursor-pointer backdrop-blur-md transition-all"
+            className="absolute bottom-5 right-5 z-20 px-4 py-2.5 rounded-full bg-[#111c2e]/95 hover:bg-[#15233a] border border-[#1e2c44] hover:border-sky-500/50 text-[#f1f5f9] font-semibold text-xs shadow-xl flex items-center gap-2 cursor-pointer backdrop-blur-md transition-all hover:scale-105 active:scale-95"
           >
             <Sparkles className="w-4 h-4 text-[#38bdf8]" />
             <span>AI Safety Copilot</span>

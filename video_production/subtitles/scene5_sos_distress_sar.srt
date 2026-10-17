@@ -1,0 +1,16 @@
+1
+00:00:00,100 --> 00:00:04,895
+When disaster strikes and a civilian is trapped, every kilobyte matters.
+
+2
+00:00:04,845 --> 00:00:14,940
+HimalSanket's SOS Distress Capsule transmits ultralight micro-packets with exact GPS coordinates first, guaranteed to puncture fleeting 2G signal windows.
+
+3
+00:00:14,940 --> 00:00:23,154
+At Search and Rescue headquarters, incoming distress calls are automatically prioritized by elevation vulnerability and medical urgency.
+
+4
+00:00:23,154 --> 00:00:34,202
+With one click, commanders dispatch search and rescue helicopter sorties, streaming live telemetry, terrain clearance vectors, and real-time flight tracking directly to rescue teams.
+

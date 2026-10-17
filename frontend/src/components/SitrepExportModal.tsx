@@ -19,6 +19,14 @@ export function SitrepExportModal({
 }: SitrepExportModalProps) {
   const [copiedSection, setCopiedSection] = useState<"full" | "sms" | null>(null);
 
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [onClose]);
+
   const timestampIso = new Date().toISOString();
   const nepaliDateStr = new Date().toLocaleString("en-US", {
     timeZone: "Asia/Kathmandu",
