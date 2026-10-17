@@ -350,14 +350,8 @@ export function GoogleHazardMap({
                 </p>
                 <div className="flex gap-3">
                   <button
-                    onClick={() => setShowKeyModal(true)}
-                    className="px-4 py-2 bg-teal-600 hover:bg-teal-500 text-white text-xs font-semibold rounded-lg cursor-pointer"
-                  >
-                    Update Key
-                  </button>
-                  <button
                     onClick={onSwitchToSatelliteView}
-                    className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white text-xs font-semibold rounded-lg cursor-pointer"
+                    className="px-4 py-2 bg-teal-600 hover:bg-teal-500 text-white text-xs font-semibold rounded-lg cursor-pointer"
                   >
                     Switch to Live Satellite Map
                   </button>

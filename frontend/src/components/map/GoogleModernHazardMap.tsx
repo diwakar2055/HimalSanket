@@ -18,7 +18,6 @@ import {
   Layers,
   Compass,
   Navigation,
-  Key,
   AlertTriangle,
   Shield,
   HeartPulse,
@@ -356,53 +355,27 @@ export function GoogleModernHazardMap({
     );
   }, [userPosition, distressBeacons]);
 
-  // API Key management
-  const [apiKey, setApiKey] = useState<string>(() => {
-    return (
-      localStorage.getItem("himal_gmaps_key") ||
-      (import.meta.env.VITE_GOOGLE_MAPS_API_KEY as string) ||
-      ""
-    );
-  });
-  const [showKeyModal, setShowKeyModal] = useState(false);
-  const [keyInputValue, setKeyInputValue] = useState(apiKey);
+  // API Key is strictly provided by the environment (.env.local) - never requested from frontend
+  const apiKey = (import.meta.env.VITE_GOOGLE_MAPS_API_KEY as string) || "";
   const [authFailed, setAuthFailed] = useState(false);
 
-  const isMockKey =
-    !apiKey ||
-    apiKey.includes("YOUR_") ||
-    apiKey.includes("MOCK") ||
-    apiKey.trim().length < 20;
-
-  // Listen for Google Maps auth failure
+  // Clear any legacy client-side keys and listen for Google Maps auth failure
   useEffect(() => {
+    try {
+      localStorage.removeItem("himal_gmaps_key");
+    } catch (_) {}
+
     const prevAuthFailure = (window as any).gm_authFailure;
     (window as any).gm_authFailure = () => {
       setAuthFailed(true);
+      // Automatically switch to Leaflet Satellite GIS if Google Maps fails auth
+      onSwitchToLeaflet();
       if (typeof prevAuthFailure === "function") prevAuthFailure();
     };
     return () => {
       (window as any).gm_authFailure = prevAuthFailure;
     };
-  }, []);
-
-  const handleSaveKey = () => {
-    const trimmed = keyInputValue.trim();
-    if (trimmed) {
-      localStorage.setItem("himal_gmaps_key", trimmed);
-      setApiKey(trimmed);
-      setAuthFailed(false);
-      setShowKeyModal(false);
-    }
-  };
-
-  const handleClearKey = () => {
-    localStorage.removeItem("himal_gmaps_key");
-    setApiKey("");
-    setKeyInputValue("");
-    setAuthFailed(false);
-    setShowKeyModal(false);
-  };
+  }, [onSwitchToLeaflet]);
 
   // Format SAR Helpers
   const formatEtaTime = (seconds: number): string => {
@@ -444,98 +417,20 @@ export function GoogleModernHazardMap({
       {/* -------------------------------------------------------------------- */}
       {/* 1. MOCK KEY ACTIVATION BANNER OR MODAL */}
       {/* -------------------------------------------------------------------- */}
-      {isMockKey ? (
-        <div className="w-full h-full flex flex-col items-center justify-center p-6 bg-gradient-to-b from-[#0b1320] via-[#0f1b2d] to-[#070c14] text-center z-10 relative">
-          <div className="max-w-md w-full bg-[#111c2e] p-6 rounded-2xl border border-sky-500/20 shadow-2xl space-y-4 text-left backdrop-blur-md">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-sky-500/15 border border-sky-500/30 flex items-center justify-center text-sky-400 shrink-0">
-                <Compass className="w-5 h-5" />
-              </div>
-              <div>
-                <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                  <span>Google Maps Platform</span>
-                  <span className="text-[10px] px-1.5 py-0.2 rounded bg-sky-500/20 text-sky-300 border border-sky-400/30">
-                    AI Builder Cup
-                  </span>
-                </h3>
-                <p className="text-[11px] text-slate-400">
-                  Interactive 3D Terrain & Satellite Corridor GIS
-                </p>
-              </div>
-            </div>
-
-            <div className="bg-[#0b1320]/80 border border-[#1e2c44] p-3 rounded-xl text-xs text-slate-300 leading-relaxed">
-              To render Google Maps with <strong>3D Mountain Terrain</strong> and <strong>Satellite Hybrid</strong> imagery, paste your Google Cloud API key below. You can also explore the live map immediately using the built-in Leaflet GIS engine!
-            </div>
-
-            <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-slate-300">
-                Enter Google Maps Platform API Key
-              </label>
-              <div className="flex gap-2">
-                <input
-                  type="password"
-                  placeholder="AIzaSy..."
-                  value={keyInputValue}
-                  onChange={(e) => setKeyInputValue(e.target.value)}
-                  className="flex-1 px-3 py-2 bg-[#09101a] border border-[#1e2c44] rounded-lg text-xs text-white placeholder:text-slate-600 focus:outline-none focus:border-sky-500 font-mono"
-                />
-                <button
-                  onClick={handleSaveKey}
-                  disabled={!keyInputValue.trim() || keyInputValue.includes("YOUR_")}
-                  className="px-4 py-2 bg-sky-600 hover:bg-sky-500 disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-semibold rounded-lg transition-colors cursor-pointer shadow-md"
-                >
-                  Activate
-                </button>
-              </div>
-            </div>
-
-            <div className="pt-2 border-t border-[#1e2c44] flex items-center justify-between">
-              <button
-                onClick={onSwitchToLeaflet}
-                className="flex items-center gap-1.5 text-xs text-sky-400 hover:text-sky-300 font-medium cursor-pointer"
-              >
-                <Layers className="w-3.5 h-3.5" />
-                <span>Continue with Leaflet (Instant GIS)</span>
-              </button>
-              <a
-                href="https://console.cloud.google.com/google/maps-apis/credentials"
-                target="_blank"
-                rel="noreferrer"
-                className="flex items-center gap-1 text-[11px] text-slate-400 hover:text-white"
-              >
-                <span>Cloud Console</span>
-                <ExternalLink className="w-3 h-3" />
-              </a>
-            </div>
-          </div>
-        </div>
-      ) : (
-        /* ------------------------------------------------------------------ */
-        /* 2. REAL GOOGLE MAPS PLATFORM VIEWPORT                              */
-        /* ------------------------------------------------------------------ */
         <ErrorBoundary
           fallback={
             <div className="w-full h-full flex flex-col items-center justify-center p-6 bg-[#0b1320] text-center">
-              <AlertTriangle className="w-10 h-10 text-amber-400 mb-3" />
-              <h3 className="text-base font-bold text-white mb-1">Google Maps Authentication Notice</h3>
+              <Compass className="w-10 h-10 text-sky-400 mb-3 animate-pulse" />
+              <h3 className="text-base font-bold text-white mb-1">Satellite GIS Active</h3>
               <p className="text-xs text-slate-400 max-w-md mb-4">
-                Google Maps could not authenticate with the provided API key. Ensure "Maps JavaScript API" is enabled in Google Cloud Console.
+                Google Maps could not initialize. Switching to high-resolution satellite imagery.
               </p>
-              <div className="flex gap-3">
-                <button
-                  onClick={() => setShowKeyModal(true)}
-                  className="px-4 py-2 bg-sky-600 hover:bg-sky-500 text-white text-xs font-semibold rounded-lg cursor-pointer"
-                >
-                  Update API Key
-                </button>
-                <button
-                  onClick={onSwitchToLeaflet}
-                  className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white text-xs font-semibold rounded-lg cursor-pointer"
-                >
-                  Switch to Leaflet Satellite
-                </button>
-              </div>
+              <button
+                onClick={onSwitchToLeaflet}
+                className="px-4 py-2 bg-sky-600 hover:bg-sky-500 text-white text-xs font-semibold rounded-lg cursor-pointer"
+              >
+                Continue with Satellite GIS
+              </button>
             </div>
           }
         >
@@ -927,7 +822,6 @@ export function GoogleModernHazardMap({
             </Map>
           </APIProvider>
         </ErrorBoundary>
-      )}
 
       {/* -------------------------------------------------------------------- */}
       {/* 3. AUTH FAILURE TOAST NOTICE                                         */}
@@ -937,23 +831,15 @@ export function GoogleModernHazardMap({
           <div className="flex items-center gap-2">
             <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0" />
             <span>
-              <strong>Google Maps Key Warning:</strong> Authentication failed for the current API key.
+              Google Maps authentication unavailable. Switched to high-resolution Satellite GIS.
             </span>
           </div>
-          <div className="flex gap-2">
-            <button
-              onClick={() => setShowKeyModal(true)}
-              className="px-2.5 py-1 bg-amber-600 hover:bg-amber-500 text-white rounded font-medium cursor-pointer shadow"
-            >
-              Update Key
-            </button>
-            <button
-              onClick={onSwitchToLeaflet}
-              className="px-2.5 py-1 bg-white/10 hover:bg-white/20 text-white rounded font-medium cursor-pointer"
-            >
-              Switch to Leaflet
-            </button>
-          </div>
+          <button
+            onClick={onSwitchToLeaflet}
+            className="px-3 py-1 bg-amber-600 hover:bg-amber-500 text-white rounded font-medium cursor-pointer shadow"
+          >
+            Switch to Satellite GIS
+          </button>
         </div>
       )}
 
@@ -1037,19 +923,6 @@ export function GoogleModernHazardMap({
               <span className="hidden sm:inline">My GPS</span>
             </button>
           )}
-
-          {/* API Key Modal Button */}
-          <button
-            onClick={() => setShowKeyModal(true)}
-            className={`p-2 rounded-xl border shadow-lg backdrop-blur-md transition-colors cursor-pointer flex items-center gap-1.5 text-xs font-semibold ${
-              isMockKey
-                ? "bg-amber-500/20 border-amber-500/40 text-amber-300"
-                : "bg-[#111c2e]/90 hover:bg-[#15233a] text-[#8fa0b5] hover:text-white border-[#1e2c44]"
-            }`}
-            title="Configure Google Maps API Key"
-          >
-            <Key className="w-4 h-4" />
-          </button>
         </div>
       </div>
 
@@ -1131,66 +1004,6 @@ export function GoogleModernHazardMap({
           </span>
         )}
       </div>
-
-      {/* -------------------------------------------------------------------- */}
-      {/* 6. KEY CONFIGURATION MODAL                                           */}
-      {/* -------------------------------------------------------------------- */}
-      {showKeyModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
-          <div className="max-w-md w-full bg-[#111c2e] p-6 rounded-2xl border border-sky-500/30 shadow-2xl space-y-4 text-left">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-sky-500/20 text-sky-400 flex items-center justify-center">
-                  <Key className="w-4 h-4" />
-                </div>
-                <h3 className="font-bold text-white text-sm">Google Maps API Key</h3>
-              </div>
-              <button
-                onClick={() => setShowKeyModal(false)}
-                className="text-slate-400 hover:text-white cursor-pointer"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            <p className="text-xs text-slate-300">
-              Enter your Google Maps Platform API key with <strong>Maps JavaScript API</strong> enabled to render live 3D terrain and satellite hybrid views.
-            </p>
-
-            <input
-              type="password"
-              placeholder="AIzaSy..."
-              value={keyInputValue}
-              onChange={(e) => setKeyInputValue(e.target.value)}
-              className="w-full px-3 py-2 bg-[#09101a] border border-[#1e2c44] rounded-lg text-xs text-white placeholder:text-slate-600 focus:outline-none focus:border-sky-500 font-mono"
-            />
-
-            <div className="flex items-center justify-between pt-2">
-              <button
-                onClick={handleClearKey}
-                className="text-xs text-rose-400 hover:text-rose-300 cursor-pointer"
-              >
-                Clear Key
-              </button>
-
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setShowKeyModal(false)}
-                  className="px-3 py-1.5 rounded-lg text-xs text-slate-300 hover:text-white bg-white/5 hover:bg-white/10 cursor-pointer"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleSaveKey}
-                  className="px-4 py-1.5 rounded-lg text-xs font-semibold text-white bg-sky-600 hover:bg-sky-500 cursor-pointer shadow"
-                >
-                  Save & Apply
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

@@ -58,8 +58,9 @@ function LeafletHazardMapInner({
   onLocateMe,
   isLocating = false,
   onSwitchToGoogle,
+  hasGoogleMapsConfigured = false,
   className = "",
-}: ModernHazardMapProps & { onSwitchToGoogle: () => void }) {
+}: ModernHazardMapProps & { onSwitchToGoogle: () => void; hasGoogleMapsConfigured?: boolean }) {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<L.Map | null>(null);
   const tileLayerRef = useRef<L.TileLayer | null>(null);
@@ -835,17 +836,27 @@ function LeafletHazardMapInner({
       <div className="absolute top-3 right-3 z-20 flex flex-col items-end gap-2">
         {/* Engine Switcher Pill */}
         <div className="flex items-center text-xs p-1 rounded-xl bg-[#111c2e]/90 border border-[#1e2c44] shadow-xl backdrop-blur-md">
-          <button
-            onClick={onSwitchToGoogle}
-            className="px-2.5 py-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 font-medium transition-colors cursor-pointer text-xs flex items-center gap-1.5"
-            title="Switch to Google Maps Platform (3D Terrain & Satellite)"
-          >
-            <Compass className="w-3.5 h-3.5 text-sky-400" />
-            <span>Google Maps</span>
-          </button>
+          {hasGoogleMapsConfigured ? (
+            <button
+              onClick={onSwitchToGoogle}
+              className="px-2.5 py-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 font-medium transition-colors cursor-pointer text-xs flex items-center gap-1.5"
+              title="Switch to Google Maps Platform (3D Terrain & Satellite)"
+            >
+              <Compass className="w-3.5 h-3.5 text-sky-400" />
+              <span>Google Maps</span>
+            </button>
+          ) : (
+            <div
+              className="px-2.5 py-1.5 rounded-lg text-slate-500 font-medium text-xs flex items-center gap-1.5 cursor-not-allowed opacity-60"
+              title="Configure VITE_GOOGLE_MAPS_API_KEY in .env.local to enable Google Maps"
+            >
+              <Compass className="w-3.5 h-3.5 text-slate-500" />
+              <span>Google Maps</span>
+            </div>
+          )}
           <div className="px-2.5 py-1.5 rounded-lg bg-sky-600 text-white font-semibold flex items-center gap-1.5 text-xs shadow-sm cursor-default">
             <Layers className="w-3.5 h-3.5 text-white" />
-            <span>Leaflet</span>
+            <span>Satellite GIS</span>
           </div>
         </div>
 
@@ -969,24 +980,45 @@ function LeafletHazardMapInner({
 
 // ---------------------------------------------------------------------------
 // Unified ModernHazardMap Engine Orchestrator
-// Defaults to Google Maps Platform (AI Builder Cup Showcase) with seamless
-// 1-click fallback to Leaflet High-Res Satellite GIS.
+// If a valid Google Maps Platform key is present in .env.local, Google Maps runs.
+// If no key is configured or auth fails, seamlessly runs high-res Satellite GIS.
+// Never prompts the user on the frontend for an API key.
 // ---------------------------------------------------------------------------
+export const isConfiguredGoogleMapsKey = (key?: string): boolean => {
+  if (!key) return false;
+  const trimmed = key.trim();
+  return (
+    trimmed !== "" &&
+    !trimmed.includes("YOUR_") &&
+    !trimmed.includes("MOCK") &&
+    trimmed !== "MY_GOOGLE_MAPS_KEY" &&
+    trimmed.startsWith("AIza") &&
+    trimmed.length >= 25
+  );
+};
+
 export function ModernHazardMap(props: ModernHazardMapProps) {
+  const configuredKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+  const hasValidGoogleKey = isConfiguredGoogleMapsKey(configuredKey);
+
   const [engine, setEngine] = useState<"google" | "leaflet">(() => {
-    return (
-      (localStorage.getItem("himalsanket_map_engine") as "google" | "leaflet") || "google"
-    );
+    const saved = localStorage.getItem("himalsanket_map_engine") as "google" | "leaflet" | null;
+    if (saved === "google" && hasValidGoogleKey) return "google";
+    if (saved === "leaflet") return "leaflet";
+    return hasValidGoogleKey ? "google" : "leaflet";
   });
 
   const handleSwitchEngine = useCallback((nextEngine: "google" | "leaflet") => {
+    if (nextEngine === "google" && !hasValidGoogleKey) {
+      return;
+    }
     setEngine(nextEngine);
     try {
       localStorage.setItem("himalsanket_map_engine", nextEngine);
     } catch (_) {}
-  }, []);
+  }, [hasValidGoogleKey]);
 
-  if (engine === "google") {
+  if (engine === "google" && hasValidGoogleKey) {
     return (
       <GoogleModernHazardMap
         {...props}
@@ -998,6 +1030,7 @@ export function ModernHazardMap(props: ModernHazardMapProps) {
   return (
     <LeafletHazardMapInner
       {...props}
+      hasGoogleMapsConfigured={hasValidGoogleKey}
       onSwitchToGoogle={() => handleSwitchEngine("google")}
     />
   );

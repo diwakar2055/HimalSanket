@@ -42,25 +42,8 @@ export function HazardMap() {
 
   const [simulatedWaterRise, setSimulatedWaterRise] = useState<number>(0); // 0 to 5 meters
 
-  // API Key management (mock key by default, with custom key persistence)
-  const [apiKey, setApiKey] = useState<string>(() => {
-    return (
-      localStorage.getItem("himal_gmaps_key") ||
-      import.meta.env.VITE_GOOGLE_MAPS_API_KEY ||
-      "AIzaSy_MOCK_DEMO_KEY"
-    );
-  });
-
-  const handleUpdateApiKey = (newKey: string) => {
-    const trimmed = newKey.trim();
-    if (trimmed) {
-      localStorage.setItem("himal_gmaps_key", trimmed);
-      setApiKey(trimmed);
-    } else {
-      localStorage.removeItem("himal_gmaps_key");
-      setApiKey("AIzaSy_MOCK_DEMO_KEY");
-    }
-  };
+  // API Key management from environment
+  const apiKey = (import.meta.env.VITE_GOOGLE_MAPS_API_KEY as string) || "";
 
   // Vector map zoom & pan state
   const [zoomLevel, setZoomLevel] = useState<number>(1);
@@ -327,7 +310,7 @@ export function HazardMap() {
             simulatedWaterRise={simulatedWaterRise}
             getDynamicStatus={getDynamicStatus}
             apiKey={apiKey}
-            onUpdateApiKey={handleUpdateApiKey}
+            onUpdateApiKey={() => {}}
             onSwitchToSatelliteView={() => setViewMode("satellite")}
           />
         ) : (
