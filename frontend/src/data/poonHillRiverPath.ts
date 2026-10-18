@@ -654,4 +654,6 @@ export const POON_HILL_RIVER_PATH: { lat: number; lng: number }[] = [
   { lat: 28.30935, lng: 83.77436 },
   { lat: 28.30927, lng: 83.77452 },
   { lat: 28.30920, lng: 83.77469 },
+  { lat: 28.30932, lng: 83.77501 },
+  { lat: 28.30944, lng: 83.77534 },
 ];

@@ -330,7 +330,7 @@ export function GeminiChatbot({
                   gps: activeCorridor.gps,
                   ground_reports: activeCorridor.reports?.length || 0,
                   userPosition: userPosition || undefined,
-                  geofenceStatus: geofenceStatus || (distanceToHazard && distanceToHazard < 150 ? "DANGER" : "SAFE"),
+                  geofenceStatus: geofenceStatus || "SAFE",
                   distanceToHazard: distanceToHazard !== null && distanceToHazard !== undefined ? distanceToHazard : undefined,
                   activeScenario: activeScenario || "baseline",
                   waterSurge,
@@ -362,7 +362,7 @@ export function GeminiChatbot({
       if (!responseText) {
         const lower = textToSend.toLowerCase();
         if (lower.includes("am i safe") || lower.includes("safe") || lower.includes("where am i") || lower.includes("rescue") || lower.includes("सुरक्षित") || lower.includes("उद्धार")) {
-          if (geofenceStatus === "DANGER" || (distanceToHazard !== null && distanceToHazard !== undefined && distanceToHazard < 150)) {
+          if (geofenceStatus === "DANGER") {
             responseText = `🚨 **URGENT GEOFENCE WARNING FOR YOUR POSITION**:
 You are currently located at **${userPosition?.lat?.toFixed(4) || "28.2140"}° N, ${userPosition?.lng?.toFixed(4) || "85.4950"}° E** (Altitude: ~${Math.round(userPosition?.altitude || 2780)}m ASL).
 
@@ -412,7 +412,7 @@ Environmental Telemetry: Sensed rainfall is ${activeCorridor?.rainfall || 38}mm/
   };
 
   const corridorName = activeCorridor?.name || "Langtang Valley";
-  const isGeofenceDanger = geofenceStatus === "DANGER" || (distanceToHazard !== null && distanceToHazard < 150);
+  const isGeofenceDanger = geofenceStatus === "DANGER";
 
   return (
     <aside aria-label="HimalSanket AI Assistant" className="fixed bottom-5 right-5 z-[99999] flex flex-col items-end font-sans">

@@ -135,3 +135,70 @@
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: #2a456c;
 }
+
+/* ==========================================================================
+   Google Maps InfoWindow Tactical Dark Theme
+   ========================================================================== */
+.gm-style-iw-c {
+  background-color: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  border-radius: 16px !important;
+  padding: 0 !important;
+  max-width: none !important;
+}
+
+.gm-style-iw-d {
+  overflow: visible !important;
+  padding: 0 !important;
+  max-height: none !important;
+}
+
+.gm-style-iw-tc::after {
+  background: #0c1524 !important;
+  border-right: 1px solid #1e2c44 !important;
+  border-bottom: 1px solid #1e2c44 !important;
+}
+
+/* Hide Google's native clunky close button; we render a custom Lucide button in the tactical header */
+button.gm-ui-hover-effect {
+  display: none !important;
+}
+
+/* ==========================================================================
+   Universal Range Slider Precision Styling
+   ========================================================================== */
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #38bdf8;
+  border: 2px solid #ffffff;
+  box-shadow: 0 0 10px rgba(56, 189, 248, 0.6);
+  cursor: pointer;
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+
+input[type="range"]::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
+  box-shadow: 0 0 14px rgba(56, 189, 248, 0.9);
+}
+
+input[type="range"]::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #38bdf8;
+  border: 2px solid #ffffff;
+  box-shadow: 0 0 10px rgba(56, 189, 248, 0.6);
+  cursor: pointer;
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+
+input[type="range"]::-moz-range-thumb:hover {
+  transform: scale(1.15);
+  box-shadow: 0 0 14px rgba(56, 189, 248, 0.9);
+}
+

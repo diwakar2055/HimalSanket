@@ -1,7 +1,11 @@
 // Exact Imja Khola & Dudh Koshi (दुधकोशी नदी) Surveyed Waterway Geometry
 // Surveyed riverbed from Imja Tsho Spillway (5,010m), Dingboche, Pangboche, Phunki Thenga, Namche gorge, Hillary Bridges, and Phakding
 export const KHUMBU_RIVER_PATH: { lat: number; lng: number }[] = [
-  { lat: 27.8995, lng: 86.9185 },
+  { lat: 27.89950, lng: 86.91850 },
+  { lat: 27.89935, lng: 86.91610 },
+  { lat: 27.89920, lng: 86.91370 },
+  { lat: 27.89925, lng: 86.91130 },
+  { lat: 27.89940, lng: 86.90890 },
   { lat: 27.89956, lng: 86.90687 },
   { lat: 27.89953, lng: 86.90645 },
   { lat: 27.89935, lng: 86.90633 },

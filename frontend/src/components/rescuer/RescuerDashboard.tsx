@@ -75,6 +75,7 @@ export function RescuerDashboard({
   const [filterStatus, setFilterStatus] = useState<"all" | "pending" | "dispatched" | "rescued">("all");
   const [activeTab, setActiveTab] = useState<"incidents" | "units" | "facilities" | "reports">("incidents");
   const [facilityFilter, setFacilityFilter] = useState<"all" | "health" | "school" | "village" | "base">("all");
+  const [mobileTab, setMobileTab] = useState<"incidents" | "map">("incidents");
 
   // Filter dispatched teams for this corridor
   const corridorDispatchedTeams = useMemo(() => {
@@ -122,12 +123,14 @@ export function RescuerDashboard({
     playConfirmationBeep();
     setSelectedAsset(null);
     setSelectedBeacon(beacon);
+    setMobileTab("map");
   }, []);
 
   const handleLocateAsset = useCallback((asset: MapAsset) => {
     playConfirmationBeep();
     setSelectedBeacon(null);
     setSelectedAsset(asset);
+    setMobileTab("map");
   }, []);
 
   const handleLocateBase = useCallback(
@@ -150,6 +153,7 @@ export function RescuerDashboard({
         description: `${base.agency} Forward Base & Helipad`,
         riskNote: "Dedicated search and rescue forward operating base with all-weather helipad and emergency medical logistics.",
       });
+      setMobileTab("map");
     },
     [corridor.id]
   );
@@ -171,9 +175,46 @@ export function RescuerDashboard({
   );
 
   return (
-    <div className="w-full h-full flex flex-col lg:flex-row min-h-0 bg-[#0b1320] text-[#f1f5f9] overflow-hidden font-sans">
-      {/* LEFT COLUMN: SAR Tactical Queue (~420px) */}
-      <aside className="w-full lg:w-[420px] xl:w-[450px] shrink-0 h-full flex flex-col bg-[#0b1320] border-r border-[#1c2536] overflow-hidden">
+    <div className="w-full h-full flex flex-col min-h-0 bg-[#0b1320] text-[#f1f5f9] overflow-hidden font-sans">
+      {/* Mobile Sub-Navigation View Switcher (Only visible on < lg) */}
+      <div className="lg:hidden flex items-center bg-[#0b1320] p-2 border-b border-[#1c2536] shrink-0 z-20">
+        <div className="flex w-full bg-[#111c2e] p-1 rounded-xl border border-[#1e2c44]">
+          <button
+            onClick={() => {
+              playConfirmationBeep();
+              setMobileTab("incidents");
+            }}
+            className={`flex-1 py-1.5 text-xs font-semibold rounded-lg transition-colors cursor-pointer flex items-center justify-center gap-1.5 ${
+              mobileTab === "incidents"
+                ? "bg-[#1c2e4a] text-amber-400 border border-[#2a456c] shadow-sm"
+                : "text-slate-400 hover:text-white"
+            }`}
+          >
+            <Radio className="w-3.5 h-3.5" />
+            <span>Incidents ({corridorBeacons.length})</span>
+          </button>
+          <button
+            onClick={() => {
+              playConfirmationBeep();
+              setMobileTab("map");
+            }}
+            className={`flex-1 py-1.5 text-xs font-semibold rounded-lg transition-colors cursor-pointer flex items-center justify-center gap-1.5 ${
+              mobileTab === "map"
+                ? "bg-[#1c2e4a] text-amber-400 border border-[#2a456c] shadow-sm"
+                : "text-slate-400 hover:text-white"
+            }`}
+          >
+            <Crosshair className="w-3.5 h-3.5" />
+            <span>Tactical Map</span>
+          </button>
+        </div>
+      </div>
+
+      <div className="flex-1 flex flex-col lg:flex-row min-h-0 overflow-hidden">
+        {/* LEFT COLUMN: SAR Tactical Queue (~420px) */}
+        <aside className={`w-full lg:w-[420px] xl:w-[450px] shrink-0 h-full flex-col bg-[#0b1320] border-r border-[#1c2536] overflow-hidden ${
+          mobileTab === "incidents" ? "flex" : "hidden lg:flex"
+        }`}>
         {/* Header & Stats Banner */}
         <div className="p-4 border-b border-[#17253b] bg-[#0b1320]">
           <div className="flex items-center justify-between">
@@ -871,25 +912,28 @@ export function RescuerDashboard({
         </div>
       </aside>
 
-      {/* RIGHT STAGE: Tactical Rescue Map */}
-      <main className="flex-1 h-full min-h-[350px] relative bg-[#0b1320]">
-        <ModernHazardMap
-          corridor={corridor}
-          assets={assets}
-          mode="rescuer"
-          distressBeacons={corridorBeacons}
-          dispatchedTeams={dispatchedTeams}
-          selectedBeacon={selectedBeacon}
-          selectedShelter={selectedAsset}
-          onSelectBeacon={handleSelectVictim}
-          onDispatchBeacon={handleDispatch}
-          onResolveBeacon={handleMarkRescued}
-          userPosition={userPosition}
-          onLocateMe={onLocateMe}
-          simulatedWaterRise={waterSurge}
-          className="w-full h-full"
-        />
-      </main>
+        {/* RIGHT STAGE: Tactical Rescue Map */}
+        <main className={`flex-1 h-full min-h-[350px] relative bg-[#0b1320] flex-col ${
+          mobileTab === "map" ? "flex" : "hidden lg:flex"
+        }`}>
+          <ModernHazardMap
+            corridor={corridor}
+            assets={assets}
+            mode="rescuer"
+            distressBeacons={corridorBeacons}
+            dispatchedTeams={dispatchedTeams}
+            selectedBeacon={selectedBeacon}
+            selectedShelter={selectedAsset}
+            onSelectBeacon={handleSelectVictim}
+            onDispatchBeacon={handleDispatch}
+            onResolveBeacon={handleMarkRescued}
+            userPosition={userPosition}
+            onLocateMe={onLocateMe}
+            simulatedWaterRise={waterSurge}
+            className="w-full h-full"
+          />
+        </main>
+      </div>
     </div>
   );
 }

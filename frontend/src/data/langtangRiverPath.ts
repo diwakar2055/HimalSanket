@@ -386,6 +386,7 @@ export const LANGTANG_RIVER_PATH: { lat: number; lng: number }[] = [
   { lat: 28.17384, lng: 85.43745 },
   { lat: 28.17297, lng: 85.43754 },
   { lat: 28.17168, lng: 85.43723 },
+  { lat: 28.17030, lng: 85.43695 },
   { lat: 28.16893, lng: 85.43667 },
   { lat: 28.1686, lng: 85.43623 },
   { lat: 28.16828, lng: 85.43563 },

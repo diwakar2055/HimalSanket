@@ -144,51 +144,51 @@ Verified by Google Gemini AI Multi-Hazard Engine.
 
   return (
     <div className="fixed inset-0 z-[100000] flex items-center justify-center p-3 sm:p-5 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
-      <div className="relative w-full max-w-3xl rounded-2xl bg-[#18191E] border border-white/[0.1] shadow-2xl overflow-hidden flex flex-col max-h-[92vh] font-sans">
+      <div className="relative w-full max-w-3xl rounded-2xl bg-[#0b1320] border border-[#1e2c44] shadow-2xl overflow-hidden flex flex-col max-h-[92vh] font-sans">
         {/* Header */}
-        <div className="p-4 bg-[#111215] border-b border-white/[0.08] flex items-center justify-between">
+        <div className="p-4 bg-[#0b1320] border-b border-[#1c2536] flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-white/[0.06] border border-white/10 flex items-center justify-center text-slate-300">
+            <div className="w-8 h-8 rounded-xl bg-[#111c2e] border border-[#1e2c44] flex items-center justify-center text-[#38bdf8]">
               <FileText className="w-4 h-4" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h3 className="text-sm font-bold text-white tracking-wide">
+                <h3 className="text-sm font-bold text-[#f1f5f9] tracking-wide">
                   Emergency Situation Report (SITREP) Exporter
                 </h3>
-                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-bold">
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 font-bold">
                   NDRRMA / APF Standard
                 </span>
               </div>
-              <p className="text-xs text-slate-400 font-mono mt-0.5">
+              <p className="text-xs text-[#8fa0b5] font-mono mt-0.5">
                 Incident Code: {incidentCode}
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] border border-white/[0.08] flex items-center justify-center text-slate-400 hover:text-white transition-colors cursor-pointer"
+            className="w-8 h-8 rounded-xl bg-[#111c2e] hover:bg-[#15233a] border border-[#1e2c44] flex items-center justify-center text-[#8fa0b5] hover:text-[#f1f5f9] transition-colors cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
 
         {/* Action Header Bar */}
-        <div className="p-3 bg-[#18191E] border-b border-white/[0.08] flex items-center justify-between flex-wrap gap-2 text-xs">
+        <div className="p-3 bg-[#111c2e] border-b border-[#1c2536] flex items-center justify-between flex-wrap gap-2 text-xs">
           <div className="flex items-center gap-2">
-            <span className="text-slate-400">Threat Level:</span>
+            <span className="text-[#8fa0b5]">Threat Level:</span>
             <span
               className={`px-2 py-0.5 rounded-full font-bold uppercase text-[10px] font-mono ${
                 risk?.tier === "Critical"
-                  ? "bg-rose-500/20 text-rose-300 border border-rose-500/30"
+                  ? "bg-[#3b0f19] text-[#fb7185] border border-[#9f1239]/60"
                   : risk?.tier === "High"
-                  ? "bg-amber-500/20 text-amber-300 border border-amber-500/30"
-                  : "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
+                  ? "bg-[#3b2308] text-[#fbbf24] border border-[#78350f]/60"
+                  : "bg-[#053c2e] text-[#52c7ad] border border-[#16785d]/60"
               }`}
             >
               {risk?.tier || "Moderate"}
             </span>
-            <span className="text-slate-500 font-mono text-[11px]">
+            <span className="text-[#8fa0b5] font-mono text-[11px]">
               ({threatenedAssets.length} bridges/villages threatened)
             </span>
           </div>
@@ -196,14 +196,14 @@ Verified by Google Gemini AI Multi-Hazard Engine.
           <div className="flex items-center gap-2">
             <button
               onClick={() => handleCopy(fullSitrepText, "full")}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/[0.08] hover:bg-white/[0.15] text-white border border-white/10 transition-colors cursor-pointer text-xs font-semibold"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#15233a] hover:bg-[#1c2e4a] text-[#f1f5f9] border border-[#1e2c44] transition-colors cursor-pointer text-xs font-semibold"
             >
               {copiedSection === "full" ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
               <span>{copiedSection === "full" ? "Copied SITREP!" : "Copy SITREP"}</span>
             </button>
             <button
               onClick={handleDownloadTxt}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-slate-200 text-black font-bold transition-colors cursor-pointer text-xs"
+              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white font-bold transition-all cursor-pointer text-xs shadow-sm shadow-sky-950/40"
             >
               <Download className="w-3.5 h-3.5" />
               <span>Download (.txt)</span>
@@ -212,25 +212,25 @@ Verified by Google Gemini AI Multi-Hazard Engine.
         </div>
 
         {/* Body Preview */}
-        <div className="p-4 overflow-y-auto space-y-4 flex-1 bg-[#111215] font-mono text-xs text-slate-300 custom-scrollbar">
+        <div className="p-4 overflow-y-auto space-y-4 flex-1 bg-[#0b1320] font-mono text-xs text-[#cbd5e1] custom-scrollbar">
           {/* Satellite SMS Packet Feature */}
-          <div className="p-3.5 rounded-xl bg-[#18191E] border border-white/[0.08] space-y-1.5 font-sans">
+          <div className="p-3.5 rounded-xl bg-[#111c2e] border border-[#1e2c44] space-y-1.5 font-sans">
             <div className="flex items-center justify-between text-xs">
-              <span className="font-bold text-white flex items-center gap-1.5">
-                <Radio className="w-3.5 h-3.5 text-slate-400" />
+              <span className="font-bold text-[#f1f5f9] flex items-center gap-1.5">
+                <Radio className="w-3.5 h-3.5 text-[#38bdf8]" />
                 Low-Bandwidth Satellite SMS Packet (Garmin inReach / Iridium / VHF)
               </span>
-              <span className="text-[10px] font-mono text-slate-500">
+              <span className="text-[10px] font-mono text-[#8fa0b5]">
                 {satelliteSmsPacket.length} / 160 chars
               </span>
             </div>
-            <div className="p-2.5 rounded-lg bg-[#111215] border border-white/[0.06] font-mono text-xs text-emerald-300 select-all">
+            <div className="p-2.5 rounded-lg bg-[#0b1320] border border-[#1c2536] font-mono text-xs text-emerald-300 select-all">
               {satelliteSmsPacket}
             </div>
             <div className="flex justify-end pt-1">
               <button
                 onClick={() => handleCopy(satelliteSmsPacket, "sms")}
-                className="text-[11px] text-slate-400 hover:text-white flex items-center gap-1 cursor-pointer transition-colors"
+                className="text-[11px] text-[#8fa0b5] hover:text-[#f1f5f9] flex items-center gap-1 cursor-pointer transition-colors"
               >
                 {copiedSection === "sms" ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
                 <span>{copiedSection === "sms" ? "Copied SMS Packet!" : "Copy SMS Packet"}</span>
@@ -239,7 +239,7 @@ Verified by Google Gemini AI Multi-Hazard Engine.
           </div>
 
           {/* Full SITREP Document Preview */}
-          <div className="p-4 rounded-xl bg-[#18191E] border border-white/[0.08] overflow-x-auto whitespace-pre leading-relaxed select-text text-[11px] text-slate-300 font-mono">
+          <div className="p-4 rounded-xl bg-[#111c2e] border border-[#1e2c44] overflow-x-auto whitespace-pre leading-relaxed select-text text-[11px] text-[#cbd5e1] font-mono custom-scrollbar">
             {fullSitrepText}
           </div>
         </div>

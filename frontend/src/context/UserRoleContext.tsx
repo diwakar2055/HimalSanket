@@ -97,6 +97,9 @@ interface UserRoleContextType {
   broadcastAdvisory: (advisory: Omit<SystemAdvisory, "id" | "issuedAt">) => SystemAdvisory;
   clearResolvedBeacons: () => void;
   resetBeaconsToDefault: () => void;
+  activeCivilianBeaconId: string | number | null;
+  setActiveCivilianBeaconId: (id: string | number | null) => void;
+  cancelSOS: (beaconId?: string | number) => void;
 }
 
 function getDistanceMeters(lat1: number, lon1: number, lat2: number, lon2: number): number {
@@ -343,6 +346,25 @@ export function UserRoleProvider({ children }: { children: React.ReactNode }) {
     }
   });
 
+  const [activeCivilianBeaconId, setActiveCivilianBeaconIdState] = useState<string | number | null>(() => {
+    try {
+      return localStorage.getItem("himalsanket_active_civilian_beacon_id") || "sos-101";
+    } catch (_) {
+      return "sos-101";
+    }
+  });
+
+  const setActiveCivilianBeaconId = useCallback((id: string | number | null) => {
+    setActiveCivilianBeaconIdState(id);
+    try {
+      if (id) {
+        localStorage.setItem("himalsanket_active_civilian_beacon_id", String(id));
+      } else {
+        localStorage.removeItem("himalsanket_active_civilian_beacon_id");
+      }
+    } catch (_) {}
+  }, []);
+
   // Persist state to localStorage
   useEffect(() => {
     try {
@@ -433,6 +455,9 @@ export function UserRoleProvider({ children }: { children: React.ReactNode }) {
 
   const setCurrentRole = useCallback((role: UserRole) => {
     setCurrentRoleState(role);
+    try {
+      localStorage.setItem("himalsanket_user_role", role);
+    } catch (_) {}
   }, []);
 
   const broadcastSOS = useCallback(
@@ -445,6 +470,7 @@ export function UserRoleProvider({ children }: { children: React.ReactNode }) {
         status: "pending",
         civilianId: userProfile.id,
       };
+      setActiveCivilianBeaconId(newBeacon.id);
       setDistressBeacons((prev) => {
         if (
           prev.length > 0 &&
@@ -457,7 +483,7 @@ export function UserRoleProvider({ children }: { children: React.ReactNode }) {
       });
       return newBeacon;
     },
-    []
+    [setActiveCivilianBeaconId]
   );
 
   const updateBeaconStatus = useCallback(
@@ -471,7 +497,7 @@ export function UserRoleProvider({ children }: { children: React.ReactNode }) {
 
   const dispatchRescueTeam = useCallback(
     (beaconId: string | number, customTeamName?: string, customAgency?: string): DispatchedRescueTeam | null => {
-      const beacon = distressBeacons.find((b) => b.id === beaconId);
+      const beacon = distressBeacons.find((b) => String(b.id) === String(beaconId));
       if (!beacon) return null;
 
       const corridorBases =
@@ -508,6 +534,10 @@ export function UserRoleProvider({ children }: { children: React.ReactNode }) {
       const callSign = `SAR-${agency.substring(0, 3).toUpperCase()}-${Math.floor(Math.random() * 8 + 1)}`;
       const totalDur = 75; // 75 seconds for realistic, visually dynamic flight
 
+      const civilianId =
+        beacon.civilianId ||
+        (String(beacon.id) === String(activeCivilianBeaconId) ? PRESET_PROFILES.civilian.id : PRESET_PROFILES.civilian.id);
+
       const newTeam: DispatchedRescueTeam = {
         id: `team-${Date.now()}`,
         name: teamName,
@@ -516,7 +546,7 @@ export function UserRoleProvider({ children }: { children: React.ReactNode }) {
         callSign,
         targetBeaconId: beacon.id,
         targetCivilianName: beacon.name,
-        civilianId: beacon.civilianId || (currentRole === "civilian" ? PRESET_PROFILES.civilian.id : undefined),
+        civilianId,
         startBaseName: base.name,
         startPosition: { lat: base.lat, lng: base.lng },
         targetPosition: { lat: beacon.lat, lng: beacon.lng },
@@ -537,18 +567,29 @@ export function UserRoleProvider({ children }: { children: React.ReactNode }) {
       updateBeaconStatus(beacon.id, "dispatched", newTeam.name);
 
       setDispatchedTeams((prev) => {
-        const remaining = prev.filter((t) => t.targetBeaconId !== beacon.id);
+        const remaining = prev.filter((t) => String(t.targetBeaconId) !== String(beacon.id));
         return [newTeam, ...remaining];
       });
 
       return newTeam;
     },
-    [distressBeacons, updateBeaconStatus, currentRole]
+    [distressBeacons, updateBeaconStatus, activeCivilianBeaconId]
   );
 
   const cancelRescueTeam = useCallback((teamId: string) => {
     setDispatchedTeams((prev) => prev.filter((t) => t.id !== teamId));
   }, []);
+
+  const cancelSOS = useCallback((beaconId?: string | number) => {
+    const idToCancel = beaconId || activeCivilianBeaconId;
+    if (idToCancel) {
+      setDistressBeacons((prev) => prev.filter((b) => String(b.id) !== String(idToCancel)));
+      setDispatchedTeams((prev) => prev.filter((t) => String(t.targetBeaconId) !== String(idToCancel)));
+      if (String(activeCivilianBeaconId) === String(idToCancel)) {
+        setActiveCivilianBeaconId(null);
+      }
+    }
+  }, [activeCivilianBeaconId, setActiveCivilianBeaconId]);
 
   const resetRescueTeams = useCallback(() => {
     setDispatchedTeams(INITIAL_DISPATCHED_TEAMS);
@@ -590,13 +631,15 @@ export function UserRoleProvider({ children }: { children: React.ReactNode }) {
   const resetBeaconsToDefault = useCallback(() => {
     setDistressBeacons(INITIAL_DISTRESS_BEACONS);
     setDispatchedTeams(INITIAL_DISPATCHED_TEAMS);
+    setActiveCivilianBeaconId("sos-101");
     try {
       localStorage.setItem("himalsanket_distress_beacons", JSON.stringify(INITIAL_DISTRESS_BEACONS));
       localStorage.setItem("himalsanket_dispatched_teams", JSON.stringify(INITIAL_DISPATCHED_TEAMS));
+      localStorage.setItem("himalsanket_active_civilian_beacon_id", "sos-101");
     } catch (_) {}
-  }, []);
+  }, [setActiveCivilianBeaconId]);
 
-  const userProfile = PRESET_PROFILES[currentRole];
+  const userProfile: UserProfile = PRESET_PROFILES[currentRole];
 
   return (
     <UserRoleContext.Provider
@@ -617,6 +660,9 @@ export function UserRoleProvider({ children }: { children: React.ReactNode }) {
         broadcastAdvisory,
         clearResolvedBeacons,
         resetBeaconsToDefault,
+        activeCivilianBeaconId,
+        setActiveCivilianBeaconId,
+        cancelSOS,
       }}
     >
       {children}

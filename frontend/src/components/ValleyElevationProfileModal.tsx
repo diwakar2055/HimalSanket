@@ -315,7 +315,7 @@ export function ValleyElevationProfileModal({
               step="0.5"
               value={surge}
               onChange={(e) => setSurge(parseFloat(e.target.value))}
-              className="w-40 sm:w-56 accent-cyan-400 cursor-pointer h-2 bg-[#16233F] rounded-lg"
+              className="w-40 sm:w-56 accent-cyan-400 cursor-pointer h-2 bg-[#16233F] rounded-lg touch-none"
             />
             <span className="font-mono font-bold text-cyan-300 px-2 py-0.5 rounded-md bg-[#16233F] border border-[#2A3B5E] tabular-nums">
               +{surge.toFixed(1)} m
@@ -330,6 +330,11 @@ export function ValleyElevationProfileModal({
               </span>
             </div>
           )}
+        </div>
+
+        {/* Mobile Horizontal Swipe Guidance Hint */}
+        <div className="sm:hidden flex items-center justify-center gap-1.5 py-1 px-3 bg-[#050B14] border-b border-[#1E293B] text-[10px] text-slate-400 font-mono select-none">
+          <span>↔ Swipe horizontally to inspect 800px profile</span>
         </div>
 
         {/* SVG Longitudinal Profile with Dynamic Water Rise */}

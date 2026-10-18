@@ -62,9 +62,9 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
           </span>
         </div>
 
-        {/* Clean Monospace Subtitle */}
+        {/* Clean Monospace Subtitle (Hidden on small screens for compact header) */}
         {showSubtitle && (
-          <div className={`mt-0.5 font-mono text-zinc-400 ${subtitleSize} tracking-[0.16em] uppercase font-medium leading-none`}>
+          <div className={`hidden sm:block mt-0.5 font-mono text-zinc-400 ${subtitleSize} tracking-[0.16em] uppercase font-medium leading-none`}>
             EARLY WARNING RADAR
           </div>
         )}

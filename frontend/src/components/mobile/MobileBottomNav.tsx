@@ -30,7 +30,7 @@ export function MobileBottomNav({
   const handleTabClick = (tab: "safety" | "map" | "rescue" | "admin") => {
     playConfirmationBeep();
     onChangeTab(tab);
-    if (tab === "safety" && currentRole !== "civilian") {
+    if ((tab === "safety" || tab === "map") && currentRole !== "civilian") {
       setCurrentRole("civilian");
     } else if (tab === "rescue" && currentRole !== "rescuer") {
       setCurrentRole("rescuer");

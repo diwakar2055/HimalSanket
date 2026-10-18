@@ -56,3 +56,6 @@ desktop.ini
 # Video Production Artifacts
 video_production/temp_acts/
 *.mp4
+
+# Temporary Scratch Scripts
+scratch/

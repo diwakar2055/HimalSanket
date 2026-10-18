@@ -142,16 +142,16 @@ export function TimesfmForecastChart({
   const isCriticalSurge = forecast.exceedanceProb >= 0.75 || forecast.projectedTotal >= rainThreshold;
 
   return (
-    <div className="w-full bg-[#18191E] rounded-2xl border border-white/[0.08] p-4 text-slate-200 select-none font-sans">
+    <div className="w-full bg-[#111c2e] rounded-2xl border border-[#1e2c44] p-4 text-[#f1f5f9] select-none font-sans">
       {/* Header */}
-      <div className="flex items-center justify-between flex-wrap gap-2 pb-3 border-b border-white/[0.08]">
+      <div className="flex items-center justify-between flex-wrap gap-2 pb-3 border-b border-[#1c2536]">
         <div className="flex items-center gap-2.5">
-          <div className="p-2 rounded-xl bg-white/[0.05] text-slate-200 border border-white/[0.08]">
-            <TrendingUp className="w-4 h-4 text-slate-300" />
+          <div className="p-2 rounded-xl bg-[#15233a] text-[#38bdf8] border border-[#1e2c44]">
+            <TrendingUp className="w-4 h-4 text-[#38bdf8]" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h4 className="text-xs font-bold text-white tracking-wide uppercase font-mono">
+              <h4 className="text-xs font-bold text-[#f1f5f9] tracking-wide uppercase font-mono">
                 Google TimesFM Hydrological Forecast
               </h4>
               {isLoading ? (
@@ -285,7 +285,7 @@ export function TimesfmForecastChart({
                 cy={cy}
                 r={hoverIndex === i ? 4.5 : 3}
                 fill={isCriticalSurge ? "#EF4444" : "#F59E0B"}
-                stroke="#18191E"
+                stroke="#111c2e"
                 strokeWidth={1.5}
                 className="transition-all cursor-pointer"
                 onMouseEnter={() => setHoverIndex(i)}
@@ -307,14 +307,14 @@ export function TimesfmForecastChart({
 
         {/* Hover Tooltip */}
         {hoverIndex !== null && chartData[hoverIndex] && (
-          <div className="absolute top-2 right-2 bg-[#18191E] border border-white/20 text-white text-[10px] px-2.5 py-1 rounded-xl shadow-2xl pointer-events-none font-mono">
+          <div className="absolute top-2 right-2 bg-[#0b1320] border border-[#1e2c44] text-[#f1f5f9] text-[10px] px-2.5 py-1 rounded-xl shadow-2xl pointer-events-none font-mono">
             <b>{chartData[hoverIndex].isPast ? "Observed Gauge" : "TimesFM Projected"}</b>: {chartData[hoverIndex].value} mm/h ({chartData[hoverIndex].hour})
           </div>
         )}
       </div>
 
       {/* Legend & Advice */}
-      <div className="mt-3 pt-2.5 border-t border-white/[0.08] flex items-center justify-between text-[11px] text-slate-400 flex-wrap gap-2 font-mono">
+      <div className="mt-3 pt-2.5 border-t border-[#1c2536] flex items-center justify-between text-[11px] text-[#8fa0b5] flex-wrap gap-2 font-mono">
         <div className="flex items-center gap-3">
           <span className="flex items-center gap-1.5">
             <span className="w-2.5 h-2.5 rounded bg-slate-400 inline-block" /> Past 12h Rain Rate
@@ -326,7 +326,7 @@ export function TimesfmForecastChart({
             <span className="w-2.5 h-2.5 rounded bg-white/[0.1] border border-white/20 inline-block" /> 90% CI Envelope
           </span>
         </div>
-        <div className="text-[10px] text-slate-400 font-mono">
+        <div className="text-[10px] text-[#8fa0b5] font-mono">
           Google Cloud Vertex AI • {forecast.engine}
         </div>
       </div>

@@ -99,9 +99,7 @@ export async function evaluateOrchestratedRisk(
 ): Promise<OrchestratedAssessmentResponse> {
   const response = await fetch(`${RISK_ENGINE_API_BASE}/orchestrate`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(input),
   });
 

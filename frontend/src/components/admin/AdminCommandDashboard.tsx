@@ -19,12 +19,21 @@ import {
   Plane,
   X,
   Sparkles,
+  Compass,
 } from "lucide-react";
 import { HelicopterIcon } from "../common/HelicopterIcon";
-import { SentinelLakeModal } from "../SentinelLakeModal";
-import { TimesfmForecastChart } from "../TimesfmForecastChart";
-import { ValleyElevationProfileModal } from "../ValleyElevationProfileModal";
-import { SitrepExportModal } from "../SitrepExportModal";
+const SentinelLakeModal = React.lazy(() =>
+  import("../SentinelLakeModal").then((m) => ({ default: m.SentinelLakeModal }))
+);
+const TimesfmForecastChart = React.lazy(() =>
+  import("../TimesfmForecastChart").then((m) => ({ default: m.TimesfmForecastChart }))
+);
+const ValleyElevationProfileModal = React.lazy(() =>
+  import("../ValleyElevationProfileModal").then((m) => ({ default: m.ValleyElevationProfileModal }))
+);
+const SitrepExportModal = React.lazy(() =>
+  import("../SitrepExportModal").then((m) => ({ default: m.SitrepExportModal }))
+);
 
 interface AdminCommandDashboardProps {
   corridors: any[];
@@ -68,6 +77,7 @@ export function AdminCommandDashboard({
   const [isTimesfmModalOpen, setIsTimesfmModalOpen] = useState(false);
   const [isElevationModalOpen, setIsElevationModalOpen] = useState(false);
   const [isSitrepModalOpen, setIsSitrepModalOpen] = useState(false);
+  const [mobileTab, setMobileTab] = useState<"map" | "operations">("map");
 
   const selectedCorridor = useMemo(() => {
     const config = CORRIDOR_CONFIGS[selectedId] || CORRIDOR_CONFIGS.langtang;
@@ -84,19 +94,23 @@ export function AdminCommandDashboard({
 
   const corridorLake = useMemo(() => {
     return (
-      CORRIDOR_SENTINEL_LAKES[selectedId] ||
-      CORRIDOR_SENTINEL_LAKES.langtang || {
-        lake_name: `${selectedCorridor.name} Glacial Lake`,
-        elevation_m: 4950,
+      CORRIDOR_SENTINEL_LAKES[selectedId] || {
+        lakeId: `${selectedId}_lake`,
+        lakeName: `${selectedCorridor.name} Monitored Glacial Lake`,
+        corridorId: selectedId,
+        elevationM: selectedCorridor.elevation || 4200,
         region: selectedCorridor.region,
-        gps: selectedCorridor.gps,
-        baseline_date: "2026-08-05",
-        current_date: "2026-08-25",
-        baseline_area_km2: 0.88,
-        current_area_km2: 1.01,
-        area_change_pct: 14.8,
+        gps: selectedCorridor.gps || `${selectedCorridor.center?.lat.toFixed(4) || "28.2140"}° N, ${selectedCorridor.center?.lng.toFixed(4) || "85.4950"}° E`,
+        center: selectedCorridor.center || { lat: 28.2140, lng: 85.4950 },
+        baselineDate: "2026-08-05",
+        currentDate: "2026-08-25",
+        baselineAreaKm2: 0.50,
+        currentAreaKm2: 0.52,
+        areaChangePct: 4.0,
         sensor: "Sentinel-2 MSI Level-2A",
-        water_mask_status: "EXPANDING RAPIDLY",
+        bandRatio: "B03 (Green) / B08 (Near-Infrared NDWI > 0.30)",
+        waterMaskStatus: "STABLE",
+        description: `Glacial lake monitoring station for ${selectedCorridor.name}.`,
       }
     );
   }, [selectedId, selectedCorridor]);
@@ -170,10 +184,10 @@ export function AdminCommandDashboard({
   return (
     <div className="w-full h-full flex flex-col min-h-0 bg-[#0b1320] text-[#f1f5f9] overflow-hidden font-sans">
       {/* 1. TOP EXECUTIVE 5-METRIC HEALTH CARDS */}
-      <div className="px-4 py-3 bg-[#0b1320] border-b border-[#1c2536] shrink-0">
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5 sm:gap-3">
+      <div className="px-3 sm:px-4 py-2.5 sm:py-3 bg-[#0b1320] border-b border-[#1c2536] shrink-0">
+        <div className="flex sm:grid sm:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-3 overflow-x-auto sm:overflow-visible pb-1 sm:pb-0 custom-scrollbar">
           {/* Metric 1: Fused Hazard Score */}
-          <div className="p-3.5 rounded-xl bg-[#111c2e] border border-[#1e2c44] flex items-center justify-between shadow-sm">
+          <div className="p-3.5 rounded-xl bg-[#111c2e] border border-[#1e2c44] flex items-center justify-between shadow-sm min-w-[160px] sm:min-w-0 shrink-0 sm:shrink">
             <div>
               <span className="text-[11px] font-semibold text-[#8fa0b5] uppercase tracking-wider block">
                 Fused Risk Index
@@ -208,7 +222,7 @@ export function AdminCommandDashboard({
             }}
             role="button"
             tabIndex={0}
-            className="p-3.5 rounded-xl bg-[#111c2e] hover:bg-[#14233a] border border-[#1e2c44] hover:border-[#38bdf8]/60 flex items-center justify-between shadow-sm cursor-pointer transition-all group"
+            className="p-3.5 rounded-xl bg-[#111c2e] hover:bg-[#14233a] border border-[#1e2c44] hover:border-[#38bdf8]/60 flex items-center justify-between shadow-sm cursor-pointer transition-all group min-w-[160px] sm:min-w-0 shrink-0 sm:shrink"
             title="Click to view Google TimesFM 24h Predictive Precipitation Forecast"
           >
             <div>
@@ -240,7 +254,7 @@ export function AdminCommandDashboard({
             }}
             role="button"
             tabIndex={0}
-            className="p-3.5 rounded-xl bg-[#111c2e] hover:bg-[#14233a] border border-[#1e2c44] hover:border-emerald-500/60 flex items-center justify-between shadow-sm cursor-pointer transition-all group"
+            className="p-3.5 rounded-xl bg-[#111c2e] hover:bg-[#14233a] border border-[#1e2c44] hover:border-emerald-500/60 flex items-center justify-between shadow-sm cursor-pointer transition-all group min-w-[160px] sm:min-w-0 shrink-0 sm:shrink"
             title="Click to inspect Sentinel-2 Multispectral Split Satellite View"
           >
             <div>
@@ -263,7 +277,7 @@ export function AdminCommandDashboard({
           </div>
 
           {/* Metric 4: Active SOS Alerts */}
-          <div className="p-3.5 rounded-xl bg-[#111c2e] border border-[#1e2c44] flex items-center justify-between shadow-sm">
+          <div className="p-3.5 rounded-xl bg-[#111c2e] border border-[#1e2c44] flex items-center justify-between shadow-sm min-w-[160px] sm:min-w-0 shrink-0 sm:shrink">
             <div>
               <span className="text-[11px] font-semibold text-[#8fa0b5] uppercase tracking-wider block">
                 Active SOS Alerts
@@ -283,7 +297,7 @@ export function AdminCommandDashboard({
           </div>
 
           {/* Metric 5: Active SAR Fleet Sorties */}
-          <div className="p-3.5 rounded-xl bg-[#111c2e] border border-[#1e2c44] flex items-center justify-between col-span-2 sm:col-span-1 shadow-sm">
+          <div className="p-3.5 rounded-xl bg-[#111c2e] border border-[#1e2c44] flex items-center justify-between shadow-sm min-w-[160px] sm:min-w-0 shrink-0 sm:shrink">
             <div>
               <span className="text-[11px] font-semibold text-[#8fa0b5] uppercase tracking-wider block">
                 Active SAR Fleet
@@ -304,10 +318,46 @@ export function AdminCommandDashboard({
         </div>
       </div>
 
+      {/* Mobile Sub-Navigation View Switcher (Only visible on < lg) */}
+      <div className="lg:hidden flex items-center bg-[#0b1320] p-2 border-b border-[#1c2536] shrink-0 z-20">
+        <div className="flex w-full bg-[#111c2e] p-1 rounded-xl border border-[#1e2c44]">
+          <button
+            onClick={() => {
+              playConfirmationBeep();
+              setMobileTab("map");
+            }}
+            className={`flex-1 py-1.5 text-xs font-semibold rounded-lg transition-colors cursor-pointer flex items-center justify-center gap-1.5 ${
+              mobileTab === "map"
+                ? "bg-[#1c2e4a] text-sky-400 border border-[#2a456c] shadow-sm"
+                : "text-slate-400 hover:text-white"
+            }`}
+          >
+            <Compass className="w-3.5 h-3.5" />
+            <span>Command Map</span>
+          </button>
+          <button
+            onClick={() => {
+              playConfirmationBeep();
+              setMobileTab("operations");
+            }}
+            className={`flex-1 py-1.5 text-xs font-semibold rounded-lg transition-colors cursor-pointer flex items-center justify-center gap-1.5 ${
+              mobileTab === "operations"
+                ? "bg-[#1c2e4a] text-sky-400 border border-[#2a456c] shadow-sm"
+                : "text-slate-400 hover:text-white"
+            }`}
+          >
+            <Sliders className="w-3.5 h-3.5" />
+            <span>Operations & Drills</span>
+          </button>
+        </div>
+      </div>
+
       {/* 2. MAIN WORKSPACE: MAP + CONTROL DRAWER */}
       <div className="flex-1 flex flex-col lg:flex-row min-h-0 overflow-hidden">
         {/* MAP CANVAS */}
-        <div className="flex-1 h-full min-h-[350px] relative bg-[#0b1320]">
+        <div className={`flex-1 h-full min-h-[350px] relative bg-[#0b1320] flex-col ${
+          mobileTab === "map" ? "flex" : "hidden lg:flex"
+        }`}>
           <ModernHazardMap
             corridor={selectedCorridor}
             assets={assets}
@@ -321,7 +371,22 @@ export function AdminCommandDashboard({
         </div>
 
         {/* OPERATIONS SIDEBAR (~380px) */}
-        <aside className="w-full lg:w-[380px] xl:w-[400px] shrink-0 h-full flex flex-col bg-[#0b1320] border-l border-[#1c2738] overflow-y-auto custom-scrollbar">
+        <aside className={`w-full lg:w-[380px] xl:w-[400px] shrink-0 h-full flex-col bg-[#0b1320] border-l border-[#1c2738] overflow-y-auto custom-scrollbar ${
+          mobileTab === "operations" ? "flex" : "hidden lg:flex"
+        }`}>
+          {/* Mobile Back to Map Header Bar */}
+          <div className="lg:hidden p-3 border-b border-[#1c2738] bg-[#0c1524] shrink-0">
+            <button
+              onClick={() => {
+                playConfirmationBeep();
+                setMobileTab("map");
+              }}
+              className="w-full py-2 px-3 rounded-xl bg-[#14233a] hover:bg-[#1c3252] border border-[#234066] text-xs text-[#38bdf8] font-semibold flex items-center justify-center gap-2 cursor-pointer transition-colors"
+            >
+              <Compass className="w-3.5 h-3.5" />
+              <span>Back to Command Map</span>
+            </button>
+          </div>
           {/* HIGH-VALUE MODALS LAUNCHPAD (CRIT-03: SitrepExportModal, ValleyElevationProfileModal, SentinelLakeModal) */}
           <div className="p-4 border-b border-[#1c2738] bg-[#0e1726]/80 space-y-2.5">
             <div className="flex items-center justify-between">
@@ -424,7 +489,7 @@ export function AdminCommandDashboard({
             </div>
 
             {/* Glowing Luminous Slider Track & Capsule Thumb */}
-            <div className="relative w-full h-2.5 rounded-full bg-[#1e293b] border border-[#2b3a4e] flex items-center mt-3">
+            <div className="relative w-full h-2.5 rounded-full bg-[#1e293b] border border-[#2b3a4e] flex items-center mt-3 touch-none select-none">
               {/* Luminous cyan/blue gradient fill with glow aura */}
               <div
                 className="absolute left-0 top-0 bottom-0 rounded-full bg-gradient-to-r from-[#3b82f6]/40 via-[#60a5fa]/75 to-[#93c5fd] shadow-[0_0_14px_rgba(96,165,250,0.65)]"
@@ -445,7 +510,7 @@ export function AdminCommandDashboard({
                 step="0.5"
                 value={waterSurge}
                 onChange={(e) => setWaterSurge(parseFloat(e.target.value))}
-                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10 touch-none"
               />
             </div>
 
@@ -594,52 +659,54 @@ export function AdminCommandDashboard({
         </aside>
       </div>
 
-      {/* MODALS */}
-      {isSentinelLakeModalOpen && (
-        <SentinelLakeModal
-          lake={corridorLake}
-          onClose={() => setIsSentinelLakeModalOpen(false)}
-          language={language}
-        />
-      )}
+      {/* MODALS (Lazy Loaded for Initial Download Optimization) */}
+      <React.Suspense fallback={null}>
+        {isSentinelLakeModalOpen && (
+          <SentinelLakeModal
+            lake={corridorLake}
+            onClose={() => setIsSentinelLakeModalOpen(false)}
+            language={language}
+          />
+        )}
 
-      {isTimesfmModalOpen && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 backdrop-blur-md p-4 animate-in fade-in duration-200">
-          <div className="w-full max-w-4xl max-h-[90vh] min-h-[440px] bg-[#111c2e] border border-white/10 rounded-3xl p-6 overflow-y-auto relative shadow-2xl custom-scrollbar flex flex-col justify-center">
-            <button
-              onClick={() => setIsTimesfmModalOpen(false)}
-              className="absolute top-5 right-5 p-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
-            >
-              <X className="w-5 h-5" />
-            </button>
-            <TimesfmForecastChart
-              corridorId={selectedId}
-              corridorName={selectedCorridor.name}
-              currentRainfall={selectedCorridor.rainfall}
-              rainThreshold={selectedCorridor.rainThreshold || 144}
-              activeScenario={activeScenario}
-            />
+        {isTimesfmModalOpen && (
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 backdrop-blur-md p-4 animate-in fade-in duration-200">
+            <div className="w-full max-w-4xl max-h-[90vh] min-h-[440px] bg-[#0b1320] border border-[#1e2c44] rounded-3xl p-5 sm:p-6 overflow-y-auto relative shadow-2xl custom-scrollbar flex flex-col justify-center">
+              <button
+                onClick={() => setIsTimesfmModalOpen(false)}
+                className="absolute top-5 right-5 p-2 rounded-xl bg-[#111c2e] hover:bg-[#15233a] border border-[#1e2c44] text-[#8fa0b5] hover:text-[#f1f5f9] transition-colors cursor-pointer z-10"
+              >
+                <X className="w-5 h-5" />
+              </button>
+              <TimesfmForecastChart
+                corridorId={selectedId}
+                corridorName={selectedCorridor.name}
+                currentRainfall={selectedCorridor.rainfall}
+                rainThreshold={selectedCorridor.rainThreshold || 144}
+                activeScenario={activeScenario}
+              />
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {isElevationModalOpen && (
-        <ValleyElevationProfileModal
-          corridorId={selectedId}
-          waterSurge={waterSurge}
-          onClose={() => setIsElevationModalOpen(false)}
-        />
-      )}
+        {isElevationModalOpen && (
+          <ValleyElevationProfileModal
+            corridorId={selectedId}
+            waterSurge={waterSurge}
+            onClose={() => setIsElevationModalOpen(false)}
+          />
+        )}
 
-      {isSitrepModalOpen && (
-        <SitrepExportModal
-          corridor={selectedCorridor}
-          risk={selectedRisk}
-          liveData={liveData}
-          waterSurge={waterSurge}
-          onClose={() => setIsSitrepModalOpen(false)}
-        />
-      )}
+        {isSitrepModalOpen && (
+          <SitrepExportModal
+            corridor={selectedCorridor}
+            risk={selectedRisk}
+            liveData={liveData}
+            waterSurge={waterSurge}
+            onClose={() => setIsSitrepModalOpen(false)}
+          />
+        )}
+      </React.Suspense>
     </div>
   );
 }

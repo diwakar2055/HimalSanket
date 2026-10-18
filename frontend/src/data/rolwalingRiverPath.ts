@@ -753,6 +753,7 @@ export const ROLWALING_RIVER_PATH: { lat: number; lng: number }[] = [
   { lat: 27.8197, lng: 86.22653 },
   { lat: 27.81923, lng: 86.22645 },
   { lat: 27.81734, lng: 86.22667 },
+  { lat: 27.81595, lng: 86.22668 },
   { lat: 27.81457, lng: 86.22669 },
   { lat: 27.81383, lng: 86.22656 },
   { lat: 27.81346, lng: 86.22627 },

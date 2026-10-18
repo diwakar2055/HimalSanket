@@ -180,6 +180,7 @@ export const MANASLU_RIVER_PATH: { lat: number; lng: number }[] = [
   { lat: 28.57312, lng: 84.71088 },
   { lat: 28.57228, lng: 84.7137 },
   { lat: 28.57213, lng: 84.71411 },
+  { lat: 28.57132, lng: 84.71642 },
   { lat: 28.57051, lng: 84.71873 },
   { lat: 28.57101, lng: 84.72246 },
   { lat: 28.57092, lng: 84.72401 },

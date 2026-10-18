@@ -52,30 +52,30 @@ export function SentinelLakeModal({
 
   return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 backdrop-blur-md p-4 animate-in fade-in duration-200">
-      <div className="w-full max-w-3xl rounded-3xl border border-white/[0.1] shadow-2xl overflow-hidden flex flex-col max-h-[92vh] bg-[#18191E] text-slate-100 font-sans">
+      <div className="w-full max-w-3xl rounded-3xl border border-[#1e2c44] shadow-2xl overflow-hidden flex flex-col max-h-[92vh] bg-[#0b1320] text-[#f1f5f9] font-sans">
         {/* Modal Header */}
-        <div className="px-6 py-4 flex items-center justify-between border-b border-white/[0.08] bg-[#111215]">
+        <div className="px-6 py-4 flex items-center justify-between border-b border-[#1c2536] bg-[#0b1320]">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-2xl bg-white/[0.06] text-white border border-white/10">
-              <Satellite className="w-5 h-5 text-emerald-400" />
+            <div className="p-2.5 rounded-2xl bg-[#111c2e] text-emerald-400 border border-[#1e2c44]">
+              <Satellite className="w-5 h-5" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h3 className="text-base font-bold text-white">{lakeName}</h3>
-                <span className="text-[10px] px-2 py-0.5 rounded-full font-mono bg-white/[0.08] text-slate-300 border border-white/10 font-bold">
+                <h3 className="text-base font-bold text-[#f1f5f9]">{lakeName}</h3>
+                <span className="text-[10px] px-2 py-0.5 rounded-full font-mono bg-[#111c2e] text-[#8fa0b5] border border-[#1e2c44] font-bold">
                   {elevation}m ASL
                 </span>
               </div>
-              <p className="text-xs text-slate-400 font-mono">
+              <p className="text-xs text-[#8fa0b5] font-mono">
                 {region} • {gps}
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+            className="w-8 h-8 rounded-xl bg-[#111c2e] hover:bg-[#15233a] border border-[#1e2c44] flex items-center justify-center text-[#8fa0b5] hover:text-[#f1f5f9] transition-colors cursor-pointer"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4" />
           </button>
         </div>
 
@@ -184,43 +184,43 @@ export function SentinelLakeModal({
           {/* Dual Observation Telemetry Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
             {/* Baseline */}
-            <div className="p-4 rounded-2xl border border-white/10 bg-[#111215] space-y-1">
-              <div className="text-[10px] font-mono uppercase tracking-wider text-slate-400">
+            <div className="p-4 rounded-2xl border border-[#1e2c44] bg-[#111c2e] space-y-1">
+              <div className="text-[10px] font-mono uppercase tracking-wider text-[#8fa0b5]">
                 Baseline Reference Observation
               </div>
-              <div className="text-xl font-bold font-mono text-white tabular-nums">
+              <div className="text-xl font-bold font-mono text-[#f1f5f9] tabular-nums">
                 {baselineArea} km²
               </div>
-              <div className="text-xs text-slate-400 font-mono">Captured: {baselineDate}</div>
-              <div className="text-[10px] text-slate-500 pt-1">
+              <div className="text-xs text-[#8fa0b5] font-mono">Captured: {baselineDate}</div>
+              <div className="text-[10px] text-[#64748b] pt-1">
                 Dry pre-monsoon equilibrium surface water extent.
               </div>
             </div>
 
             {/* Current */}
-            <div className="p-4 rounded-2xl border border-white/10 bg-[#111215] space-y-1">
-              <div className="text-[10px] font-mono uppercase tracking-wider text-slate-400">
+            <div className="p-4 rounded-2xl border border-[#1e2c44] bg-[#111c2e] space-y-1">
+              <div className="text-[10px] font-mono uppercase tracking-wider text-[#8fa0b5]">
                 Current Rapid Expansion
               </div>
               <div className="text-xl font-bold font-mono text-amber-400 tabular-nums">
                 {currentArea} km²
               </div>
-              <div className="text-xs text-slate-400 font-mono">Captured: {currentDate}</div>
-              <div className="text-[10px] text-slate-500 pt-1">
+              <div className="text-xs text-[#8fa0b5] font-mono">Captured: {currentDate}</div>
+              <div className="text-[10px] text-[#64748b] pt-1">
                 Supraglacial meltwater surging behind unstable moraine wall.
               </div>
             </div>
           </div>
 
           {/* Sensor & Formula Explanation Card */}
-          <div className="p-4 rounded-2xl bg-[#111215] border border-white/10 space-y-2 text-xs">
-            <div className="font-bold uppercase tracking-wider text-[10px] font-mono text-slate-400">
+          <div className="p-4 rounded-2xl bg-[#111c2e] border border-[#1e2c44] space-y-2 text-xs">
+            <div className="font-bold uppercase tracking-wider text-[10px] font-mono text-[#8fa0b5]">
               Remote Sensing Formulation
             </div>
-            <div className="p-2.5 rounded-xl bg-[#18191E] font-mono text-[11px] text-slate-300 border border-white/10">
+            <div className="p-2.5 rounded-xl bg-[#0b1320] font-mono text-[11px] text-[#cbd5e1] border border-[#1c2536]">
               NDWI = (Band 3 [Green] - Band 8 [NIR]) / (Band 3 [Green] + Band 8 [NIR]) &gt; 0.30
             </div>
-            <p className="text-slate-400 text-xs leading-relaxed">
+            <p className="text-[#8fa0b5] text-xs leading-relaxed">
               Pure water absorbs Near-Infrared wavelengths while surrounding rock and snow reflect them.
               Pixels exceeding 0.30 threshold are classified as active water surface to calculate dam breach
               probability.
@@ -229,13 +229,13 @@ export function SentinelLakeModal({
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-3.5 border-t border-white/[0.08] bg-[#111215] flex items-center justify-between text-xs">
-          <span className="text-slate-400 font-mono text-[11px]">
+        <div className="px-6 py-3.5 border-t border-[#1c2536] bg-[#0b1320] flex items-center justify-between text-xs">
+          <span className="text-[#8fa0b5] font-mono text-[11px]">
             Sensor: {sensor} · 10m Pixel Ground Resolution
           </span>
           <button
             onClick={onClose}
-            className="px-4 py-1.5 rounded-xl bg-white hover:bg-slate-200 text-black font-bold transition-all cursor-pointer shadow-sm"
+            className="px-5 py-1.5 rounded-xl bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white font-bold transition-all cursor-pointer shadow-sm shadow-sky-950/40"
           >
             Close
           </button>

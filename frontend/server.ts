@@ -198,10 +198,47 @@ Mountainous terrains in Nepal are susceptible to compound cascading hazards wher
 Let me know if you would like specific details regarding trekking route safety, GLOF arrival timelines, or emergency evacuation coordinates.`;
   }
 
+  // In-Memory Token Bucket Rate Limiter for Gemini AI Chat Quota Protection
+  const chatRateLimits = new Map<string, number[]>();
+  const CHAT_WINDOW_MS = 60_000;
+  const MAX_CHAT_PER_WINDOW = 15; // 15 questions per minute per client
+
+  function checkChatRateLimit(identifier: string): { allowed: boolean; retryAfter: number } {
+    const now = Date.now();
+    const cutoff = now - CHAT_WINDOW_MS;
+    const timestamps = (chatRateLimits.get(identifier) || []).filter((t) => t > cutoff);
+
+    if (timestamps.length >= MAX_CHAT_PER_WINDOW) {
+      const oldest = timestamps[0];
+      const retryAfter = Math.max(1, Math.ceil((oldest + CHAT_WINDOW_MS - now) / 1000));
+      chatRateLimits.set(identifier, timestamps);
+      return { allowed: false, retryAfter };
+    }
+
+    timestamps.push(now);
+    chatRateLimits.set(identifier, timestamps);
+    return { allowed: true, retryAfter: 0 };
+  }
+
   // API Routes
   app.post("/api/gemini/chat", async (req, res) => {
     try {
       reloadEnv();
+
+      // Anti-Bot & Credit Protection Guard
+      const clientIp = (req.headers["x-forwarded-for"] as string) || req.socket.remoteAddress || "client_ip";
+      const authHeader = req.headers.authorization;
+      const rateLimitKey = authHeader ? authHeader.replace(/^Bearer\s+/, "") : String(clientIp);
+
+      const { allowed, retryAfter } = checkChatRateLimit(rateLimitKey);
+      if (!allowed) {
+        return res.status(429).json({
+          reply: `🚨 **Anti-Abuse Credit Protection**: Request rate limit exceeded. To protect Gemini GenAI credits and ensure availability for high-priority emergency rescue operations, please wait **${retryAfter} seconds** before sending another query.`,
+          error: "RATE_LIMIT_EXCEEDED",
+          retryAfter,
+        });
+      }
+
       const { message, history, corridorContext } = req.body;
       const currentApiKey = process.env.GEMINI_API_KEY;
       const isPlaceholder =
@@ -501,12 +538,89 @@ INSTRUCTIONS FOR RESPONDING:
     });
   });
 
-  // Dedicated Geocoding endpoint using separate/dedicated key
+  // In-Memory Quota & Cost Protection Cache with 24h TTL
+  interface CacheEntry<T> {
+    data: T;
+    timestamp: number;
+  }
+
+  class InMemoryCache<T> {
+    private cache = new Map<string, CacheEntry<T>>();
+    private readonly ttlMs: number;
+    private readonly maxEntries: number;
+
+    constructor(ttlMs = 24 * 60 * 60 * 1000, maxEntries = 2000) {
+      this.ttlMs = ttlMs;
+      this.maxEntries = maxEntries;
+    }
+
+    get(key: string): T | null {
+      const entry = this.cache.get(key);
+      if (!entry) return null;
+      if (Date.now() - entry.timestamp > this.ttlMs) {
+        this.cache.delete(key);
+        return null;
+      }
+      return entry.data;
+    }
+
+    set(key: string, data: T): void {
+      if (this.cache.size >= this.maxEntries) {
+        const oldestKey = this.cache.keys().next().value;
+        if (oldestKey) this.cache.delete(oldestKey);
+      }
+      this.cache.set(key, { data, timestamp: Date.now() });
+    }
+  }
+
+  const geocodeCache = new InMemoryCache<any>(60 * 60 * 1000, 2000); // 1-hour TTL
+  const elevationCache = new InMemoryCache<any>(60 * 60 * 1000, 5000); // 1-hour TTL
+
+  // Rate Limiter for Maps Proxy (protects Google Maps Platform quota and prevents bot scraping)
+  const mapsRateLimits = new Map<string, number[]>();
+  const MAPS_WINDOW_MS = 60_000;
+  const MAX_MAPS_PER_WINDOW = 30; // 30 requests per minute per IP
+
+  function checkMapsRateLimit(identifier: string): { allowed: boolean; retryAfter: number } {
+    const now = Date.now();
+    const cutoff = now - MAPS_WINDOW_MS;
+    const timestamps = (mapsRateLimits.get(identifier) || []).filter((t) => t > cutoff);
+
+    if (timestamps.length >= MAX_MAPS_PER_WINDOW) {
+      const oldest = timestamps[0];
+      const retryAfter = Math.max(1, Math.ceil((oldest + MAPS_WINDOW_MS - now) / 1000));
+      mapsRateLimits.set(identifier, timestamps);
+      return { allowed: false, retryAfter };
+    }
+
+    timestamps.push(now);
+    mapsRateLimits.set(identifier, timestamps);
+    return { allowed: true, retryAfter: 0 };
+  }
+
+  // Dedicated Geocoding endpoint using separate/dedicated key with In-Memory Caching & Rate Limiting
   app.get("/api/maps/geocode", async (req, res) => {
     reloadEnv();
-    const address = req.query.address as string;
+    const clientIp = req.headers["x-forwarded-for"] || req.socket.remoteAddress || "anonymous";
+    const { allowed, retryAfter } = checkMapsRateLimit(String(clientIp));
+    if (!allowed) {
+      res.setHeader("Retry-After", retryAfter);
+      return res.status(429).json({
+        error: "RATE_LIMIT_EXCEEDED",
+        message: `Too many geocoding requests. Please wait ${retryAfter} seconds to protect Google Maps quota.`,
+      });
+    }
+
+    const rawAddress = (req.query.address as string) || "";
+    const address = rawAddress.trim().toLowerCase();
     if (!address) {
       return res.status(400).json({ error: "Missing 'address' query parameter" });
+    }
+
+    const cached = geocodeCache.get(address);
+    if (cached) {
+      res.setHeader("X-Cache", "HIT");
+      return res.json(cached);
     }
 
     const key = process.env.GOOGLE_GEOCODING_API_KEY || process.env.VITE_GOOGLE_GEOCODING_API_KEY || process.env.VITE_GOOGLE_MAPS_API_KEY;
@@ -515,20 +629,41 @@ INSTRUCTIONS FOR RESPONDING:
     }
 
     try {
-      const gRes = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(address)}&key=${key}`);
+      const gRes = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(rawAddress)}&key=${key}`);
       const data = await gRes.json();
+      if (data && data.status === "OK") {
+        geocodeCache.set(address, data);
+      }
+      res.setHeader("X-Cache", "MISS");
       res.json(data);
     } catch (err: any) {
       res.status(500).json({ error: err?.message || "Geocoding request failed" });
     }
   });
 
-  // Dedicated Elevation endpoint using separate/dedicated key
+  // Dedicated Elevation endpoint using separate/dedicated key with In-Memory Caching & Rate Limiting
   app.get("/api/maps/elevation", async (req, res) => {
     reloadEnv();
-    const locations = req.query.locations as string;
-    if (!locations) {
+    const clientIp = req.headers["x-forwarded-for"] || req.socket.remoteAddress || "anonymous";
+    const { allowed, retryAfter } = checkMapsRateLimit(String(clientIp));
+    if (!allowed) {
+      res.setHeader("Retry-After", retryAfter);
+      return res.status(429).json({
+        error: "RATE_LIMIT_EXCEEDED",
+        message: `Too many elevation requests. Please wait ${retryAfter} seconds to protect Google Maps quota.`,
+      });
+    }
+
+    const rawLocations = (req.query.locations as string) || "";
+    const locationsKey = rawLocations.trim().replace(/\s+/g, "");
+    if (!locationsKey) {
       return res.status(400).json({ error: "Missing 'locations' query parameter (e.g. lat,lng)" });
+    }
+
+    const cached = elevationCache.get(locationsKey);
+    if (cached) {
+      res.setHeader("X-Cache", "HIT");
+      return res.json(cached);
     }
 
     const key = process.env.GOOGLE_ELEVATION_API_KEY || process.env.VITE_GOOGLE_ELEVATION_API_KEY || process.env.VITE_GOOGLE_MAPS_API_KEY;
@@ -537,8 +672,12 @@ INSTRUCTIONS FOR RESPONDING:
     }
 
     try {
-      const gRes = await fetch(`https://maps.googleapis.com/maps/api/elevation/json?locations=${encodeURIComponent(locations)}&key=${key}`);
+      const gRes = await fetch(`https://maps.googleapis.com/maps/api/elevation/json?locations=${encodeURIComponent(rawLocations)}&key=${key}`);
       const data = await gRes.json();
+      if (data && data.status === "OK") {
+        elevationCache.set(locationsKey, data);
+      }
+      res.setHeader("X-Cache", "MISS");
       res.json(data);
     } catch (err: any) {
       res.status(500).json({ error: err?.message || "Elevation request failed" });

@@ -30,6 +30,7 @@ import {
   Languages,
   Users,
 } from "lucide-react";
+import { MobileBottomNav } from "./components/mobile/MobileBottomNav";
 
 function getDistanceMeters(lat1: number, lon1: number, lat2: number, lon2: number): number {
   const R = 6371e3;
@@ -125,6 +126,7 @@ function MainApp() {
   const [language, setLanguage] = useState<Language>("en");
   const [audioMuted, setAudioMuted] = useState(false);
   const [isCorridorDropdownOpen, setIsCorridorDropdownOpen] = useState(false);
+  const [civilianMobileTab, setCivilianMobileTab] = useState<"shelters" | "map">("shelters");
 
   // Corridors & Telemetry
   const [corridors, setCorridors] = useState<any[]>(INITIAL_CORRIDORS);
@@ -178,33 +180,72 @@ function MainApp() {
     return MAP_ASSETS.filter((a) => a.corridorId === selectedId);
   }, [selectedId]);
 
-  // Distance to hazard calculation
-  const distanceToHazard = useMemo(() => {
-    if (!userPosition) return null;
+  // Distance to river and landslide calculations
+  const { distanceToRiver, distanceToLandslide, distanceToHazard } = useMemo(() => {
+    if (!userPosition) return { distanceToRiver: null, distanceToLandslide: null, distanceToHazard: null };
     const config = CORRIDOR_CONFIGS[selectedId] || CORRIDOR_CONFIGS.langtang;
-    let minD = Infinity;
 
+    let minRiver = Infinity;
     for (const pt of config.riverPath || []) {
       const d = getDistanceMeters(userPosition.lat, userPosition.lng, pt.lat, pt.lng);
-      if (d < minD) minD = d;
+      if (d < minRiver) minRiver = d;
     }
 
+    let minLandslide = Infinity;
     for (const lz of CORRIDOR_LANDSLIDE_ZONES[selectedId] || []) {
       for (const pt of lz.polygon) {
         const d = getDistanceMeters(userPosition.lat, userPosition.lng, pt[0], pt[1]);
-        if (d < minD) minD = d;
+        if (d < minLandslide) minLandslide = d;
       }
     }
 
-    return Math.round(minD);
-  }, [userPosition, selectedId]);
+    const dRiver = minRiver !== Infinity ? Math.round(minRiver) : null;
+    const dLandslide = minLandslide !== Infinity ? Math.round(minLandslide) : null;
 
-  const isHazardActive =
-    (distanceToHazard !== null && distanceToHazard < (150 + waterSurge * 40)) ||
-    waterSurge > 1.5 ||
-    activeScenario === "critical_cascade" ||
-    activeScenario === "cloudburst_spike" ||
-    activeScenario === "glof_lake_expansion";
+    let dHazard = dRiver;
+    if (activeScenario === "seismic_tremor" && dLandslide !== null) {
+      dHazard = dLandslide;
+    } else if (dRiver !== null && dLandslide !== null) {
+      dHazard = Math.min(dRiver, dLandslide);
+    } else {
+      dHazard = dRiver ?? dLandslide;
+    }
+
+    return {
+      distanceToRiver: dRiver,
+      distanceToLandslide: dLandslide,
+      distanceToHazard: dHazard,
+    };
+  }, [userPosition, selectedId, activeScenario]);
+
+  // Authoritative Multi-Hazard Evaluation across all scenarios & trails
+  const isHazardActive = useMemo(() => {
+    // 1. Active drill or compound emergency scenario triggered by Admin
+    const isScenarioDisaster =
+      activeScenario === "critical_cascade" ||
+      activeScenario === "cloudburst_spike" ||
+      activeScenario === "glof_lake_expansion" ||
+      activeScenario === "seismic_tremor";
+
+    // 2. Flood surge inundation threat:
+    // A river at 0m surge is calm and within natural banks (Safe).
+    // Surges >= 0.5m expand laterally into the valley floor.
+    // Major surges >= 1.5m threaten the entire valley floor.
+    const surgeBufferMeters = 25 + waterSurge * 40;
+    const isSurgeThreat =
+      waterSurge >= 1.5 ||
+      (waterSurge >= 0.5 && distanceToRiver !== null && distanceToRiver <= surgeBufferMeters);
+
+    // 3. Landslide & debris chute threat:
+    // Active during heavy rainfall (>90% threshold) or seismic tremor, when user is near steep scarp
+    const isRainfallSaturated = (selectedCorridor.rainfall || 0) >= (selectedCorridor.rainThreshold || 144) * 0.9;
+    const isLandslideThreat =
+      (isScenarioDisaster || isRainfallSaturated) &&
+      distanceToLandslide !== null &&
+      distanceToLandslide < 200;
+
+    return isScenarioDisaster || isSurgeThreat || isLandslideThreat;
+  }, [activeScenario, waterSurge, distanceToRiver, distanceToLandslide, selectedCorridor]);
 
   const geofenceStatus = isHazardActive ? "DANGER" : "SAFE";
 
@@ -324,7 +365,7 @@ function MainApp() {
   };
 
   return (
-    <div className="w-full h-screen flex flex-col bg-[#0b1320] text-[#f1f5f9] antialiased overflow-hidden font-sans select-none">
+    <div className="w-full h-screen h-[100dvh] flex flex-col bg-[#0b1320] text-[#f1f5f9] antialiased overflow-hidden font-sans select-none">
       {/* 1. SIMPLE, MINIMAL & MODERN TOP NAVIGATION HEADER */}
       <header className="px-4 py-2 bg-[#0b1320] border-b border-[#1c2536] flex items-center justify-between gap-3 shrink-0 z-30">
         {/* Left: Brand + Corridor Dropdown (Spans Civilian Sidebar width ~400-420px) */}
@@ -337,9 +378,9 @@ function MainApp() {
               onClick={() => setIsCorridorDropdownOpen((p) => !p)}
               className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#111c2e] hover:bg-[#15233a] border border-[#1e2c44] text-xs font-semibold text-[#f1f5f9] cursor-pointer transition-colors shadow-sm"
             >
-              <Compass className="w-3.5 h-3.5 text-[#8fa0b5]" />
-              <span>{selectedCorridor.name}</span>
-              <ChevronDown className="w-3 h-3 text-[#707c9b]" />
+              <Compass className="w-3.5 h-3.5 text-[#8fa0b5] shrink-0" />
+              <span className="truncate max-w-[100px] sm:max-w-none">{selectedCorridor.name}</span>
+              <ChevronDown className="w-3 h-3 text-[#707c9b] shrink-0" />
             </button>
 
             {isCorridorDropdownOpen && (
@@ -348,8 +389,8 @@ function MainApp() {
                   className="fixed inset-0 z-[9998]"
                   onClick={() => setIsCorridorDropdownOpen(false)}
                 />
-                <div className="absolute right-0 lg:right-0 top-10 w-60 rounded-xl bg-[#111c2e] border border-[#1e2c44] shadow-2xl p-1.5 z-[9999] text-xs space-y-0.5">
-                  <div className="text-[10px] font-mono text-[#8fa0b5] uppercase tracking-wider px-2 py-1">
+                <div className="absolute right-0 lg:right-0 top-10 w-60 max-h-[70vh] overflow-y-auto custom-scrollbar rounded-xl bg-[#111c2e] border border-[#1e2c44] shadow-2xl p-1.5 z-[9999] text-xs space-y-0.5">
+                  <div className="text-[10px] font-mono text-[#8fa0b5] uppercase tracking-wider px-2 py-1 sticky top-0 bg-[#111c2e] z-10">
                     Select Himalayan Corridor
                   </div>
                   {corridors.map((c) => {
@@ -387,28 +428,30 @@ function MainApp() {
           </div>
         </div>
 
-        {/* Center: CLEAN SEGMENTED ROLE CONTROL */}
-        <div className="flex items-center bg-[#111c2e] p-1 rounded-xl border border-[#1c2536]">
+        {/* Center: CLEAN SEGMENTED ROLE CONTROL (Delegated to MobileBottomNav on <1024px) */}
+        <div className="hidden lg:flex items-center bg-[#111c2e] p-1 rounded-xl border border-[#1c2536]">
           <button
             onClick={() => handleSwitchRole("civilian")}
-            className={`px-3 py-1.5 rounded-lg text-xs transition-colors cursor-pointer ${
+            className={`px-2.5 lg:px-3 py-1.5 rounded-lg text-xs transition-colors cursor-pointer ${
               currentRole === "civilian"
                 ? "bg-[#1c2e4a] text-[#38bdf8] font-semibold border border-[#2a456c] shadow-sm"
                 : "text-[#8fa0b5] hover:text-[#f1f5f9] font-medium"
             }`}
           >
-            Civilian / Trekker
+            <span className="hidden lg:inline">Civilian / Trekker</span>
+            <span className="lg:hidden">Trekker</span>
           </button>
 
           <button
             onClick={() => handleSwitchRole("rescuer")}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs transition-colors cursor-pointer ${
+            className={`flex items-center gap-1.5 px-2.5 lg:px-3 py-1.5 rounded-lg text-xs transition-colors cursor-pointer ${
               currentRole === "rescuer"
                 ? "bg-[#1c2e4a] text-[#38bdf8] font-semibold border border-[#2a456c] shadow-sm"
                 : "text-[#8fa0b5] hover:text-[#f1f5f9] font-medium"
             }`}
           >
-            <span>Search & Rescue</span>
+            <span className="hidden lg:inline">Search & Rescue</span>
+            <span className="lg:hidden">SAR</span>
             {distressBeacons.filter((b) => b.status === "pending").length > 0 && (
               <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse" />
             )}
@@ -416,13 +459,14 @@ function MainApp() {
 
           <button
             onClick={() => handleSwitchRole("admin")}
-            className={`px-3 py-1.5 rounded-lg text-xs transition-colors cursor-pointer ${
+            className={`px-2.5 lg:px-3 py-1.5 rounded-lg text-xs transition-colors cursor-pointer ${
               currentRole === "admin"
                 ? "bg-[#1c2e4a] text-[#38bdf8] font-semibold border border-[#2a456c] shadow-sm"
                 : "text-[#8fa0b5] hover:text-[#f1f5f9] font-medium"
             }`}
           >
-            Command Admin
+            <span className="hidden lg:inline">Command Admin</span>
+            <span className="lg:hidden">Admin</span>
           </button>
         </div>
 
@@ -452,7 +496,7 @@ function MainApp() {
           <button
             onClick={() => setAudioMuted((p) => !p)}
             className="p-2 rounded-lg bg-[#121c2d] hover:bg-[#18253a] text-[#8fa0b5] hover:text-[#f1f5f9] border border-[#1e2c44] cursor-pointer transition-colors"
-            title={audioMuted ? "Unmute chimes" : "Mute chimes"}
+            title={audioMuted ? "Unmute audible chimes (Emergency alerts muted)" : "Mute audible chimes (Audible hazard warning active)"}
           >
             {audioMuted ? <VolumeX className="w-3.5 h-3.5 text-[#707c9b]" /> : <Volume2 className="w-3.5 h-3.5 text-[#8fa0b5]" />}
           </button>
@@ -460,7 +504,7 @@ function MainApp() {
       </header>
 
       {/* 2. MAIN PURPOSEFUL ROLE VIEWPORT (100% Focused, Zero Extraneous Clutter) */}
-      <main className="flex-1 flex flex-col min-h-0 relative overflow-hidden bg-[#0b1320]">
+      <main className="flex-1 flex flex-col min-h-0 relative overflow-hidden bg-[#0b1320] pb-16 lg:pb-0">
         {currentRole === "civilian" && (
           <CivilianDashboard
             corridor={selectedCorridor}
@@ -474,6 +518,8 @@ function MainApp() {
             assets={corridorAssets}
             activeScenario={activeScenario}
             waterSurge={waterSurge}
+            mobileTab={civilianMobileTab}
+            onMobileTabChange={setCivilianMobileTab}
           />
         )}
 
@@ -508,6 +554,36 @@ function MainApp() {
           />
         )}
       </main>
+
+      {/* 3. MOBILE BOTTOM THUMB NAVIGATION (< 1024px / < lg) */}
+      <div className="lg:hidden">
+        <MobileBottomNav
+          activeTab={
+            currentRole === "civilian"
+              ? civilianMobileTab === "map"
+                ? "map"
+                : "safety"
+              : currentRole === "rescuer"
+              ? "rescue"
+              : "admin"
+          }
+          onChangeTab={(tab) => {
+            if (tab === "safety") {
+              handleSwitchRole("civilian");
+              setCivilianMobileTab("shelters");
+            } else if (tab === "map") {
+              handleSwitchRole("civilian");
+              setCivilianMobileTab("map");
+            } else if (tab === "rescue") {
+              handleSwitchRole("rescuer");
+            } else if (tab === "admin") {
+              handleSwitchRole("admin");
+            }
+          }}
+          onOpenSos={() => handleTriggerSOS("CRITICAL EMERGENCY BEACON (Mobile 1-Tap SOS)")}
+          pendingSosCount={distressBeacons.filter((b) => b.status === "pending").length}
+        />
+      </div>
     </div>
   );
 }
